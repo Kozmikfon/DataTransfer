@@ -50,6 +50,7 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.treeView2 = new System.Windows.Forms.TreeView();
+            this.label2 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -77,9 +78,9 @@
             this.LblKaynakDatabase.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.LblKaynakDatabase.Location = new System.Drawing.Point(46, 97);
             this.LblKaynakDatabase.Name = "LblKaynakDatabase";
-            this.LblKaynakDatabase.Size = new System.Drawing.Size(79, 18);
+            this.LblKaynakDatabase.Size = new System.Drawing.Size(89, 18);
             this.LblKaynakDatabase.TabIndex = 2;
-            this.LblKaynakDatabase.Text = "Database :";
+            this.LblKaynakDatabase.Text = "Veri Tabanı :";
             // 
             // LblKaynakSutun
             // 
@@ -87,9 +88,9 @@
             this.LblKaynakSutun.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.LblKaynakSutun.Location = new System.Drawing.Point(15, 40);
             this.LblKaynakSutun.Name = "LblKaynakSutun";
-            this.LblKaynakSutun.Size = new System.Drawing.Size(114, 18);
+            this.LblKaynakSutun.Size = new System.Drawing.Size(167, 18);
             this.LblKaynakSutun.TabIndex = 3;
-            this.LblKaynakSutun.Text = "Tablo Sütünları :";
+            this.LblKaynakSutun.Text = "Kaynak Tablo Sütünları :";
             this.LblKaynakSutun.Click += new System.EventHandler(this.LblKaynakSutun_Click);
             // 
             // LblKaynakTablo
@@ -154,9 +155,9 @@
             this.LblHedefSutun.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.LblHedefSutun.Location = new System.Drawing.Point(437, 42);
             this.LblHedefSutun.Name = "LblHedefSutun";
-            this.LblHedefSutun.Size = new System.Drawing.Size(114, 18);
+            this.LblHedefSutun.Size = new System.Drawing.Size(157, 18);
             this.LblHedefSutun.TabIndex = 10;
-            this.LblHedefSutun.Text = "Tablo Sütünları :";
+            this.LblHedefSutun.Text = "Hedef Tablo Sütünları :";
             this.LblHedefSutun.Click += new System.EventHandler(this.label2_Click);
             // 
             // LblHedefDatabase
@@ -165,9 +166,9 @@
             this.LblHedefDatabase.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.LblHedefDatabase.Location = new System.Drawing.Point(580, 97);
             this.LblHedefDatabase.Name = "LblHedefDatabase";
-            this.LblHedefDatabase.Size = new System.Drawing.Size(79, 18);
+            this.LblHedefDatabase.Size = new System.Drawing.Size(89, 18);
             this.LblHedefDatabase.TabIndex = 9;
-            this.LblHedefDatabase.Text = "Database :";
+            this.LblHedefDatabase.Text = "Veri Tabanı :";
             this.LblHedefDatabase.Click += new System.EventHandler(this.label3_Click);
             // 
             // TxtHedefSunucu
@@ -240,6 +241,7 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.BtnDogrula);
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.BtnBaglanti);
@@ -265,6 +267,16 @@
             this.treeView2.Size = new System.Drawing.Size(330, 207);
             this.treeView2.TabIndex = 1;
             this.treeView2.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView2_AfterSelect);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(76, 252);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(41, 15);
+            this.label2.TabIndex = 20;
+            this.label2.Text = "label2";
+            this.label2.Click += new System.EventHandler(this.label2_Click_1);
             // 
             // Form1
             // 
@@ -325,6 +337,7 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.TreeView treeView2;
         private System.Windows.Forms.TreeView treeView1;
+        private System.Windows.Forms.Label label2;
     }
 }
 

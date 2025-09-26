@@ -77,5 +77,10 @@ namespace DataTransfer
         {
 
         }
+
+        private void label2_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }
