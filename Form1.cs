@@ -57,6 +57,7 @@ namespace DataTransfer
 
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
+
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
                 string.IsNullOrWhiteSpace(TxtKullanýcý.Text) ||
@@ -65,23 +66,40 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connectionString = $"Server={TxtboxKaynakSunucu.Text};Database={CmbboxKaynakVeritabani.Text};User Id={TxtKullanýcý.Text};Password={TxtSifre.Text};TrustServerCertificate=True;";
+
+            TestConnectionAsync();
+           
+        }
+        private async void TestConnectionAsync()
+        {
+            
+            string connectionString =
+               $"Server={TxtboxKaynakSunucu.Text};" +
+               $"Database={CmbboxKaynakVeritabani.Text};" +
+               $"User Id={TxtKullanýcý.Text};" +
+               $"Password={TxtSifre.Text};" +
+               $"TrustServerCertificate=True;";
+
             try
             {
                 using (SqlConnection baglanti = new SqlConnection(connectionString))
                 {
-                    baglanti.Open();
+                    await baglanti.OpenAsync();
                     MessageBox.Show("Baðlantý baþarýlý!");
                 }
-                
             }
             catch (Exception ex)
             {
-
-                MessageBox.Show($"Baðlantý baþarýsýz: {ex.Message}");
+                MessageBox.Show($" Baðlantý baþarýsýz:\n{ex.Message}");
             }
-           
+            finally
+            {
+                BtnBaglantiTest.Enabled = true;
+                BtnBaglantiTest.Text = "Baðlantý Testi yapýlýyor";
+            }
+            
         }
+
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {

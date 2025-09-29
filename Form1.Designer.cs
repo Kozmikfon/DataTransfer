@@ -70,7 +70,7 @@
             // 
             BtnBaglantiTest.Location = new Point(351, 21);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
-            BtnBaglantiTest.Size = new Size(118, 34);
+            BtnBaglantiTest.Size = new Size(146, 56);
             BtnBaglantiTest.TabIndex = 0;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
             BtnBaglantiTest.UseVisualStyleBackColor = true;
