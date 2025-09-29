@@ -1,6 +1,6 @@
 ﻿namespace DataTransfer
 {
-    partial class Form1
+    partial class FrmVeriEslestirme
     {
         /// <summary>
         ///  Required designer variable.
@@ -35,48 +35,52 @@
             LblHdfSunucu = new Label();
             LblHdfVeri = new Label();
             LblHdfTablo = new Label();
-            textBox1 = new TextBox();
-            comboBox1 = new ComboBox();
-            comboBox2 = new ComboBox();
-            textBox2 = new TextBox();
-            comboBox3 = new ComboBox();
-            comboBox4 = new ComboBox();
-            BtnVeriAktarim = new Button();
-            button1 = new Button();
-            groupBox1 = new GroupBox();
-            DataGrdvwKaynak = new DataGridView();
+            TxtboxKaynakSunucu = new TextBox();
+            CmbboxKaynakVeritabani = new ComboBox();
+            CmbboxKaynaktablo = new ComboBox();
+            TxtboxHedefSunucu = new TextBox();
+            CmbboxHedefVeriTabani = new ComboBox();
+            CmbboxHedefTablo = new ComboBox();
+            BtnDogrula = new Button();
+            BtnTransferBaslat = new Button();
+            GrbboxKaynak = new GroupBox();
+            TxtSifre = new TextBox();
+            label2 = new Label();
+            TxtKullanıcı = new TextBox();
+            label1 = new Label();
+            GrdKaynak = new DataGridView();
             LblKynkSutun = new Label();
-            BtnKynkKolonEslestir = new Button();
-            groupBox2 = new GroupBox();
-            DataGrdvwHedef = new DataGridView();
+            BtnKynkKolonYukle = new Button();
+            GrbboxHedef = new GroupBox();
+            GrdHedef = new DataGridView();
             LblHdfSutun = new Label();
-            button3 = new Button();
-            groupBox3 = new GroupBox();
-            groupBox4 = new GroupBox();
-            listBox1 = new ListBox();
-            panel1 = new Panel();
-            groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)DataGrdvwKaynak).BeginInit();
-            groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)DataGrdvwHedef).BeginInit();
-            groupBox3.SuspendLayout();
-            groupBox4.SuspendLayout();
+            BtnHedefKolonYukle = new Button();
+            GrbboxButon = new GroupBox();
+            GrbboxEslesmeLog = new GroupBox();
+            LstboxEslesmeLog = new ListBox();
+            GrbboxKaynak.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
+            GrbboxHedef.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)GrdHedef).BeginInit();
+            GrbboxButon.SuspendLayout();
+            GrbboxEslesmeLog.SuspendLayout();
             SuspendLayout();
             // 
             // BtnBaglantiTest
             // 
-            BtnBaglantiTest.Location = new Point(351, 17);
+            BtnBaglantiTest.Location = new Point(351, 21);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
             BtnBaglantiTest.Size = new Size(118, 34);
             BtnBaglantiTest.TabIndex = 0;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
             BtnBaglantiTest.UseVisualStyleBackColor = true;
+            BtnBaglantiTest.Click += BtnBaglantiTest_Click;
             // 
             // LblKynkSunucu
             // 
             LblKynkSunucu.AutoSize = true;
             LblKynkSunucu.Font = new Font("Segoe UI", 11.25F);
-            LblKynkSunucu.Location = new Point(8, 55);
+            LblKynkSunucu.Location = new Point(12, 56);
             LblKynkSunucu.Name = "LblKynkSunucu";
             LblKynkSunucu.Size = new Size(63, 20);
             LblKynkSunucu.TabIndex = 1;
@@ -134,223 +138,258 @@
             LblHdfTablo.TabIndex = 6;
             LblHdfTablo.Text = "Tablo Adı :";
             // 
-            // textBox1
+            // TxtboxKaynakSunucu
             // 
-            textBox1.Location = new Point(136, 55);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(127, 23);
-            textBox1.TabIndex = 7;
+            TxtboxKaynakSunucu.Location = new Point(136, 55);
+            TxtboxKaynakSunucu.Name = "TxtboxKaynakSunucu";
+            TxtboxKaynakSunucu.Size = new Size(127, 23);
+            TxtboxKaynakSunucu.TabIndex = 7;
             // 
-            // comboBox1
+            // CmbboxKaynakVeritabani
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(136, 100);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(127, 23);
-            comboBox1.TabIndex = 8;
+            CmbboxKaynakVeritabani.FormattingEnabled = true;
+            CmbboxKaynakVeritabani.Location = new Point(136, 100);
+            CmbboxKaynakVeritabani.Name = "CmbboxKaynakVeritabani";
+            CmbboxKaynakVeritabani.Size = new Size(127, 23);
+            CmbboxKaynakVeritabani.TabIndex = 8;
             // 
-            // comboBox2
+            // CmbboxKaynaktablo
             // 
-            comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(136, 146);
-            comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(127, 23);
-            comboBox2.TabIndex = 9;
+            CmbboxKaynaktablo.FormattingEnabled = true;
+            CmbboxKaynaktablo.Location = new Point(136, 146);
+            CmbboxKaynaktablo.Name = "CmbboxKaynaktablo";
+            CmbboxKaynaktablo.Size = new Size(127, 23);
+            CmbboxKaynaktablo.TabIndex = 9;
             // 
-            // textBox2
+            // TxtboxHedefSunucu
             // 
-            textBox2.Location = new Point(130, 56);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(129, 23);
-            textBox2.TabIndex = 10;
+            TxtboxHedefSunucu.Location = new Point(130, 56);
+            TxtboxHedefSunucu.Name = "TxtboxHedefSunucu";
+            TxtboxHedefSunucu.Size = new Size(129, 23);
+            TxtboxHedefSunucu.TabIndex = 10;
             // 
-            // comboBox3
+            // CmbboxHedefVeriTabani
             // 
-            comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(130, 100);
-            comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(128, 23);
-            comboBox3.TabIndex = 11;
+            CmbboxHedefVeriTabani.FormattingEnabled = true;
+            CmbboxHedefVeriTabani.Location = new Point(130, 100);
+            CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
+            CmbboxHedefVeriTabani.Size = new Size(128, 23);
+            CmbboxHedefVeriTabani.TabIndex = 11;
             // 
-            // comboBox4
+            // CmbboxHedefTablo
             // 
-            comboBox4.FormattingEnabled = true;
-            comboBox4.Location = new Point(130, 146);
-            comboBox4.Name = "comboBox4";
-            comboBox4.Size = new Size(128, 23);
-            comboBox4.TabIndex = 12;
+            CmbboxHedefTablo.FormattingEnabled = true;
+            CmbboxHedefTablo.Location = new Point(130, 146);
+            CmbboxHedefTablo.Name = "CmbboxHedefTablo";
+            CmbboxHedefTablo.Size = new Size(128, 23);
+            CmbboxHedefTablo.TabIndex = 12;
             // 
-            // BtnVeriAktarim
+            // BtnDogrula
             // 
-            BtnVeriAktarim.Location = new Point(193, 17);
-            BtnVeriAktarim.Name = "BtnVeriAktarim";
-            BtnVeriAktarim.Size = new Size(121, 42);
-            BtnVeriAktarim.TabIndex = 14;
-            BtnVeriAktarim.Text = "Tablo Eşleşmesini Doğrula";
-            BtnVeriAktarim.UseVisualStyleBackColor = true;
-            BtnVeriAktarim.Click += BtnVeriAktarim_Click;
+            BtnDogrula.Location = new Point(193, 17);
+            BtnDogrula.Name = "BtnDogrula";
+            BtnDogrula.Size = new Size(121, 42);
+            BtnDogrula.TabIndex = 14;
+            BtnDogrula.Text = "Tablo Eşleşmesini Doğrula";
+            BtnDogrula.UseVisualStyleBackColor = true;
+            BtnDogrula.Click += BtnVeriAktarim_Click;
             // 
-            // button1
+            // BtnTransferBaslat
             // 
-            button1.Location = new Point(59, 17);
-            button1.Name = "button1";
-            button1.Size = new Size(118, 45);
-            button1.TabIndex = 15;
-            button1.Text = "Veri Transferini Başlat";
-            button1.UseVisualStyleBackColor = true;
+            BtnTransferBaslat.Location = new Point(59, 17);
+            BtnTransferBaslat.Name = "BtnTransferBaslat";
+            BtnTransferBaslat.Size = new Size(118, 45);
+            BtnTransferBaslat.TabIndex = 15;
+            BtnTransferBaslat.Text = "Veri Transferini Başlat";
+            BtnTransferBaslat.UseVisualStyleBackColor = true;
             // 
-            // groupBox1
+            // GrbboxKaynak
             // 
-            groupBox1.Controls.Add(DataGrdvwKaynak);
-            groupBox1.Controls.Add(LblKynkSutun);
-            groupBox1.Controls.Add(BtnKynkKolonEslestir);
-            groupBox1.Controls.Add(LblKynkSunucu);
-            groupBox1.Controls.Add(lblKynkVeri);
-            groupBox1.Controls.Add(LblKynkTablo);
-            groupBox1.Controls.Add(comboBox2);
-            groupBox1.Controls.Add(textBox1);
-            groupBox1.Controls.Add(comboBox1);
-            groupBox1.Dock = DockStyle.Left;
-            groupBox1.Location = new Point(0, 0);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(296, 667);
-            groupBox1.TabIndex = 16;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Kaynak";
+            GrbboxKaynak.Controls.Add(TxtSifre);
+            GrbboxKaynak.Controls.Add(label2);
+            GrbboxKaynak.Controls.Add(TxtKullanıcı);
+            GrbboxKaynak.Controls.Add(label1);
+            GrbboxKaynak.Controls.Add(GrdKaynak);
+            GrbboxKaynak.Controls.Add(LblKynkSutun);
+            GrbboxKaynak.Controls.Add(BtnKynkKolonYukle);
+            GrbboxKaynak.Controls.Add(LblKynkSunucu);
+            GrbboxKaynak.Controls.Add(lblKynkVeri);
+            GrbboxKaynak.Controls.Add(LblKynkTablo);
+            GrbboxKaynak.Controls.Add(CmbboxKaynaktablo);
+            GrbboxKaynak.Controls.Add(TxtboxKaynakSunucu);
+            GrbboxKaynak.Controls.Add(CmbboxKaynakVeritabani);
+            GrbboxKaynak.Dock = DockStyle.Left;
+            GrbboxKaynak.Location = new Point(0, 0);
+            GrbboxKaynak.Name = "GrbboxKaynak";
+            GrbboxKaynak.Size = new Size(296, 667);
+            GrbboxKaynak.TabIndex = 16;
+            GrbboxKaynak.TabStop = false;
+            GrbboxKaynak.Text = "Kaynak";
+            GrbboxKaynak.Enter += GrbboxKaynak_Enter;
             // 
-            // DataGrdvwKaynak
+            // TxtSifre
             // 
-            DataGrdvwKaynak.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            DataGrdvwKaynak.Location = new Point(23, 307);
-            DataGrdvwKaynak.Name = "DataGrdvwKaynak";
-            DataGrdvwKaynak.Size = new Size(240, 174);
-            DataGrdvwKaynak.TabIndex = 19;
+            TxtSifre.Location = new Point(135, 233);
+            TxtSifre.Name = "TxtSifre";
+            TxtSifre.Size = new Size(128, 23);
+            TxtSifre.TabIndex = 23;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            label2.Location = new Point(12, 236);
+            label2.Name = "label2";
+            label2.Size = new Size(46, 20);
+            label2.TabIndex = 22;
+            label2.Text = "Şifre :";
+            // 
+            // TxtKullanıcı
+            // 
+            TxtKullanıcı.Location = new Point(135, 189);
+            TxtKullanıcı.Name = "TxtKullanıcı";
+            TxtKullanıcı.Size = new Size(128, 23);
+            TxtKullanıcı.TabIndex = 21;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            label1.Location = new Point(12, 192);
+            label1.Name = "label1";
+            label1.Size = new Size(99, 20);
+            label1.TabIndex = 20;
+            label1.Text = "Kullanıcı Adı :";
+            // 
+            // GrdKaynak
+            // 
+            GrdKaynak.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            GrdKaynak.Location = new Point(24, 364);
+            GrdKaynak.Name = "GrdKaynak";
+            GrdKaynak.Size = new Size(240, 174);
+            GrdKaynak.TabIndex = 19;
+            GrdKaynak.CellContentClick += GrdKaynak_CellContentClick;
             // 
             // LblKynkSutun
             // 
             LblKynkSutun.AutoSize = true;
-            LblKynkSutun.Location = new Point(23, 276);
+            LblKynkSutun.Location = new Point(24, 345);
             LblKynkSutun.Name = "LblKynkSutun";
             LblKynkSutun.Size = new Size(72, 15);
             LblKynkSutun.TabIndex = 18;
             LblKynkSutun.Text = "datagridvew";
             // 
-            // BtnKynkKolonEslestir
+            // BtnKynkKolonYukle
             // 
-            BtnKynkKolonEslestir.Location = new Point(27, 216);
-            BtnKynkKolonEslestir.Name = "BtnKynkKolonEslestir";
-            BtnKynkKolonEslestir.Size = new Size(216, 29);
-            BtnKynkKolonEslestir.TabIndex = 10;
-            BtnKynkKolonEslestir.Text = "Kolonları Yükle";
-            BtnKynkKolonEslestir.UseVisualStyleBackColor = true;
+            BtnKynkKolonYukle.Location = new Point(37, 296);
+            BtnKynkKolonYukle.Name = "BtnKynkKolonYukle";
+            BtnKynkKolonYukle.Size = new Size(216, 29);
+            BtnKynkKolonYukle.TabIndex = 10;
+            BtnKynkKolonYukle.Text = "Kolonları Yükle";
+            BtnKynkKolonYukle.UseVisualStyleBackColor = true;
+            BtnKynkKolonYukle.Click += BtnKynkKolonYukle_Click;
             // 
-            // groupBox2
+            // GrbboxHedef
             // 
-            groupBox2.Controls.Add(DataGrdvwHedef);
-            groupBox2.Controls.Add(LblHdfSutun);
-            groupBox2.Controls.Add(button3);
-            groupBox2.Controls.Add(comboBox3);
-            groupBox2.Controls.Add(comboBox4);
-            groupBox2.Controls.Add(textBox2);
-            groupBox2.Controls.Add(LblHdfVeri);
-            groupBox2.Controls.Add(LblHdfSunucu);
-            groupBox2.Controls.Add(LblHdfTablo);
-            groupBox2.Dock = DockStyle.Right;
-            groupBox2.Location = new Point(812, 0);
-            groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(296, 667);
-            groupBox2.TabIndex = 17;
-            groupBox2.TabStop = false;
-            groupBox2.Text = "Hedef";
-            groupBox2.Enter += groupBox2_Enter;
+            GrbboxHedef.Controls.Add(GrdHedef);
+            GrbboxHedef.Controls.Add(LblHdfSutun);
+            GrbboxHedef.Controls.Add(BtnHedefKolonYukle);
+            GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
+            GrbboxHedef.Controls.Add(CmbboxHedefTablo);
+            GrbboxHedef.Controls.Add(TxtboxHedefSunucu);
+            GrbboxHedef.Controls.Add(LblHdfVeri);
+            GrbboxHedef.Controls.Add(LblHdfSunucu);
+            GrbboxHedef.Controls.Add(LblHdfTablo);
+            GrbboxHedef.Dock = DockStyle.Right;
+            GrbboxHedef.Location = new Point(812, 0);
+            GrbboxHedef.Name = "GrbboxHedef";
+            GrbboxHedef.Size = new Size(296, 667);
+            GrbboxHedef.TabIndex = 17;
+            GrbboxHedef.TabStop = false;
+            GrbboxHedef.Text = "Hedef";
             // 
-            // DataGrdvwHedef
+            // GrdHedef
             // 
-            DataGrdvwHedef.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            DataGrdvwHedef.Location = new Point(19, 307);
-            DataGrdvwHedef.Name = "DataGrdvwHedef";
-            DataGrdvwHedef.Size = new Size(240, 174);
-            DataGrdvwHedef.TabIndex = 15;
+            GrdHedef.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            GrdHedef.Location = new Point(19, 358);
+            GrdHedef.Name = "GrdHedef";
+            GrdHedef.Size = new Size(240, 174);
+            GrdHedef.TabIndex = 15;
+            GrdHedef.CellContentClick += GrdHedef_CellContentClick;
             // 
             // LblHdfSutun
             // 
             LblHdfSutun.AutoSize = true;
-            LblHdfSutun.Location = new Point(19, 276);
+            LblHdfSutun.Location = new Point(19, 340);
             LblHdfSutun.Name = "LblHdfSutun";
             LblHdfSutun.Size = new Size(75, 15);
             LblHdfSutun.TabIndex = 14;
             LblHdfSutun.Text = "datagirdview";
             // 
-            // button3
+            // BtnHedefKolonYukle
             // 
-            button3.Location = new Point(39, 216);
-            button3.Name = "button3";
-            button3.Size = new Size(219, 26);
-            button3.TabIndex = 13;
-            button3.Text = "Kolonları Yükle";
-            button3.UseVisualStyleBackColor = true;
+            BtnHedefKolonYukle.Location = new Point(39, 216);
+            BtnHedefKolonYukle.Name = "BtnHedefKolonYukle";
+            BtnHedefKolonYukle.Size = new Size(219, 26);
+            BtnHedefKolonYukle.TabIndex = 13;
+            BtnHedefKolonYukle.Text = "Kolonları Yükle";
+            BtnHedefKolonYukle.UseVisualStyleBackColor = true;
             // 
-            // groupBox3
+            // GrbboxButon
             // 
-            groupBox3.Controls.Add(BtnBaglantiTest);
-            groupBox3.Controls.Add(BtnVeriAktarim);
-            groupBox3.Controls.Add(button1);
-            groupBox3.Dock = DockStyle.Bottom;
-            groupBox3.Location = new Point(296, 538);
-            groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(516, 129);
-            groupBox3.TabIndex = 20;
-            groupBox3.TabStop = false;
-            groupBox3.Text = "groupBox3";
+            GrbboxButon.Controls.Add(BtnBaglantiTest);
+            GrbboxButon.Controls.Add(BtnDogrula);
+            GrbboxButon.Controls.Add(BtnTransferBaslat);
+            GrbboxButon.Dock = DockStyle.Bottom;
+            GrbboxButon.Location = new Point(296, 531);
+            GrbboxButon.Name = "GrbboxButon";
+            GrbboxButon.Size = new Size(516, 136);
+            GrbboxButon.TabIndex = 20;
+            GrbboxButon.TabStop = false;
+            GrbboxButon.Text = "groupBox3";
             // 
-            // groupBox4
+            // GrbboxEslesmeLog
             // 
-            groupBox4.Controls.Add(panel1);
-            groupBox4.Controls.Add(listBox1);
-            groupBox4.Dock = DockStyle.Fill;
-            groupBox4.Location = new Point(296, 0);
-            groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(516, 538);
-            groupBox4.TabIndex = 21;
-            groupBox4.TabStop = false;
-            groupBox4.Text = "groupBox4";
+            GrbboxEslesmeLog.Controls.Add(LstboxEslesmeLog);
+            GrbboxEslesmeLog.Dock = DockStyle.Fill;
+            GrbboxEslesmeLog.Location = new Point(296, 0);
+            GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
+            GrbboxEslesmeLog.Size = new Size(516, 531);
+            GrbboxEslesmeLog.TabIndex = 21;
+            GrbboxEslesmeLog.TabStop = false;
+            GrbboxEslesmeLog.Text = "groupBox4";
             // 
-            // listBox1
+            // LstboxEslesmeLog
             // 
-            listBox1.FormattingEnabled = true;
-            listBox1.ItemHeight = 15;
-            listBox1.Location = new Point(71, 22);
-            listBox1.Name = "listBox1";
-            listBox1.Size = new Size(334, 184);
-            listBox1.TabIndex = 0;
+            LstboxEslesmeLog.FormattingEnabled = true;
+            LstboxEslesmeLog.ItemHeight = 15;
+            LstboxEslesmeLog.Location = new Point(39, 31);
+            LstboxEslesmeLog.Name = "LstboxEslesmeLog";
+            LstboxEslesmeLog.Size = new Size(430, 184);
+            LstboxEslesmeLog.TabIndex = 0;
+            LstboxEslesmeLog.SelectedIndexChanged += LstboxEslesmeLog_SelectedIndexChanged;
             // 
-            // panel1
-            // 
-            panel1.Location = new Point(0, 241);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(516, 291);
-            panel1.TabIndex = 1;
-            // 
-            // Form1
+            // FrmVeriEslestirme
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1108, 667);
-            Controls.Add(groupBox4);
-            Controls.Add(groupBox3);
-            Controls.Add(groupBox2);
-            Controls.Add(groupBox1);
-            Name = "Form1";
+            Controls.Add(GrbboxEslesmeLog);
+            Controls.Add(GrbboxButon);
+            Controls.Add(GrbboxHedef);
+            Controls.Add(GrbboxKaynak);
+            Name = "FrmVeriEslestirme";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Veri Aktarımı";
             Load += Form1_Load;
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)DataGrdvwKaynak).EndInit();
-            groupBox2.ResumeLayout(false);
-            groupBox2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)DataGrdvwHedef).EndInit();
-            groupBox3.ResumeLayout(false);
-            groupBox4.ResumeLayout(false);
+            GrbboxKaynak.ResumeLayout(false);
+            GrbboxKaynak.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)GrdKaynak).EndInit();
+            GrbboxHedef.ResumeLayout(false);
+            GrbboxHedef.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)GrdHedef).EndInit();
+            GrbboxButon.ResumeLayout(false);
+            GrbboxEslesmeLog.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -363,25 +402,28 @@
         private Label LblHdfSunucu;
         private Label LblHdfVeri;
         private Label LblHdfTablo;
-        private TextBox textBox1;
-        private ComboBox comboBox1;
-        private ComboBox comboBox2;
-        private TextBox textBox2;
-        private ComboBox comboBox3;
-        private ComboBox comboBox4;
-        private Button BtnVeriAktarim;
-        private Button button1;
-        private GroupBox groupBox1;
-        private GroupBox groupBox2;
-        private Button BtnKynkKolonEslestir;
-        private Button button3;
-        private DataGridView DataGrdvwKaynak;
+        private TextBox TxtboxKaynakSunucu;
+        private ComboBox CmbboxKaynakVeritabani;
+        private ComboBox CmbboxKaynaktablo;
+        private TextBox TxtboxHedefSunucu;
+        private ComboBox CmbboxHedefVeriTabani;
+        private ComboBox CmbboxHedefTablo;
+        private Button BtnDogrula;
+        private Button BtnTransferBaslat;
+        private GroupBox GrbboxKaynak;
+        private GroupBox GrbboxHedef;
+        private Button BtnKynkKolonYukle;
+        private Button BtnHedefKolonYukle;
+        private DataGridView GrdKaynak;
         private Label LblKynkSutun;
-        private DataGridView DataGrdvwHedef;
+        private DataGridView GrdHedef;
         private Label LblHdfSutun;
-        private GroupBox groupBox3;
-        private GroupBox groupBox4;
-        private Panel panel1;
-        private ListBox listBox1;
+        private GroupBox GrbboxButon;
+        private GroupBox GrbboxEslesmeLog;
+        private ListBox LstboxEslesmeLog;
+        private TextBox TxtSifre;
+        private Label label2;
+        private TextBox TxtKullanıcı;
+        private Label label1;
     }
 }
