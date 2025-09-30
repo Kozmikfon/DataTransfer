@@ -57,11 +57,13 @@ namespace DataTransfer
 
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
-
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
                 string.IsNullOrWhiteSpace(TxtKullanýcý.Text) ||
-                string.IsNullOrWhiteSpace(TxtSifre.Text))
+                string.IsNullOrWhiteSpace(TxtSifre.Text) ||
+                string.IsNullOrWhiteSpace(TxtboxHedefSunucu.Text) ||
+                string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
+                //string.IsNullOrWhiteSpace(CmbboxHedefTablo.Text))
             {
                 MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -72,32 +74,48 @@ namespace DataTransfer
         }
         private async void TestConnectionAsync()
         {
-            
-            string connectionString =
-               $"Server={TxtboxKaynakSunucu.Text};" +
-               $"Database={CmbboxKaynakVeritabani.Text};" +
-               $"User Id={TxtKullanýcý.Text};" +
-               $"Password={TxtSifre.Text};" +
+            BtnBaglantiTest.Enabled = false;
+            BtnBaglantiTest.Text = "Baðlantý Testi Yapýlýyor...";
+
+            string kaynakConnection =
+                $"Server={TxtboxKaynakSunucu.Text};" +
+                $"Database={CmbboxKaynakVeritabani.Text};" +
+                $"User Id={TxtKullanýcý.Text};" +
+                $"Password={TxtSifre.Text};" +
+                $"TrustServerCertificate=True;";
+
+            string hedefConnection =
+               $"Server={TxtboxHedefSunucu.Text};" +
+               $"Database={CmbboxHedefVeriTabani.Text};" +              
                $"TrustServerCertificate=True;";
+
 
             try
             {
-                using (SqlConnection baglanti = new SqlConnection(connectionString))
+                
+                using (SqlConnection connKaynak = new SqlConnection(kaynakConnection))
                 {
-                    await baglanti.OpenAsync();
-                    MessageBox.Show("Baðlantý baþarýlý!");
+                    await connKaynak.OpenAsync();
                 }
+
+                
+                using (SqlConnection connHedef = new SqlConnection(hedefConnection))
+                {
+                    await connHedef.OpenAsync();
+                }
+
+                MessageBox.Show("Hem kaynak hem hedef baðlantýsý baþarýlý!");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($" Baðlantý baþarýsýz:\n{ex.Message}");
+                MessageBox.Show($"Baðlantý baþarýsýz:\n{ex.Message}");
             }
             finally
             {
                 BtnBaglantiTest.Enabled = true;
-                BtnBaglantiTest.Text = "Baðlantý Testi yapýlýyor";
+                BtnBaglantiTest.Text = "Baðlantýyý Test Et";
             }
-            
+
         }
 
 

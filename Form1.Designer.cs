@@ -186,7 +186,7 @@
             // 
             // BtnDogrula
             // 
-            BtnDogrula.Location = new Point(193, 17);
+            BtnDogrula.Location = new Point(195, 35);
             BtnDogrula.Name = "BtnDogrula";
             BtnDogrula.Size = new Size(121, 42);
             BtnDogrula.TabIndex = 14;
@@ -196,7 +196,7 @@
             // 
             // BtnTransferBaslat
             // 
-            BtnTransferBaslat.Location = new Point(59, 17);
+            BtnTransferBaslat.Location = new Point(39, 34);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(118, 45);
             BtnTransferBaslat.TabIndex = 15;
