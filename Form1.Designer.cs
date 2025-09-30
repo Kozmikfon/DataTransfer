@@ -44,6 +44,7 @@
             BtnDogrula = new Button();
             BtnTransferBaslat = new Button();
             GrbboxKaynak = new GroupBox();
+            button1 = new Button();
             TxtSifre = new TextBox();
             label2 = new Label();
             TxtKullanıcı = new TextBox();
@@ -175,7 +176,7 @@
             CmbboxHedefVeriTabani.FormattingEnabled = true;
             CmbboxHedefVeriTabani.Location = new Point(130, 100);
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
-            CmbboxHedefVeriTabani.Size = new Size(128, 23);
+            CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
             // 
             // CmbboxHedefTablo
@@ -183,7 +184,7 @@
             CmbboxHedefTablo.FormattingEnabled = true;
             CmbboxHedefTablo.Location = new Point(130, 146);
             CmbboxHedefTablo.Name = "CmbboxHedefTablo";
-            CmbboxHedefTablo.Size = new Size(128, 23);
+            CmbboxHedefTablo.Size = new Size(129, 23);
             CmbboxHedefTablo.TabIndex = 12;
             // 
             // BtnDogrula
@@ -207,6 +208,7 @@
             // 
             // GrbboxKaynak
             // 
+            GrbboxKaynak.Controls.Add(button1);
             GrbboxKaynak.Controls.Add(TxtSifre);
             GrbboxKaynak.Controls.Add(label2);
             GrbboxKaynak.Controls.Add(TxtKullanıcı);
@@ -223,11 +225,21 @@
             GrbboxKaynak.Dock = DockStyle.Left;
             GrbboxKaynak.Location = new Point(0, 0);
             GrbboxKaynak.Name = "GrbboxKaynak";
-            GrbboxKaynak.Size = new Size(489, 667);
+            GrbboxKaynak.Size = new Size(477, 667);
             GrbboxKaynak.TabIndex = 16;
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
             GrbboxKaynak.Enter += GrbboxKaynak_Enter;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(333, 53);
+            button1.Name = "button1";
+            button1.Size = new Size(102, 23);
+            button1.TabIndex = 24;
+            button1.Text = "Veritabanı getir";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // TxtSifre
             // 
@@ -303,9 +315,9 @@
             GrbboxHedef.Controls.Add(LblHdfSunucu);
             GrbboxHedef.Controls.Add(LblHdfTablo);
             GrbboxHedef.Dock = DockStyle.Right;
-            GrbboxHedef.Location = new Point(802, 0);
+            GrbboxHedef.Location = new Point(793, 0);
             GrbboxHedef.Name = "GrbboxHedef";
-            GrbboxHedef.Size = new Size(306, 667);
+            GrbboxHedef.Size = new Size(315, 667);
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
@@ -344,9 +356,9 @@
             GrbboxButon.Controls.Add(BtnDogrula);
             GrbboxButon.Controls.Add(BtnTransferBaslat);
             GrbboxButon.Dock = DockStyle.Top;
-            GrbboxButon.Location = new Point(489, 0);
+            GrbboxButon.Location = new Point(477, 0);
             GrbboxButon.Name = "GrbboxButon";
-            GrbboxButon.Size = new Size(313, 224);
+            GrbboxButon.Size = new Size(316, 232);
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
@@ -354,9 +366,9 @@
             // 
             GrbboxEslesmeLog.Controls.Add(LstboxEslesmeLog);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
-            GrbboxEslesmeLog.Location = new Point(489, 216);
+            GrbboxEslesmeLog.Location = new Point(477, 233);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
-            GrbboxEslesmeLog.Size = new Size(313, 451);
+            GrbboxEslesmeLog.Size = new Size(316, 434);
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
@@ -427,5 +439,6 @@
         private Label label2;
         private TextBox TxtKullanıcı;
         private Label label1;
+        private Button button1;
     }
 }

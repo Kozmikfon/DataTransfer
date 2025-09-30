@@ -11,7 +11,7 @@ namespace DataTransfer
         {
 
             InitializeComponent();
-            
+
         }
 
         private void LblHdfVeri_Click(object sender, EventArgs e)
@@ -36,7 +36,7 @@ namespace DataTransfer
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+
         }
 
 
@@ -216,7 +216,7 @@ namespace DataTransfer
             }
             return dt;
         }
-        
+
         private void GrdHedef_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -234,13 +234,19 @@ namespace DataTransfer
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
-           
+
         }
 
         private void TxtboxKaynakSunucu_TextChanged(object sender, EventArgs e)
         {
-            
+           
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
         }
     }
-    
+
 }
