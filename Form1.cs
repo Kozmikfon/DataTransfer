@@ -255,6 +255,7 @@ namespace DataTransfer
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
+                
                 GrdHedef.Columns.Add(colSelect);
                 DataRow row = dt.NewRow();
                 dt.Rows.Add(row);
