@@ -133,7 +133,6 @@ namespace DataTransfer
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
 
-
             try
             {
                 string server = TxtboxKaynakSunucu.Text;
@@ -237,7 +236,17 @@ namespace DataTransfer
 
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
+            try
+            {
+                string server = TxtboxHedefSunucu.Text;
+                string db=TxboxHedefKullanici.Text;
 
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
