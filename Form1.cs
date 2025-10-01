@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.Data;
 using System.Drawing.Imaging;
 
@@ -148,20 +149,7 @@ namespace DataTransfer
                     return;
                 }
 
-                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-
-                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
-
-                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                colSelect.HeaderText = "Kaynak Kolonlar";
-                colSelect.ReadOnly = true;
-                GrdKaynak.Columns.Add(colSelect);
-
-                DataRow row=dt.NewRow();
-                
-                dt.Rows.Add(row);
-                GrdKaynak.Columns.Clear();
-                GrdKaynak.DataSource = dt;
+                KolonYukle(server, db, table, sutun, user, pass);
             }
             catch (Exception ex)
             {
@@ -240,12 +228,43 @@ namespace DataTransfer
             {
                 string server = TxtboxHedefSunucu.Text;
                 string db=TxboxHedefKullanici.Text;
+                string table = CmbboxHedefVeriTabani.Text;
+                string sutun = CmboxHedefSutun.Text;
+                string user = TxboxHedefKullanici.Text;
+                string pass = TxboxHedefSifre.Text;
+
+                if (string.IsNullOrWhiteSpace(table)|| string.IsNullOrWhiteSpace(sutun))
+                {
+                    MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+               KolonYukle(server, db, table, sutun, user, pass);
 
             }
             catch (Exception)
             {
 
                 throw;
+            }
+        }
+        private void KolonYukle(string server,string db,string table,string sutun,string user, string pass)
+        {
+            try
+            {
+                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
+                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
+                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
+                colSelect.HeaderText = "Hedef Kolonlar";
+                colSelect.ReadOnly = true;
+                GrdHedef.Columns.Add(colSelect);
+                DataRow row = dt.NewRow();
+                dt.Rows.Add(row);
+                GrdHedef.Columns.Clear();
+                GrdHedef.DataSource = dt;
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
