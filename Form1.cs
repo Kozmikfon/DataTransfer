@@ -113,9 +113,7 @@ namespace DataTransfer
                 {
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add("Baðlantý baþarýlý þekilde oluþtu.");
-                }
-
-                                                          
+                }                                         
 
             }
             catch (Exception ex)
