@@ -47,20 +47,10 @@ namespace DataTransfer
 
         }
 
-        private void LstboxEslesmeLog_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void PnlEslestirme_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-
-
+       
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
+            LstboxLog.Items.Clear();
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefSifre.Text) ||
@@ -76,7 +66,7 @@ namespace DataTransfer
             TestConnectionAsync();//baglantý testi
             KaynakVeriTabanýCombobox();//veritabaný combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabaný combobox doldurma
-
+            
 
         }
         private async void TestConnectionAsync()
@@ -119,10 +109,20 @@ namespace DataTransfer
 
                 MessageBox.Show("Hem kaynak hem hedef baðlantýsý baþarýlý!");
 
+                if (connKaynak.State == ConnectionState.Open && connHedef.State == ConnectionState.Open)
+                {
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add("Baðlantý baþarýlý þekilde oluþtu.");
+                }
+
+                                                          
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Baðlantý baþarýsýz:\n{ex.Message}");
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add("Baðlantý baþarýsýz.");
             }
             finally
             {
@@ -181,6 +181,7 @@ namespace DataTransfer
             }
 
         }
+
         // kolonlarý listeleme metodu
         private List<string> GetColumns(string server, string db, string table, string sutun, string user, string pass)
         {
@@ -201,9 +202,10 @@ namespace DataTransfer
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                
+                if (conn.State==ConnectionState.Closed)
+                {
                     conn.Open();
-
+                }
                 string sql = @"SELECT COLUMN_NAME 
                        FROM INFORMATION_SCHEMA.COLUMNS 
                        WHERE TABLE_NAME = @TableName AND COLUMN_NAME= @ColumnName";

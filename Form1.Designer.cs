@@ -458,7 +458,7 @@
             LstboxLog.Name = "LstboxLog";
             LstboxLog.Size = new Size(302, 109);
             LstboxLog.TabIndex = 0;
-            LstboxLog.SelectedIndexChanged += LstboxEslesmeLog_SelectedIndexChanged;
+           
             // 
             // GrbboxEslesmeLog
             // 
