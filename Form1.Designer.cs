@@ -188,6 +188,7 @@
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
+            CmbboxHedefVeriTabani.SelectedIndexChanged += CmbboxHedefVeriTabani_SelectedIndexChanged;
             // 
             // CmbboxHedefTablo
             // 
@@ -196,6 +197,7 @@
             CmbboxHedefTablo.Name = "CmbboxHedefTablo";
             CmbboxHedefTablo.Size = new Size(129, 23);
             CmbboxHedefTablo.TabIndex = 12;
+            CmbboxHedefTablo.SelectedIndexChanged += CmbboxHedefTablo_SelectedIndexChanged;
             // 
             // BtnDogrula
             // 

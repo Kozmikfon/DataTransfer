@@ -74,7 +74,8 @@ namespace DataTransfer
             }
 
             TestConnectionAsync();//baglantý testi
-            VeriTabanýCombobox();//veritabaný combobox doldurma
+            KaynakVeriTabanýCombobox();//veritabaný combobox doldurma
+            HedefVeriTabaniCombobox();//hedef veritabaný combobox doldurma
 
 
         }
@@ -98,6 +99,11 @@ namespace DataTransfer
 
             try
             {
+                SqlConnection connHedef = new SqlConnection(hedefConnection);
+                if (connHedef.State == ConnectionState.Closed)
+                {
+                    await connHedef.OpenAsync();
+                }
 
                 SqlConnection connKaynak = new SqlConnection(kaynakConnection);
                 if (connKaynak.State == ConnectionState.Closed)
@@ -105,11 +111,7 @@ namespace DataTransfer
                     await connKaynak.OpenAsync();
                 }
 
-                SqlConnection connHedef = new SqlConnection(hedefConnection);
-                if (connHedef.State == ConnectionState.Closed)
-                {
-                    await connHedef.OpenAsync();
-                }
+               
                 else
                 {
                     MessageBox.Show("Baðlantý zaten açýk.");
@@ -149,12 +151,24 @@ namespace DataTransfer
                     return;
                 }
 
-                KolonYukle(server, db, table, sutun, user, pass);
+                //KolonYukle(server, db, table, sutun, user, pass);
+                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
+                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
+                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
+                colSelect.HeaderText = "Hedef Kolonlar";
+                colSelect.ReadOnly = true;
+
+
+                GrdKaynak.Columns.Add(colSelect);
+                DataRow row = dt.NewRow();
+                dt.Rows.Add(row);
+                GrdKaynak.Columns.Clear();
+                GrdKaynak.DataSource = dt;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+
             }
 
         }
@@ -227,17 +241,29 @@ namespace DataTransfer
             try
             {
                 string server = TxtboxHedefSunucu.Text;
-                string db=TxboxHedefKullanici.Text;
-                string table = CmbboxHedefVeriTabani.Text;
+                string db = CmbboxHedefVeriTabani.Text;
+                string table = CmbboxHedefTablo.Text;
                 string sutun = CmboxHedefSutun.Text;
                 string user = TxboxHedefKullanici.Text;
                 string pass = TxboxHedefSifre.Text;
 
-                if (string.IsNullOrWhiteSpace(table)|| string.IsNullOrWhiteSpace(sutun))
+                if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(sutun))
                 {
                     MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-               KolonYukle(server, db, table, sutun, user, pass);
+                //KolonYukle(server, db, table, sutun, user, pass);
+                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
+                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
+                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
+                colSelect.HeaderText = "Hedef Kolonlar";
+                colSelect.ReadOnly = true;
+
+
+                GrdHedef.Columns.Add(colSelect);
+                DataRow row = dt.NewRow();
+                dt.Rows.Add(row);
+                GrdHedef.Columns.Clear();
+                GrdHedef.DataSource = dt;
 
             }
             catch (Exception)
@@ -246,7 +272,7 @@ namespace DataTransfer
                 throw;
             }
         }
-        private void KolonYukle(string server,string db,string table,string sutun,string user, string pass)
+        private void KolonYukle(string server, string db, string table, string sutun, string user, string pass)
         {
             try
             {
@@ -255,7 +281,8 @@ namespace DataTransfer
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
-                
+
+
                 GrdHedef.Columns.Add(colSelect);
                 DataRow row = dt.NewRow();
                 dt.Rows.Add(row);
@@ -271,7 +298,7 @@ namespace DataTransfer
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
-            TabloDoldur();
+            KaynakTabloDoldur();
         }
 
         private void TxtboxKaynakSunucu_TextChanged(object sender, EventArgs e)
@@ -286,7 +313,7 @@ namespace DataTransfer
         }
 
         //veritabaný combobox doldurma
-        private void VeriTabanýCombobox()
+        private void KaynakVeriTabanýCombobox()
         {
             string server = TxtboxKaynakSunucu.Text;
             string user = TxtKullanýcý.Text;
@@ -331,7 +358,49 @@ namespace DataTransfer
             }
 
         }
-        private void TabloDoldur()
+        private void HedefVeriTabaniCombobox()
+        {
+            string server = TxtboxHedefSunucu.Text;
+            string user = TxboxHedefKullanici.Text;
+            string pass = TxboxHedefSifre.Text;
+            if (string.IsNullOrWhiteSpace(server) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(pass))
+            {
+                MessageBox.Show("Lütfen sunucu, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            string connStr =
+                $"Server={server};" +
+                $"Database=master;" +
+                $"User Id={user};" +
+                $"Password={pass};" +
+                $"TrustServerCertificate=True;";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connStr))
+                {
+                    connection.Open();
+                    string sql = "SELECT NAME FROM sys.databases ORDER BY name";
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        CmbboxHedefVeriTabani.Items.Clear();
+                        while (reader.Read())
+                        {
+                            CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
+                        }
+                    }
+                }
+                //tablo combobox doldurma
+                //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void KaynakTabloDoldur()
         {
             string server = TxtboxKaynakSunucu.Text;
             string db = CmbboxKaynakVeritabani.Text;
@@ -369,7 +438,46 @@ namespace DataTransfer
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void SutunDoldur()
+        private void HedefTabloDoldur()
+        {
+            string server = TxtboxHedefSunucu.Text;
+            string db = CmbboxHedefVeriTabani.Text;
+            string user = TxboxHedefKullanici.Text;
+            string pass = TxboxHedefSifre.Text;
+            if (string.IsNullOrWhiteSpace(server) ||
+                string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(pass))
+            {
+                MessageBox.Show("Lütfen sunucu, veritabaný, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        CmbboxHedefTablo.Items.Clear();
+                        while (reader.Read())
+                        {
+                            CmbboxHedefTablo.Items.Add(reader["TABLE_NAME"].ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+        }
+        private void KaynakSutunDoldur()
         {
             string server = TxtboxKaynakSunucu.Text;
             string db = CmbboxKaynakVeritabani.Text;
@@ -415,6 +523,50 @@ namespace DataTransfer
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private void HedefSutunDoldur()
+        {
+            string server = TxtboxHedefSunucu.Text;
+            string db = CmbboxHedefVeriTabani.Text;
+            string table = CmbboxHedefTablo.Text;
+            string user = TxboxHedefKullanici.Text;
+            string pass = TxboxHedefSifre.Text;
+            if (string.IsNullOrWhiteSpace(server) ||
+                string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(table) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(pass))
+            {
+                MessageBox.Show("Lütfen sunucu, veritabaný, tablo, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            string connStr=$"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            try
+            {
+                using (SqlConnection conn=new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    string sql = @"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
+                    using (SqlCommand cmd=new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TableName", table);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            CmboxHedefSutun.Items.Clear();
+                            while (reader.Read())
+                            {
+                                CmboxHedefSutun.Items.Add(reader["COLUMN_NAME"].ToString());
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         private void GrbboxHedef_Enter(object sender, EventArgs e)
         {
@@ -423,12 +575,22 @@ namespace DataTransfer
 
         private void label4_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            SutunDoldur();
+            KaynakSutunDoldur();
+        }
+
+        private void CmbboxHedefTablo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            HedefSutunDoldur();
+        }
+
+        private void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            HedefTabloDoldur();
         }
     }
 
