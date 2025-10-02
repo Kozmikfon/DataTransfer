@@ -64,7 +64,7 @@
             LblHdfSutun = new Label();
             BtnHedefKolonYukle = new Button();
             GrbboxButon = new GroupBox();
-            LstboxEslesmeLog = new ListBox();
+            LstboxLog = new ListBox();
             GrbboxEslesmeLog = new GroupBox();
             GrdEslestirme = new DataGridView();
             Column1 = new DataGridViewButtonColumn();
@@ -439,7 +439,7 @@
             // 
             // GrbboxButon
             // 
-            GrbboxButon.Controls.Add(LstboxEslesmeLog);
+            GrbboxButon.Controls.Add(LstboxLog);
             GrbboxButon.Controls.Add(BtnBaglantiTest);
             GrbboxButon.Controls.Add(BtnDogrula);
             GrbboxButon.Dock = DockStyle.Top;
@@ -449,15 +449,15 @@
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
-            // LstboxEslesmeLog
+            // LstboxLog
             // 
-            LstboxEslesmeLog.FormattingEnabled = true;
-            LstboxEslesmeLog.ItemHeight = 15;
-            LstboxEslesmeLog.Location = new Point(28, 100);
-            LstboxEslesmeLog.Name = "LstboxEslesmeLog";
-            LstboxEslesmeLog.Size = new Size(302, 109);
-            LstboxEslesmeLog.TabIndex = 0;
-            LstboxEslesmeLog.SelectedIndexChanged += LstboxEslesmeLog_SelectedIndexChanged;
+            LstboxLog.FormattingEnabled = true;
+            LstboxLog.ItemHeight = 15;
+            LstboxLog.Location = new Point(28, 100);
+            LstboxLog.Name = "LstboxLog";
+            LstboxLog.Size = new Size(302, 109);
+            LstboxLog.TabIndex = 0;
+            LstboxLog.SelectedIndexChanged += LstboxEslesmeLog_SelectedIndexChanged;
             // 
             // GrbboxEslesmeLog
             // 
@@ -547,7 +547,7 @@
         private Label LblHdfSutun;
         private GroupBox GrbboxButon;
         private GroupBox GrbboxEslesmeLog;
-        private ListBox LstboxEslesmeLog;
+        private ListBox LstboxLog;
         private TextBox TxtSifre;
         private Label label2;
         private TextBox TxtKullanıcı;
