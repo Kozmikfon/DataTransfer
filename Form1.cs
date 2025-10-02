@@ -362,6 +362,8 @@ namespace DataTransfer
                         }
                     }
                 }
+                LstboxLog.ForeColor = Color.Green;
+                LstboxLog.Items.Add("Kaynak Veritabanlarý baþarýyla yüklendi.");
                 //tablo combobox doldurma
                 //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -369,6 +371,9 @@ namespace DataTransfer
             {
 
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add("Veritabaný yüklenemedi.");
+                return;
             }
 
         }
@@ -406,12 +411,17 @@ namespace DataTransfer
                         }
                     }
                 }
+                LstboxLog.ForeColor = Color.Green;
+                LstboxLog.Items.Add(" Hedef Veritabanlarý baþarýyla yüklendi.");
                 //tablo combobox doldurma
                 //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add("Veritabaný yüklenemedi.");
+                return;
             }
         }
         private void KaynakTabloDoldur()
@@ -530,11 +540,16 @@ namespace DataTransfer
                         }
                     }
                 }
+                LstboxLog.ForeColor = Color.Green;
+                LstboxLog.Items.Add("Kaynak Sütunlar baþarýyla yüklendi.");
                 //MessageBox.Show("Sütunlar baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add("Sütunlar yüklenemedi.");
+                return;
             }
         }
         private void HedefSutunDoldur()
@@ -574,11 +589,16 @@ namespace DataTransfer
                     }
 
                 }
+                LstboxLog.ForeColor = Color.Green;
+                LstboxLog.Items.Add("Hedef Sütunlar baþarýyla yüklendi.");
             }
             catch (Exception ex)
             {
 
                 MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add("Sütunlar yüklenemedi.");
+                return;
             }
         }
 
