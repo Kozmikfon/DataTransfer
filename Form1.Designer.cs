@@ -362,6 +362,7 @@
             CmboxHedefSutun.Name = "CmboxHedefSutun";
             CmboxHedefSutun.Size = new Size(130, 23);
             CmboxHedefSutun.TabIndex = 21;
+            CmboxHedefSutun.SelectedIndexChanged += CmboxHedefSutun_SelectedIndexChanged;
             // 
             // TxboxHedefSifre
             // 

@@ -131,6 +131,8 @@ namespace DataTransfer
             }
 
         }
+        
+       
 
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
@@ -145,11 +147,18 @@ namespace DataTransfer
                 string pass = TxtSifre.Text;
                 string sutun = CmboxKaynakSutun.Text;
 
-                if (string.IsNullOrWhiteSpace(table) || (string.IsNullOrWhiteSpace(sutun)))
+                if (string.IsNullOrWhiteSpace(table) ||
+                    (string.IsNullOrWhiteSpace(sutun))||
+                    (string.IsNullOrWhiteSpace(server))||
+                    (string.IsNullOrWhiteSpace(db))|| 
+                    (string.IsNullOrWhiteSpace(user))||
+                    (string.IsNullOrWhiteSpace(pass))
+                    )
                 {
                     MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -175,15 +184,25 @@ namespace DataTransfer
         // kolonlarý listeleme metodu
         private List<string> GetColumns(string server, string db, string table, string sutun, string user, string pass)
         {
+            if (string.IsNullOrWhiteSpace(server)
+                || string.IsNullOrWhiteSpace(db)
+                || string.IsNullOrWhiteSpace(table)
+                || string.IsNullOrWhiteSpace(sutun)
+                || string.IsNullOrWhiteSpace(user)
+                || string.IsNullOrWhiteSpace(pass)
+                )
+            {
+                MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+           
             List<string> columns = new List<string>();
-
-
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
 
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                conn.Open();
+                
+                    conn.Open();
 
                 string sql = @"SELECT COLUMN_NAME 
                        FROM INFORMATION_SCHEMA.COLUMNS 
@@ -209,7 +228,15 @@ namespace DataTransfer
         //kolon içeriklerini görme
         private DataTable GetTableData(string server, string db, string table, string sutun, string user, string password)
         {
-
+            if (string.IsNullOrWhiteSpace(server) || 
+                string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(table) ||
+                string.IsNullOrWhiteSpace(sutun) || 
+                string.IsNullOrWhiteSpace(user) || 
+                string.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             DataTable dt = new DataTable();//bellek içerisinde tablo oluþturur
             string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
 
@@ -247,10 +274,20 @@ namespace DataTransfer
                 string user = TxboxHedefKullanici.Text;
                 string pass = TxboxHedefSifre.Text;
 
-                if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(sutun))
+                if (string.IsNullOrWhiteSpace(table) ||
+                    string.IsNullOrWhiteSpace(sutun)||
+                    string.IsNullOrWhiteSpace(server) ||
+                    string.IsNullOrWhiteSpace(db) ||
+                    string.IsNullOrWhiteSpace(user) ||
+                    string.IsNullOrWhiteSpace(pass)
+                    )
                 {
                     MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
+                
+
+
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
                 DataTable dt = GetTableData(server, db, table, sutun, user, pass);
@@ -272,30 +309,7 @@ namespace DataTransfer
                 throw;
             }
         }
-        private void KolonYukle(string server, string db, string table, string sutun, string user, string pass)
-        {
-            try
-            {
-                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
-                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                colSelect.HeaderText = "Hedef Kolonlar";
-                colSelect.ReadOnly = true;
-
-
-                GrdHedef.Columns.Add(colSelect);
-                DataRow row = dt.NewRow();
-                dt.Rows.Add(row);
-                GrdHedef.Columns.Clear();
-                GrdHedef.DataSource = dt;
-            }
-            catch (Exception ex)
-            {
-
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
+       
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
             KaynakTabloDoldur();
@@ -595,7 +609,7 @@ namespace DataTransfer
 
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex>=0 && e.ColumnIndex>=0)
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
                 string secilendeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 int newRowIndex = GrdEslestirme.Rows.Add();
@@ -606,12 +620,17 @@ namespace DataTransfer
 
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex>=0 && e.ColumnIndex>=0)
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
                 string secilenDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 int newRowIndex = GrdEslestirme.Rows.Add();
                 GrdEslestirme.Rows[newRowIndex].Cells[1].Value = secilenDeger;
             }
+        }
+
+        private void CmboxHedefSutun_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 
