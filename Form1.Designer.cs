@@ -66,14 +66,16 @@
             GrbboxButon = new GroupBox();
             LstboxEslesmeLog = new ListBox();
             GrbboxEslesmeLog = new GroupBox();
-            dataGridView1 = new DataGridView();
+            GrdEslestirme = new DataGridView();
+            Column1 = new DataGridViewButtonColumn();
+            Column2 = new DataGridViewTextBoxColumn();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdHedef).BeginInit();
             GrbboxButon.SuspendLayout();
             GrbboxEslesmeLog.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             SuspendLayout();
             // 
             // BtnBaglantiTest
@@ -90,7 +92,7 @@
             // 
             LblKynkSunucu.AutoSize = true;
             LblKynkSunucu.Font = new Font("Segoe UI", 11.25F);
-            LblKynkSunucu.Location = new Point(6, 18);
+            LblKynkSunucu.Location = new Point(36, 23);
             LblKynkSunucu.Name = "LblKynkSunucu";
             LblKynkSunucu.Size = new Size(63, 20);
             LblKynkSunucu.TabIndex = 1;
@@ -100,7 +102,7 @@
             // 
             lblKynkVeri.AutoSize = true;
             lblKynkVeri.Font = new Font("Segoe UI", 11.25F);
-            lblKynkVeri.Location = new Point(2, 147);
+            lblKynkVeri.Location = new Point(32, 152);
             lblKynkVeri.Name = "lblKynkVeri";
             lblKynkVeri.Size = new Size(87, 20);
             lblKynkVeri.TabIndex = 2;
@@ -111,7 +113,7 @@
             // 
             LblKynkTablo.AutoSize = true;
             LblKynkTablo.Font = new Font("Segoe UI", 11.25F);
-            LblKynkTablo.Location = new Point(3, 193);
+            LblKynkTablo.Location = new Point(33, 198);
             LblKynkTablo.Name = "LblKynkTablo";
             LblKynkTablo.Size = new Size(79, 20);
             LblKynkTablo.TabIndex = 3;
@@ -121,7 +123,7 @@
             // 
             LblHdfSunucu.AutoSize = true;
             LblHdfSunucu.Font = new Font("Segoe UI", 11.25F);
-            LblHdfSunucu.Location = new Point(8, 15);
+            LblHdfSunucu.Location = new Point(35, 20);
             LblHdfSunucu.Name = "LblHdfSunucu";
             LblHdfSunucu.Size = new Size(63, 20);
             LblHdfSunucu.TabIndex = 4;
@@ -131,7 +133,7 @@
             // 
             LblHdfVeri.AutoSize = true;
             LblHdfVeri.Font = new Font("Segoe UI", 11.25F);
-            LblHdfVeri.Location = new Point(11, 150);
+            LblHdfVeri.Location = new Point(34, 152);
             LblHdfVeri.Name = "LblHdfVeri";
             LblHdfVeri.Size = new Size(88, 20);
             LblHdfVeri.TabIndex = 5;
@@ -142,7 +144,7 @@
             // 
             LblHdfTablo.AutoSize = true;
             LblHdfTablo.Font = new Font("Segoe UI", 11.25F);
-            LblHdfTablo.Location = new Point(10, 193);
+            LblHdfTablo.Location = new Point(33, 195);
             LblHdfTablo.Name = "LblHdfTablo";
             LblHdfTablo.Size = new Size(79, 20);
             LblHdfTablo.TabIndex = 6;
@@ -150,7 +152,7 @@
             // 
             // TxtboxKaynakSunucu
             // 
-            TxtboxKaynakSunucu.Location = new Point(130, 17);
+            TxtboxKaynakSunucu.Location = new Point(160, 22);
             TxtboxKaynakSunucu.Name = "TxtboxKaynakSunucu";
             TxtboxKaynakSunucu.Size = new Size(127, 23);
             TxtboxKaynakSunucu.TabIndex = 7;
@@ -159,7 +161,7 @@
             // CmbboxKaynakVeritabani
             // 
             CmbboxKaynakVeritabani.FormattingEnabled = true;
-            CmbboxKaynakVeritabani.Location = new Point(130, 144);
+            CmbboxKaynakVeritabani.Location = new Point(160, 149);
             CmbboxKaynakVeritabani.Name = "CmbboxKaynakVeritabani";
             CmbboxKaynakVeritabani.Size = new Size(127, 23);
             CmbboxKaynakVeritabani.TabIndex = 8;
@@ -168,7 +170,7 @@
             // CmbboxKaynaktablo
             // 
             CmbboxKaynaktablo.FormattingEnabled = true;
-            CmbboxKaynaktablo.Location = new Point(130, 190);
+            CmbboxKaynaktablo.Location = new Point(160, 195);
             CmbboxKaynaktablo.Name = "CmbboxKaynaktablo";
             CmbboxKaynaktablo.Size = new Size(127, 23);
             CmbboxKaynaktablo.TabIndex = 9;
@@ -176,7 +178,7 @@
             // 
             // TxtboxHedefSunucu
             // 
-            TxtboxHedefSunucu.Location = new Point(123, 14);
+            TxtboxHedefSunucu.Location = new Point(146, 16);
             TxtboxHedefSunucu.Name = "TxtboxHedefSunucu";
             TxtboxHedefSunucu.Size = new Size(129, 23);
             TxtboxHedefSunucu.TabIndex = 10;
@@ -184,7 +186,7 @@
             // CmbboxHedefVeriTabani
             // 
             CmbboxHedefVeriTabani.FormattingEnabled = true;
-            CmbboxHedefVeriTabani.Location = new Point(124, 147);
+            CmbboxHedefVeriTabani.Location = new Point(147, 149);
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
@@ -193,7 +195,7 @@
             // CmbboxHedefTablo
             // 
             CmbboxHedefTablo.FormattingEnabled = true;
-            CmbboxHedefTablo.Location = new Point(123, 190);
+            CmbboxHedefTablo.Location = new Point(146, 192);
             CmbboxHedefTablo.Name = "CmbboxHedefTablo";
             CmbboxHedefTablo.Size = new Size(129, 23);
             CmbboxHedefTablo.TabIndex = 12;
@@ -248,14 +250,14 @@
             // CmboxKaynakSutun
             // 
             CmboxKaynakSutun.FormattingEnabled = true;
-            CmboxKaynakSutun.Location = new Point(130, 233);
+            CmboxKaynakSutun.Location = new Point(160, 238);
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
             // 
             // TxtSifre
             // 
-            TxtSifre.Location = new Point(129, 100);
+            TxtSifre.Location = new Point(159, 105);
             TxtSifre.Name = "TxtSifre";
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
@@ -264,7 +266,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label3.Location = new Point(3, 236);
+            label3.Location = new Point(33, 241);
             label3.Name = "label3";
             label3.Size = new Size(80, 20);
             label3.TabIndex = 25;
@@ -274,7 +276,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label2.Location = new Point(6, 103);
+            label2.Location = new Point(36, 108);
             label2.Name = "label2";
             label2.Size = new Size(46, 20);
             label2.TabIndex = 22;
@@ -282,7 +284,7 @@
             // 
             // TxtKullanıcı
             // 
-            TxtKullanıcı.Location = new Point(129, 56);
+            TxtKullanıcı.Location = new Point(159, 61);
             TxtKullanıcı.Name = "TxtKullanıcı";
             TxtKullanıcı.Size = new Size(128, 23);
             TxtKullanıcı.TabIndex = 21;
@@ -291,7 +293,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label1.Location = new Point(6, 59);
+            label1.Location = new Point(36, 64);
             label1.Name = "label1";
             label1.Size = new Size(99, 20);
             label1.TabIndex = 20;
@@ -304,6 +306,7 @@
             GrdKaynak.Name = "GrdKaynak";
             GrdKaynak.Size = new Size(319, 168);
             GrdKaynak.TabIndex = 19;
+            GrdKaynak.CellClick += GrdKaynak_CellClick;
             GrdKaynak.CellContentClick += GrdKaynak_CellContentClick;
             // 
             // LblKynkSutun
@@ -355,14 +358,14 @@
             // CmboxHedefSutun
             // 
             CmboxHedefSutun.FormattingEnabled = true;
-            CmboxHedefSutun.Location = new Point(122, 234);
+            CmboxHedefSutun.Location = new Point(145, 236);
             CmboxHedefSutun.Name = "CmboxHedefSutun";
             CmboxHedefSutun.Size = new Size(130, 23);
             CmboxHedefSutun.TabIndex = 21;
             // 
             // TxboxHedefSifre
             // 
-            TxboxHedefSifre.Location = new Point(123, 100);
+            TxboxHedefSifre.Location = new Point(146, 102);
             TxboxHedefSifre.Name = "TxboxHedefSifre";
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
@@ -371,7 +374,7 @@
             // 
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label4.Location = new Point(12, 103);
+            label4.Location = new Point(35, 105);
             label4.Name = "label4";
             label4.Size = new Size(46, 20);
             label4.TabIndex = 18;
@@ -380,7 +383,7 @@
             // 
             // TxboxHedefKullanici
             // 
-            TxboxHedefKullanici.Location = new Point(124, 60);
+            TxboxHedefKullanici.Location = new Point(147, 62);
             TxboxHedefKullanici.Name = "TxboxHedefKullanici";
             TxboxHedefKullanici.Size = new Size(129, 23);
             TxboxHedefKullanici.TabIndex = 17;
@@ -389,7 +392,7 @@
             // 
             LblHedefSutun.AutoSize = true;
             LblHedefSutun.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            LblHedefSutun.Location = new Point(10, 237);
+            LblHedefSutun.Location = new Point(33, 239);
             LblHedefSutun.Name = "LblHedefSutun";
             LblHedefSutun.Size = new Size(80, 20);
             LblHedefSutun.TabIndex = 20;
@@ -399,7 +402,7 @@
             // 
             LblHedefKullanici.AutoSize = true;
             LblHedefKullanici.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            LblHedefKullanici.Location = new Point(11, 63);
+            LblHedefKullanici.Location = new Point(34, 65);
             LblHedefKullanici.Name = "LblHedefKullanici";
             LblHedefKullanici.Size = new Size(99, 20);
             LblHedefKullanici.TabIndex = 16;
@@ -412,6 +415,7 @@
             GrdHedef.Name = "GrdHedef";
             GrdHedef.Size = new Size(317, 168);
             GrdHedef.TabIndex = 15;
+            GrdHedef.CellClick += GrdHedef_CellClick;
             GrdHedef.CellContentClick += GrdHedef_CellContentClick;
             // 
             // LblHdfSutun
@@ -457,7 +461,7 @@
             // 
             // GrbboxEslesmeLog
             // 
-            GrbboxEslesmeLog.Controls.Add(dataGridView1);
+            GrbboxEslesmeLog.Controls.Add(GrdEslestirme);
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
             GrbboxEslesmeLog.Location = new Point(374, 233);
@@ -467,13 +471,29 @@
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
             // 
-            // dataGridView1
+            // GrdEslestirme
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(25, 68);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(330, 187);
-            dataGridView1.TabIndex = 16;
+            GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2 });
+            GrdEslestirme.Location = new Point(6, 50);
+            GrdEslestirme.Name = "GrdEslestirme";
+            GrdEslestirme.Size = new Size(344, 187);
+            GrdEslestirme.TabIndex = 16;
+            // 
+            // Column1
+            // 
+            Column1.HeaderText = "Kaynak Sütunlar";
+            Column1.Name = "Column1";
+            Column1.Resizable = DataGridViewTriState.True;
+            Column1.SortMode = DataGridViewColumnSortMode.Automatic;
+            Column1.Width = 150;
+            // 
+            // Column2
+            // 
+            Column2.HeaderText = "Hedef Sütunlar";
+            Column2.Name = "Column2";
+            Column2.Resizable = DataGridViewTriState.True;
+            Column2.Width = 150;
             // 
             // FrmVeriEslestirme
             // 
@@ -496,7 +516,7 @@
             ((System.ComponentModel.ISupportInitialize)GrdHedef).EndInit();
             GrbboxButon.ResumeLayout(false);
             GrbboxEslesmeLog.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)GrdEslestirme).EndInit();
             ResumeLayout(false);
         }
 
@@ -540,6 +560,8 @@
         private TextBox TxboxHedefKullanici;
         private Label LblHedefKullanici;
         private ComboBox CmboxHedefSutun;
-        private DataGridView dataGridView1;
+        private DataGridView GrdEslestirme;
+        private DataGridViewButtonColumn Column1;
+        private DataGridViewTextBoxColumn Column2;
     }
 }

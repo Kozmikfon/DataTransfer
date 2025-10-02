@@ -111,7 +111,7 @@ namespace DataTransfer
                     await connKaynak.OpenAsync();
                 }
 
-               
+
                 else
                 {
                     MessageBox.Show("Baðlantý zaten açýk.");
@@ -539,14 +539,14 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabaný, tablo, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr=$"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection conn=new SqlConnection(connStr))
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = @"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
-                    using (SqlCommand cmd=new SqlCommand(sql, conn))
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@TableName", table);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -591,6 +591,27 @@ namespace DataTransfer
         private void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
         {
             HedefTabloDoldur();
+        }
+
+        private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex>=0 && e.ColumnIndex>=0)
+            {
+                string secilendeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                int newRowIndex = GrdEslestirme.Rows.Add();
+
+                GrdEslestirme.Rows[newRowIndex].Cells[0].Value = secilendeger;
+            }
+        }
+
+        private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex>=0 && e.ColumnIndex>=0)
+            {
+                string secilenDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                int newRowIndex = GrdEslestirme.Rows.Add();
+                GrdEslestirme.Rows[newRowIndex].Cells[1].Value = secilenDeger;
+            }
         }
     }
 
