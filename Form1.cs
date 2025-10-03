@@ -253,7 +253,7 @@ namespace DataTransfer
             return dt;
         }
 
-     
+
 
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
@@ -637,7 +637,7 @@ namespace DataTransfer
         {
             if (!AktifSatirIndex.HasValue)
             {
-                MessageBox.Show("Önce Kaynak deðeri seçin","Uyarý",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                MessageBox.Show("Önce Kaynak deðeri seçin", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
@@ -655,7 +655,10 @@ namespace DataTransfer
 
         }
 
- 
+        private void GrdEslestirme_MouseEnter(object sender, EventArgs e)
+        {
+            MessageBox.Show("Kaynak ve Hedef tablolardan eþleþtirmek istediðiniz sütunlarý seçip, eþleþtirme tablosuna aktarýnýz.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
 
         
     }

@@ -478,6 +478,8 @@
             GrdEslestirme.Name = "GrdEslestirme";
             GrdEslestirme.Size = new Size(402, 187);
             GrdEslestirme.TabIndex = 16;
+            GrdEslestirme.MouseEnter += GrdEslestirme_MouseEnter;
+            
             // 
             // KaynakSutun
             // 
