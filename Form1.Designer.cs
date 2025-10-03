@@ -241,7 +241,7 @@
             GrbboxKaynak.Dock = DockStyle.Left;
             GrbboxKaynak.Location = new Point(0, 0);
             GrbboxKaynak.Name = "GrbboxKaynak";
-            GrbboxKaynak.Size = new Size(374, 667);
+            GrbboxKaynak.Size = new Size(339, 667);
             GrbboxKaynak.TabIndex = 16;
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
@@ -347,9 +347,9 @@
             GrbboxHedef.Controls.Add(LblHdfSunucu);
             GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
             GrbboxHedef.Dock = DockStyle.Right;
-            GrbboxHedef.Location = new Point(747, 0);
+            GrbboxHedef.Location = new Point(753, 0);
             GrbboxHedef.Name = "GrbboxHedef";
-            GrbboxHedef.Size = new Size(361, 667);
+            GrbboxHedef.Size = new Size(355, 667);
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
@@ -444,9 +444,9 @@
             GrbboxButon.Controls.Add(BtnBaglantiTest);
             GrbboxButon.Controls.Add(BtnDogrula);
             GrbboxButon.Dock = DockStyle.Top;
-            GrbboxButon.Location = new Point(374, 0);
+            GrbboxButon.Location = new Point(339, 0);
             GrbboxButon.Name = "GrbboxButon";
-            GrbboxButon.Size = new Size(373, 232);
+            GrbboxButon.Size = new Size(414, 232);
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
@@ -458,16 +458,15 @@
             LstboxLog.Name = "LstboxLog";
             LstboxLog.Size = new Size(302, 109);
             LstboxLog.TabIndex = 0;
-           
             // 
             // GrbboxEslesmeLog
             // 
             GrbboxEslesmeLog.Controls.Add(GrdEslestirme);
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
-            GrbboxEslesmeLog.Location = new Point(374, 233);
+            GrbboxEslesmeLog.Location = new Point(339, 233);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
-            GrbboxEslesmeLog.Size = new Size(373, 434);
+            GrbboxEslesmeLog.Size = new Size(414, 434);
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
@@ -478,7 +477,7 @@
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2 });
             GrdEslestirme.Location = new Point(6, 50);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(344, 187);
+            GrdEslestirme.Size = new Size(402, 187);
             GrdEslestirme.TabIndex = 16;
             // 
             // Column1
@@ -487,14 +486,14 @@
             Column1.Name = "Column1";
             Column1.Resizable = DataGridViewTriState.True;
             Column1.SortMode = DataGridViewColumnSortMode.Automatic;
-            Column1.Width = 150;
+            Column1.Width = 175;
             // 
             // Column2
             // 
             Column2.HeaderText = "Hedef Sütunlar";
             Column2.Name = "Column2";
             Column2.Resizable = DataGridViewTriState.True;
-            Column2.Width = 150;
+            Column2.Width = 182;
             // 
             // FrmVeriEslestirme
             // 

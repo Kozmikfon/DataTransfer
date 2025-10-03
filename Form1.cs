@@ -362,8 +362,8 @@ namespace DataTransfer
                         }
                     }
                 }
-                LstboxLog.ForeColor = Color.Green;
-                LstboxLog.Items.Add("Kaynak Veritabanlarý baþarýyla yüklendi.");
+                //LstboxLog.ForeColor = Color.Green;
+                //LstboxLog.Items.Add("Kaynak Veritabanlarý baþarýyla yüklendi.");
                 //tablo combobox doldurma
                 //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -411,8 +411,8 @@ namespace DataTransfer
                         }
                     }
                 }
-                LstboxLog.ForeColor = Color.Green;
-                LstboxLog.Items.Add(" Hedef Veritabanlarý baþarýyla yüklendi.");
+                //LstboxLog.ForeColor = Color.Green;
+                //LstboxLog.Items.Add(" Hedef Veritabanlarý baþarýyla yüklendi.");
                 //tablo combobox doldurma
                 //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -540,8 +540,8 @@ namespace DataTransfer
                         }
                     }
                 }
-                LstboxLog.ForeColor = Color.Green;
-                LstboxLog.Items.Add("Kaynak Sütunlar baþarýyla yüklendi.");
+                //LstboxLog.ForeColor = Color.Green;
+                //LstboxLog.Items.Add("Kaynak Sütunlar baþarýyla yüklendi.");
                 //MessageBox.Show("Sütunlar baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -589,8 +589,8 @@ namespace DataTransfer
                     }
 
                 }
-                LstboxLog.ForeColor = Color.Green;
-                LstboxLog.Items.Add("Hedef Sütunlar baþarýyla yüklendi.");
+                //LstboxLog.ForeColor = Color.Green;
+                //LstboxLog.Items.Add("Hedef Sütunlar baþarýyla yüklendi.");
             }
             catch (Exception ex)
             {
@@ -644,7 +644,7 @@ namespace DataTransfer
             {
                 string secilenDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 int newRowIndex = GrdEslestirme.Rows.Add();
-                GrdEslestirme.Rows[newRowIndex].Cells[1].Value = secilenDeger;
+                GrdEslestirme.Rows[newRowIndex].Cells[2].Value = secilenDeger;
             }
         }
 
