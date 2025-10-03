@@ -67,8 +67,8 @@
             LstboxLog = new ListBox();
             GrbboxEslesmeLog = new GroupBox();
             GrdEslestirme = new DataGridView();
-            Column1 = new DataGridViewButtonColumn();
-            Column2 = new DataGridViewTextBoxColumn();
+            KaynakSutun = new DataGridViewButtonColumn();
+            HedefSutun = new DataGridViewTextBoxColumn();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
@@ -418,6 +418,7 @@
             GrdHedef.TabIndex = 15;
             GrdHedef.CellClick += GrdHedef_CellClick;
             GrdHedef.CellContentClick += GrdHedef_CellContentClick;
+            GrdHedef.KeyDown += GrdHedef_KeyDown;
             // 
             // LblHdfSutun
             // 
@@ -474,26 +475,26 @@
             // GrdEslestirme
             // 
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2 });
+            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { KaynakSutun, HedefSutun });
             GrdEslestirme.Location = new Point(6, 50);
             GrdEslestirme.Name = "GrdEslestirme";
             GrdEslestirme.Size = new Size(402, 187);
             GrdEslestirme.TabIndex = 16;
             // 
-            // Column1
+            // KaynakSutun
             // 
-            Column1.HeaderText = "Kaynak Sütunlar";
-            Column1.Name = "Column1";
-            Column1.Resizable = DataGridViewTriState.True;
-            Column1.SortMode = DataGridViewColumnSortMode.Automatic;
-            Column1.Width = 175;
+            KaynakSutun.HeaderText = "Kaynak Sütunlar";
+            KaynakSutun.Name = "KaynakSutun";
+            KaynakSutun.Resizable = DataGridViewTriState.True;
+            KaynakSutun.SortMode = DataGridViewColumnSortMode.Automatic;
+            KaynakSutun.Width = 175;
             // 
-            // Column2
+            // HedefSutun
             // 
-            Column2.HeaderText = "Hedef Sütunlar";
-            Column2.Name = "Column2";
-            Column2.Resizable = DataGridViewTriState.True;
-            Column2.Width = 182;
+            HedefSutun.HeaderText = "Hedef Sütunlar";
+            HedefSutun.Name = "HedefSutun";
+            HedefSutun.Resizable = DataGridViewTriState.True;
+            HedefSutun.Width = 182;
             // 
             // FrmVeriEslestirme
             // 
@@ -561,7 +562,7 @@
         private Label LblHedefKullanici;
         private ComboBox CmboxHedefSutun;
         private DataGridView GrdEslestirme;
-        private DataGridViewButtonColumn Column1;
-        private DataGridViewTextBoxColumn Column2;
+        private DataGridViewButtonColumn KaynakSutun;
+        private DataGridViewTextBoxColumn HedefSutun;
     }
 }

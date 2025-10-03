@@ -47,7 +47,7 @@ namespace DataTransfer
 
         }
 
-       
+
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             LstboxLog.Items.Clear();
@@ -66,7 +66,7 @@ namespace DataTransfer
             TestConnectionAsync();//baglantý testi
             KaynakVeriTabanýCombobox();//veritabaný combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabaný combobox doldurma
-            
+
 
         }
         private async void TestConnectionAsync()
@@ -113,7 +113,7 @@ namespace DataTransfer
                 {
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add("Baðlantý baþarýlý þekilde oluþtu.");
-                }                                         
+                }
 
             }
             catch (Exception ex)
@@ -129,8 +129,8 @@ namespace DataTransfer
             }
 
         }
-        
-       
+
+
 
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
@@ -146,10 +146,10 @@ namespace DataTransfer
                 string sutun = CmboxKaynakSutun.Text;
 
                 if (string.IsNullOrWhiteSpace(table) ||
-                    (string.IsNullOrWhiteSpace(sutun))||
-                    (string.IsNullOrWhiteSpace(server))||
-                    (string.IsNullOrWhiteSpace(db))|| 
-                    (string.IsNullOrWhiteSpace(user))||
+                    (string.IsNullOrWhiteSpace(sutun)) ||
+                    (string.IsNullOrWhiteSpace(server)) ||
+                    (string.IsNullOrWhiteSpace(db)) ||
+                    (string.IsNullOrWhiteSpace(user)) ||
                     (string.IsNullOrWhiteSpace(pass))
                     )
                 {
@@ -193,14 +193,14 @@ namespace DataTransfer
             {
                 MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-           
+
             List<string> columns = new List<string>();
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
 
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                if (conn.State==ConnectionState.Closed)
+                if (conn.State == ConnectionState.Closed)
                 {
                     conn.Open();
                 }
@@ -228,11 +228,11 @@ namespace DataTransfer
         //kolon içeriklerini görme
         private DataTable GetTableData(string server, string db, string table, string sutun, string user, string password)
         {
-            if (string.IsNullOrWhiteSpace(server) || 
+            if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
-                string.IsNullOrWhiteSpace(sutun) || 
-                string.IsNullOrWhiteSpace(user) || 
+                string.IsNullOrWhiteSpace(sutun) ||
+                string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -275,7 +275,7 @@ namespace DataTransfer
                 string pass = TxboxHedefSifre.Text;
 
                 if (string.IsNullOrWhiteSpace(table) ||
-                    string.IsNullOrWhiteSpace(sutun)||
+                    string.IsNullOrWhiteSpace(sutun) ||
                     string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(user) ||
@@ -285,7 +285,7 @@ namespace DataTransfer
                     MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                
+
 
 
                 //KolonYukle(server, db, table, sutun, user, pass);
@@ -309,7 +309,7 @@ namespace DataTransfer
                 throw;
             }
         }
-       
+
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
             KaynakTabloDoldur();
@@ -627,30 +627,40 @@ namespace DataTransfer
             HedefTabloDoldur();
         }
 
+        private int? AktifSatirIndex = null;
+        private string secilenKaynakDeger = null;
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                string secilendeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
                 int newRowIndex = GrdEslestirme.Rows.Add();
 
-                GrdEslestirme.Rows[newRowIndex].Cells[0].Value = secilendeger;
+                GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
+                AktifSatirIndex = newRowIndex; //satýrý kaydet
             }
         }
 
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
             {
-                string secilenDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-                int newRowIndex = GrdEslestirme.Rows.Add();
-                GrdEslestirme.Rows[newRowIndex].Cells[2].Value = secilenDeger;
+                string secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+
+                GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
+                AktifSatirIndex = null; //eþleþtirme tamamlandýktan sonra sýfýrla
+                secilenKaynakDeger = null; //seçilen kaynak deðeri sýfýrla
             }
         }
 
         private void CmboxHedefSutun_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void GrdHedef_KeyDown(object sender, KeyEventArgs e)
+        {
+            
         }
     }
 
