@@ -655,12 +655,31 @@ namespace DataTransfer
 
         }
 
-        private void GrdEslestirme_MouseEnter(object sender, EventArgs e)
+        private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            MessageBox.Show("Kaynak ve Hedef tablolardan eþleþtirmek istediðiniz sütunlarý seçip, eþleþtirme tablosuna aktarýnýz.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "Sil")
+            {
+                string kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value?.ToString();
+                string hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value?.ToString();
+                if ((!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) || (!string.IsNullOrWhiteSpace(kaynak) ) || (!string.IsNullOrWhiteSpace(hedef)))
+                {
+                    DialogResult result = MessageBox.Show("Bu eþleþmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (result == DialogResult.Yes)
+                    {
+                        GrdEslestirme.Rows.RemoveAt(e.RowIndex);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Silinecek eþleþme bulunamadý.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
         }
 
-        
+        private void GrdHedef_MouseHover(object sender, EventArgs e)
+        {
+
+        }
     }
 
 }
