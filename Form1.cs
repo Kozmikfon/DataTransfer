@@ -253,15 +253,7 @@ namespace DataTransfer
             return dt;
         }
 
-        private void GrdHedef_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void GrdKaynak_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+     
 
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
@@ -643,6 +635,11 @@ namespace DataTransfer
 
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (!AktifSatirIndex.HasValue)
+            {
+                MessageBox.Show("Önce Kaynak deðeri seçin","Uyarý",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                return;
+            }
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
             {
                 string secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
@@ -658,10 +655,9 @@ namespace DataTransfer
 
         }
 
-        private void GrdHedef_KeyDown(object sender, KeyEventArgs e)
-        {
-            
-        }
+ 
+
+        
     }
 
 }

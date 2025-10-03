@@ -69,6 +69,7 @@
             GrdEslestirme = new DataGridView();
             KaynakSutun = new DataGridViewButtonColumn();
             HedefSutun = new DataGridViewTextBoxColumn();
+            sqlCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
@@ -307,7 +308,6 @@
             GrdKaynak.Size = new Size(319, 168);
             GrdKaynak.TabIndex = 19;
             GrdKaynak.CellClick += GrdKaynak_CellClick;
-            GrdKaynak.CellContentClick += GrdKaynak_CellContentClick;
             // 
             // LblKynkSutun
             // 
@@ -417,8 +417,6 @@
             GrdHedef.Size = new Size(317, 168);
             GrdHedef.TabIndex = 15;
             GrdHedef.CellClick += GrdHedef_CellClick;
-            GrdHedef.CellContentClick += GrdHedef_CellContentClick;
-            GrdHedef.KeyDown += GrdHedef_KeyDown;
             // 
             // LblHdfSutun
             // 
@@ -496,6 +494,11 @@
             HedefSutun.Resizable = DataGridViewTriState.True;
             HedefSutun.Width = 182;
             // 
+            // sqlCommand1
+            // 
+            sqlCommand1.CommandTimeout = 30;
+            sqlCommand1.EnableOptimizedParameterBinding = false;
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -564,5 +567,6 @@
         private DataGridView GrdEslestirme;
         private DataGridViewButtonColumn KaynakSutun;
         private DataGridViewTextBoxColumn HedefSutun;
+        private Microsoft.Data.SqlClient.SqlCommand sqlCommand1;
     }
 }
