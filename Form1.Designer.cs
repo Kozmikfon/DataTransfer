@@ -67,7 +67,7 @@
             GrdEslestirme = new DataGridView();
             KaynakSutun = new DataGridViewButtonColumn();
             HedefSutun = new DataGridViewTextBoxColumn();
-            Uygunluk = new DataGridViewCheckBoxColumn();
+            Uygunluk = new DataGridViewTextBoxColumn();
             Sil = new DataGridViewButtonColumn();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
@@ -335,9 +335,9 @@
             GrbboxHedef.Controls.Add(LblHdfSunucu);
             GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
             GrbboxHedef.Dock = DockStyle.Right;
-            GrbboxHedef.Location = new Point(833, 0);
+            GrbboxHedef.Location = new Point(825, 0);
             GrbboxHedef.Name = "GrbboxHedef";
-            GrbboxHedef.Size = new Size(275, 667);
+            GrbboxHedef.Size = new Size(283, 667);
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
@@ -405,7 +405,6 @@
             GrdHedef.Size = new Size(218, 168);
             GrdHedef.TabIndex = 15;
             GrdHedef.CellClick += GrdHedef_CellClick;
-            GrdHedef.MouseHover += GrdHedef_MouseHover;
             // 
             // BtnHedefKolonYukle
             // 
@@ -424,7 +423,7 @@
             GrbboxButon.Dock = DockStyle.Top;
             GrbboxButon.Location = new Point(267, 0);
             GrbboxButon.Name = "GrbboxButon";
-            GrbboxButon.Size = new Size(566, 232);
+            GrbboxButon.Size = new Size(558, 232);
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
@@ -432,9 +431,9 @@
             // 
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
-            LstboxLog.Location = new Point(198, 72);
+            LstboxLog.Location = new Point(198, 27);
             LstboxLog.Name = "LstboxLog";
-            LstboxLog.Size = new Size(302, 139);
+            LstboxLog.Size = new Size(338, 184);
             LstboxLog.TabIndex = 0;
             // 
             // GrbboxEslesmeLog
@@ -445,7 +444,7 @@
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
             GrbboxEslesmeLog.Location = new Point(267, 233);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
-            GrbboxEslesmeLog.Size = new Size(566, 434);
+            GrbboxEslesmeLog.Size = new Size(558, 434);
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
@@ -454,11 +453,12 @@
             // 
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { KaynakSutun, HedefSutun, Uygunluk, Sil });
-            GrdEslestirme.Location = new Point(19, 61);
+            GrdEslestirme.Location = new Point(6, 61);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(533, 187);
+            GrdEslestirme.Size = new Size(546, 187);
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
+            GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;
             // 
             // KaynakSutun
             // 
@@ -480,7 +480,6 @@
             Uygunluk.HeaderText = "Uygunluk Ölçütü";
             Uygunluk.Name = "Uygunluk";
             Uygunluk.Resizable = DataGridViewTriState.True;
-            Uygunluk.SortMode = DataGridViewColumnSortMode.Automatic;
             // 
             // Sil
             // 
@@ -556,7 +555,7 @@
         private DataGridView GrdEslestirme;
         private DataGridViewButtonColumn KaynakSutun;
         private DataGridViewTextBoxColumn HedefSutun;
-        private DataGridViewCheckBoxColumn Uygunluk;
+        private DataGridViewTextBoxColumn Uygunluk;
         private DataGridViewButtonColumn Sil;
     }
 }

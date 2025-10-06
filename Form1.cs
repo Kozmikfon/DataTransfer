@@ -1,6 +1,8 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualBasic.ApplicationServices;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Drawing.Imaging;
 
@@ -621,6 +623,7 @@ namespace DataTransfer
 
         private int? AktifSatirIndex = null;
         private string secilenKaynakDeger = null;
+
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
@@ -661,7 +664,7 @@ namespace DataTransfer
             {
                 string kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value?.ToString();
                 string hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value?.ToString();
-                if ((!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) || (!string.IsNullOrWhiteSpace(kaynak) ) || (!string.IsNullOrWhiteSpace(hedef)))
+                if ((!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) || (!string.IsNullOrWhiteSpace(kaynak)) || (!string.IsNullOrWhiteSpace(hedef)))
                 {
                     DialogResult result = MessageBox.Show("Bu eþleþmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (result == DialogResult.Yes)
@@ -674,10 +677,15 @@ namespace DataTransfer
                     MessageBox.Show("Silinecek eþleþme bulunamadý.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
-        }
 
-        private void GrdHedef_MouseHover(object sender, EventArgs e)
+
+        }
+        Dictionary<string, (string DataType, int length)> KaynakKolonlar = new(); 
+        Dictionary<string, (string DataType, int length)> HedefKolonlar  = new();
+
+        private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
+           
 
         }
     }
