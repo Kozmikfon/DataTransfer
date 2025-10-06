@@ -27,10 +27,7 @@ namespace DataTransfer
 
         }
 
-        private void BtnVeriAktarim_Click(object sender, EventArgs e)
-        {
 
-        }
 
         private void GrbBoxSutunlar_Enter(object sender, EventArgs e)
         {
@@ -680,13 +677,51 @@ namespace DataTransfer
 
 
         }
-        Dictionary<string, (string DataType, int length)> KaynakKolonlar = new(); 
-        Dictionary<string, (string DataType, int length)> HedefKolonlar  = new();
+        Dictionary<string, (string DataType, int length)> KaynakKolonlar = new Dictionary<string, (string DataType, int length)>();
+        Dictionary<string, (string DataType, int length)> HedefKolonlar = new Dictionary<string, (string DataType, int length)>();
+
 
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-           
+            if (e.RowIndex >= 0)
+            {
+                KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
+            }
+        }
+        private void KontrolEt(DataGridViewRow row)
+        {
+            string kaynak = row.Cells[KaynakSutun.Index].Value?.ToString();
+            string hedef = row.Cells[HedefSutun.Index].Value?.ToString();
+            if (!string.IsNullOrEmpty(kaynak) || (!string.IsNullOrEmpty(hedef)))
+            {
+                var kaynakInfo = KaynakKolonlar.ContainsKey(kaynak) ? KaynakKolonlar[kaynak] : (null, 0);
+                var hedefInfo = HedefKolonlar.ContainsKey(hedef) ? HedefKolonlar[hedef] : (null, 0);
 
+                if (kaynakInfo.Item1 == hedefInfo.Item1 && kaynakInfo.Item2 == hedefInfo.Item2)
+                {
+                    row.Cells["Uygunluk"].Value = "Uyumlu";
+                    row.Cells["Uygunluk"].Style.BackColor = Color.Green;
+                }
+                else
+                {
+                    row.Cells["Uygunluk"].Value = "Uyumsuz";
+                    row.Cells["Uygunluk"].Style.BackColor = Color.Red;
+                }
+
+            }
+        }
+
+        private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                if (!row.IsNewRow)
+                {
+                    KontrolEt(row);
+                }
+            }
+            
+            MessageBox.Show("Eþleþmeler doðrulandý.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 

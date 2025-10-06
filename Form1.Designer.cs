@@ -41,7 +41,7 @@
             TxtboxHedefSunucu = new TextBox();
             CmbboxHedefVeriTabani = new ComboBox();
             CmbboxHedefTablo = new ComboBox();
-            BtnDogrula = new Button();
+            BtnEslesmeDogrula = new Button();
             BtnTransferBaslat = new Button();
             GrbboxKaynak = new GroupBox();
             CmboxKaynakSutun = new ComboBox();
@@ -201,15 +201,15 @@
             CmbboxHedefTablo.TabIndex = 12;
             CmbboxHedefTablo.SelectedIndexChanged += CmbboxHedefTablo_SelectedIndexChanged;
             // 
-            // BtnDogrula
+            // BtnEslesmeDogrula
             // 
-            BtnDogrula.Location = new Point(260, 254);
-            BtnDogrula.Name = "BtnDogrula";
-            BtnDogrula.Size = new Size(134, 52);
-            BtnDogrula.TabIndex = 14;
-            BtnDogrula.Text = "Tablo Eşleşmesini Doğrula";
-            BtnDogrula.UseVisualStyleBackColor = true;
-            BtnDogrula.Click += BtnVeriAktarim_Click;
+            BtnEslesmeDogrula.Location = new Point(260, 254);
+            BtnEslesmeDogrula.Name = "BtnEslesmeDogrula";
+            BtnEslesmeDogrula.Size = new Size(134, 52);
+            BtnEslesmeDogrula.TabIndex = 14;
+            BtnEslesmeDogrula.Text = "Tablo Eşleşmesini Doğrula";
+            BtnEslesmeDogrula.UseVisualStyleBackColor = true;
+            BtnEslesmeDogrula.Click += BtnEslesmeDogrula_Click;
             // 
             // BtnTransferBaslat
             // 
@@ -440,7 +440,7 @@
             // 
             GrbboxEslesmeLog.Controls.Add(GrdEslestirme);
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
-            GrbboxEslesmeLog.Controls.Add(BtnDogrula);
+            GrbboxEslesmeLog.Controls.Add(BtnEslesmeDogrula);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
             GrbboxEslesmeLog.Location = new Point(267, 233);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
@@ -477,7 +477,7 @@
             // 
             // Uygunluk
             // 
-            Uygunluk.HeaderText = "Uygunluk Ölçütü";
+            Uygunluk.HeaderText = "Uygunluk";
             Uygunluk.Name = "Uygunluk";
             Uygunluk.Resizable = DataGridViewTriState.True;
             // 
@@ -529,7 +529,7 @@
         private TextBox TxtboxHedefSunucu;
         private ComboBox CmbboxHedefVeriTabani;
         private ComboBox CmbboxHedefTablo;
-        private Button BtnDogrula;
+        private Button BtnEslesmeDogrula;
         private Button BtnTransferBaslat;
         private GroupBox GrbboxKaynak;
         private GroupBox GrbboxHedef;
