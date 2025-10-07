@@ -82,7 +82,7 @@
             // 
             BtnBaglantiTest.Location = new Point(19, 16);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
-            BtnBaglantiTest.Size = new Size(146, 56);
+            BtnBaglantiTest.Size = new Size(146, 27);
             BtnBaglantiTest.TabIndex = 0;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
             BtnBaglantiTest.UseVisualStyleBackColor = true;
@@ -253,6 +253,7 @@
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
+            CmboxKaynakSutun.SelectedIndexChanged += CmboxKaynakSutun_SelectedIndexChanged;
             // 
             // TxtSifre
             // 
@@ -431,9 +432,9 @@
             // 
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
-            LstboxLog.Location = new Point(198, 27);
+            LstboxLog.Location = new Point(19, 49);
             LstboxLog.Name = "LstboxLog";
-            LstboxLog.Size = new Size(338, 184);
+            LstboxLog.Size = new Size(533, 184);
             LstboxLog.TabIndex = 0;
             // 
             // GrbboxEslesmeLog
@@ -459,6 +460,7 @@
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;
+            GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             // 
             // KaynakSutun
             // 

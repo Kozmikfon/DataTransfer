@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient;
+ï»¿using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualBasic.ApplicationServices;
 using System.ComponentModel;
@@ -53,29 +53,29 @@ namespace DataTransfer
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefSifre.Text) ||
-                string.IsNullOrWhiteSpace(TxtKullanýcý.Text) ||
+                string.IsNullOrWhiteSpace(TxtKullanÄ±cÄ±.Text) ||
                 string.IsNullOrWhiteSpace(TxtSifre.Text) ||
                 string.IsNullOrWhiteSpace(TxtboxHedefSunucu.Text))
 
             {
-                MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen tÃ¼m baÄŸlantÄ± bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            TestConnectionAsync();//baglantý testi
-            KaynakVeriTabanýCombobox();//veritabaný combobox doldurma
-            HedefVeriTabaniCombobox();//hedef veritabaný combobox doldurma
+            TestConnectionAsync();//baglantÄ± testi
+            KaynakVeriTabanÄ±Combobox();//veritabanÄ± combobox doldurma
+            HedefVeriTabaniCombobox();//hedef veritabanÄ± combobox doldurma
 
 
         }
         private async void TestConnectionAsync()
         {
             BtnBaglantiTest.Enabled = false;
-            BtnBaglantiTest.Text = "Baðlantý Testi Yapýlýyor...";
+            BtnBaglantiTest.Text = "BaÄŸlantÄ± Testi YapÄ±lÄ±yor...";
 
             string kaynakConnection =
                $"Server={TxtboxKaynakSunucu.Text};" +
-               $"User Id={TxtKullanýcý.Text};" +
+               $"User Id={TxtKullanÄ±cÄ±.Text};" +
                $"Password={TxtSifre.Text};" +
                $"TrustServerCertificate=True;";
 
@@ -103,28 +103,28 @@ namespace DataTransfer
 
                 else
                 {
-                    MessageBox.Show("Baðlantý zaten açýk.");
+                    MessageBox.Show("BaÄŸlantÄ± zaten aÃ§Ä±k.");
                 }
 
-                MessageBox.Show("Hem kaynak hem hedef baðlantýsý baþarýlý!");
+                MessageBox.Show("Hem kaynak hem hedef baÄŸlantÄ±sÄ± baÅŸarÄ±lÄ±!");
 
                 if (connKaynak.State == ConnectionState.Open && connHedef.State == ConnectionState.Open)
                 {
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add("Baðlantý baþarýlý þekilde oluþtu.");
+                    LstboxLog.Items.Add("BaÄŸlantÄ± baÅŸarÄ±lÄ± ÅŸekilde oluÅŸtu.");
                 }
 
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Baðlantý baþarýsýz:\n{ex.Message}");
+                MessageBox.Show($"BaÄŸlantÄ± baÅŸarÄ±sÄ±z:\n{ex.Message}");
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Baðlantý baþarýsýz.");
+                LstboxLog.Items.Add("BaÄŸlantÄ± baÅŸarÄ±sÄ±z.");
             }
             finally
             {
                 BtnBaglantiTest.Enabled = true;
-                BtnBaglantiTest.Text = "Baðlantýyý Test Et";
+                BtnBaglantiTest.Text = "BaÄŸlantÄ±yÄ± Test Et";
             }
 
         }
@@ -140,7 +140,7 @@ namespace DataTransfer
                 string server = TxtboxKaynakSunucu.Text;
                 string db = CmbboxKaynakVeritabani.Text;
                 string table = CmbboxKaynaktablo.Text;
-                string user = TxtKullanýcý.Text;
+                string user = TxtKullanÄ±cÄ±.Text;
                 string pass = TxtSifre.Text;
                 string sutun = CmboxKaynakSutun.Text;
 
@@ -152,10 +152,10 @@ namespace DataTransfer
                     (string.IsNullOrWhiteSpace(pass))
                     )
                 {
-                    MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("LÃ¼tfen tablo ve sÃ¼tun adÄ±nÄ± girin.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-
+                KaynakKolonlar = KolonlariGetir(server, db, table, user, pass);
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -173,13 +173,13 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 
         }
 
-        // kolonlarý listeleme metodu
+        // kolonlarÄ± listeleme metodu
         private List<string> GetColumns(string server, string db, string table, string sutun, string user, string pass)
         {
             if (string.IsNullOrWhiteSpace(server)
@@ -190,7 +190,7 @@ namespace DataTransfer
                 || string.IsNullOrWhiteSpace(pass)
                 )
             {
-                MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen tÃ¼m baÄŸlantÄ± bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             List<string> columns = new List<string>();
@@ -224,7 +224,7 @@ namespace DataTransfer
 
             return columns;
         }
-        //kolon içeriklerini görme
+        //kolon iÃ§eriklerini gÃ¶rme
         private DataTable GetTableData(string server, string db, string table, string sutun, string user, string password)
         {
             if (string.IsNullOrWhiteSpace(server) ||
@@ -234,9 +234,9 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Lütfen tüm baðlantý bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen tÃ¼m baÄŸlantÄ± bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            DataTable dt = new DataTable();//bellek içerisinde tablo oluþturur
+            DataTable dt = new DataTable();//bellek iÃ§erisinde tablo oluÅŸturur
             string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
 
 
@@ -273,11 +273,11 @@ namespace DataTransfer
                     string.IsNullOrWhiteSpace(pass)
                     )
                 {
-                    MessageBox.Show("Lütfen tablo ve sütun adýný girin.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("LÃ¼tfen tablo ve sÃ¼tun adÄ±nÄ± girin.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-
+                HedefKolonlar = KolonlariGetir(server, db, table, user, pass);
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -317,17 +317,17 @@ namespace DataTransfer
 
         }
 
-        //veritabaný combobox doldurma
-        private void KaynakVeriTabanýCombobox()
+        //veritabanÄ± combobox doldurma
+        private void KaynakVeriTabanÄ±Combobox()
         {
             string server = TxtboxKaynakSunucu.Text;
-            string user = TxtKullanýcý.Text;
+            string user = TxtKullanÄ±cÄ±.Text;
             string pass = TxtSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr =
@@ -354,16 +354,16 @@ namespace DataTransfer
                     }
                 }
                 //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add("Kaynak Veritabanlarý baþarýyla yüklendi.");
+                //LstboxLog.Items.Add("Kaynak VeritabanlarÄ± baÅŸarÄ±yla yÃ¼klendi.");
                 //tablo combobox doldurma
-                //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("VeritabanlarÄ± baÅŸarÄ±yla yÃ¼klendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
 
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Veritabaný yüklenemedi.");
+                LstboxLog.Items.Add("VeritabanÄ± yÃ¼klenemedi.");
                 return;
             }
 
@@ -377,7 +377,7 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr =
@@ -403,15 +403,15 @@ namespace DataTransfer
                     }
                 }
                 //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add(" Hedef Veritabanlarý baþarýyla yüklendi.");
+                //LstboxLog.Items.Add(" Hedef VeritabanlarÄ± baÅŸarÄ±yla yÃ¼klendi.");
                 //tablo combobox doldurma
-                //MessageBox.Show("Veritabanlarý baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("VeritabanlarÄ± baÅŸarÄ±yla yÃ¼klendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Veritabaný yüklenemedi.");
+                LstboxLog.Items.Add("VeritabanÄ± yÃ¼klenemedi.");
                 return;
             }
         }
@@ -419,14 +419,14 @@ namespace DataTransfer
         {
             string server = TxtboxKaynakSunucu.Text;
             string db = CmbboxKaynakVeritabani.Text;
-            string user = TxtKullanýcý.Text;
+            string user = TxtKullanÄ±cÄ±.Text;
             string pass = TxtSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, veritabaný, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, veritabanÄ±, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
@@ -446,11 +446,11 @@ namespace DataTransfer
                         }
                     }
                 }
-                //MessageBox.Show("Tablolar baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("Tablolar baÅŸarÄ±yla yÃ¼klendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void HedefTabloDoldur()
@@ -464,7 +464,7 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, veritabaný, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, veritabanÄ±, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
@@ -488,7 +488,7 @@ namespace DataTransfer
             catch (Exception ex)
             {
 
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
@@ -497,7 +497,7 @@ namespace DataTransfer
             string server = TxtboxKaynakSunucu.Text;
             string db = CmbboxKaynakVeritabani.Text;
             string table = CmbboxKaynaktablo.Text;
-            string user = TxtKullanýcý.Text;
+            string user = TxtKullanÄ±cÄ±.Text;
             string pass = TxtSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
@@ -505,7 +505,7 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, veritabaný, tablo, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, veritabanÄ±, tablo, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
@@ -532,14 +532,14 @@ namespace DataTransfer
                     }
                 }
                 //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add("Kaynak Sütunlar baþarýyla yüklendi.");
-                //MessageBox.Show("Sütunlar baþarýyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //LstboxLog.Items.Add("Kaynak SÃ¼tunlar baÅŸarÄ±yla yÃ¼klendi.");
+                //MessageBox.Show("SÃ¼tunlar baÅŸarÄ±yla yÃ¼klendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Sütunlar yüklenemedi.");
+                LstboxLog.Items.Add("SÃ¼tunlar yÃ¼klenemedi.");
                 return;
             }
         }
@@ -556,7 +556,7 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Lütfen sunucu, veritabaný, tablo, kullanýcý adý ve þifre bilgilerini doldurun.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("LÃ¼tfen sunucu, veritabanÄ±, tablo, kullanÄ±cÄ± adÄ± ve ÅŸifre bilgilerini doldurun.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
@@ -581,14 +581,14 @@ namespace DataTransfer
 
                 }
                 //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add("Hedef Sütunlar baþarýyla yüklendi.");
+                //LstboxLog.Items.Add("Hedef SÃ¼tunlar baÅŸarÄ±yla yÃ¼klendi.");
             }
             catch (Exception ex)
             {
 
-                MessageBox.Show($"Hata oluþtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Hata oluÅŸtu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Sütunlar yüklenemedi.");
+                LstboxLog.Items.Add("SÃ¼tunlar yÃ¼klenemedi.");
                 return;
             }
         }
@@ -625,11 +625,11 @@ namespace DataTransfer
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString().Trim();
                 int newRowIndex = GrdEslestirme.Rows.Add();
 
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
-                AktifSatirIndex = newRowIndex; //satýrý kaydet
+                AktifSatirIndex = newRowIndex; //satÄ±rÄ± kaydet
             }
         }
 
@@ -637,16 +637,16 @@ namespace DataTransfer
         {
             if (!AktifSatirIndex.HasValue)
             {
-                MessageBox.Show("Önce Kaynak deðeri seçin", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Ã–nce Kaynak deÄŸeri seÃ§in", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
             {
-                string secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+                string secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString().Trim();
 
                 GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
-                AktifSatirIndex = null; //eþleþtirme tamamlandýktan sonra sýfýrla
-                secilenKaynakDeger = null; //seçilen kaynak deðeri sýfýrla
+                AktifSatirIndex = null; //eÅŸleÅŸtirme tamamlandÄ±ktan sonra sÄ±fÄ±rla
+                secilenKaynakDeger = null; //seÃ§ilen kaynak deÄŸeri sÄ±fÄ±rla
             }
         }
 
@@ -663,7 +663,7 @@ namespace DataTransfer
                 string hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value?.ToString();
                 if ((!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) || (!string.IsNullOrWhiteSpace(kaynak)) || (!string.IsNullOrWhiteSpace(hedef)))
                 {
-                    DialogResult result = MessageBox.Show("Bu eþleþmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    DialogResult result = MessageBox.Show("Bu eÅŸleÅŸmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (result == DialogResult.Yes)
                     {
                         GrdEslestirme.Rows.RemoveAt(e.RowIndex);
@@ -671,57 +671,124 @@ namespace DataTransfer
                 }
                 else
                 {
-                    MessageBox.Show("Silinecek eþleþme bulunamadý.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Silinecek eÅŸleÅŸme bulunamadÄ±.", "UyarÄ±", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
 
 
         }
-        Dictionary<string, (string DataType, int length)> KaynakKolonlar = new Dictionary<string, (string DataType, int length)>();
-        Dictionary<string, (string DataType, int length)> HedefKolonlar = new Dictionary<string, (string DataType, int length)>();
+
+
+        Dictionary<string, (string DataType, int length)> KaynakKolonlar =
+            new Dictionary<string, (string DataType, int length)>(StringComparer.OrdinalIgnoreCase);
+
+        Dictionary<string, (string DataType, int length)> HedefKolonlar =
+            new Dictionary<string, (string DataType, int length)>(StringComparer.OrdinalIgnoreCase);
+
+        private Dictionary<string, (string DataType, int Length)> KolonlariGetir(string server, string db, string table, string user, string pass)
+        {
+            var dict = new Dictionary<string, (string DataType, int Length)>(StringComparer.OrdinalIgnoreCase);
+
+            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                string sql = @"SELECT COLUMN_NAME, DATA_TYPE, ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) AS MaxLength
+                       FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_NAME=@TableName";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TableName", table);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string colName = reader["COLUMN_NAME"].ToString().Trim();
+                            string dataType = reader["DATA_TYPE"].ToString();
+                            int length = Convert.ToInt32(reader["MaxLength"]);
+
+                            dict[colName] = (dataType, length);
+                        }
+                    }
+                }
+            }
+            return dict;
+        }
+
+
+
+
 
 
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+
+        }
+        private void KontrolEt(DataGridViewRow row)
+        {
+            string kaynak = row.Cells[KaynakSutun.Index].Value?.ToString();
+            string hedef = row.Cells[HedefSutun.Index].Value?.ToString();
+
+            if (string.IsNullOrEmpty(kaynak) || string.IsNullOrEmpty(hedef))
+                return;
+
+            if (!KaynakKolonlar.ContainsKey(kaynak) || !HedefKolonlar.ContainsKey(hedef))
+            {
+                LstboxLog.Items.Add($"SÃ¶zlÃ¼kte bulunamadÄ±: Kaynak='{kaynak}' Hedef='{hedef}'");
+                return;
+            }
+
+            var kaynakInfo = KaynakKolonlar[kaynak];
+            var hedefInfo = HedefKolonlar[hedef];
+
+            if (!KaynakKolonlar.ContainsKey(kaynak))
+                LstboxLog.Items.Add($"Kaynak sÃ¶zlÃ¼kte yok: '{kaynak}'");
+
+            if (!HedefKolonlar.ContainsKey(hedef))
+                LstboxLog.Items.Add($"Hedef sÃ¶zlÃ¼kte yok: '{hedef}'");
+
+            LstboxLog.Items.Add(
+                $"Kaynak: {kaynak} ({kaynakInfo.DataType}, {kaynakInfo.length}) | " +
+                $"Hedef: {hedef} ({hedefInfo.DataType}, {hedefInfo.length})"
+            );
+
+            if (kaynakInfo.DataType == hedefInfo.DataType && kaynakInfo.length == hedefInfo.length)
+            {
+                row.Cells["Uygunluk"].Value = "âœ” Uyumlu";
+                row.Cells["Uygunluk"].Style.BackColor = Color.LightGreen;
+            }
+            else
+            {
+                row.Cells["Uygunluk"].Value = "âŒ Uygun DeÄŸil";
+                row.Cells["Uygunluk"].Style.BackColor = Color.LightCoral;
+            }
+        }
+
+
+
+
+
+
+        private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
+        {
+
+
+
+            MessageBox.Show("EÅŸleÅŸmeler doÄŸrulandÄ±.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
                 KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
             }
         }
-        private void KontrolEt(DataGridViewRow row)
+
+        private void CmboxKaynakSutun_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string kaynak = row.Cells[KaynakSutun.Index].Value?.ToString();
-            string hedef = row.Cells[HedefSutun.Index].Value?.ToString();
-            if (!string.IsNullOrEmpty(kaynak) || (!string.IsNullOrEmpty(hedef)))
-            {
-                var kaynakInfo = KaynakKolonlar.ContainsKey(kaynak) ? KaynakKolonlar[kaynak] : (null, 0);
-                var hedefInfo = HedefKolonlar.ContainsKey(hedef) ? HedefKolonlar[hedef] : (null, 0);
 
-                if (kaynakInfo.Item1 == hedefInfo.Item1 && kaynakInfo.Item2 == hedefInfo.Item2)
-                {
-                    row.Cells["Uygunluk"].Value = "Uyumlu";
-                    row.Cells["Uygunluk"].Style.BackColor = Color.Green;
-                }
-                else
-                {
-                    row.Cells["Uygunluk"].Value = "Uyumsuz";
-                    row.Cells["Uygunluk"].Style.BackColor = Color.Red;
-                }
-
-            }
-        }
-
-        private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
-        {
-            foreach (DataGridViewRow row in GrdEslestirme.Rows)
-            {
-                if (!row.IsNewRow)
-                {
-                    KontrolEt(row);
-                }
-            }
-            
-            MessageBox.Show("Eþleþmeler doðrulandý.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 
