@@ -107,7 +107,6 @@
             lblKynkVeri.Size = new Size(87, 20);
             lblKynkVeri.TabIndex = 2;
             lblKynkVeri.Text = "Veri tabanı :";
-           
             // 
             // LblKynkTablo
             // 
@@ -138,7 +137,6 @@
             LblHdfVeri.Size = new Size(88, 20);
             LblHdfVeri.TabIndex = 5;
             LblHdfVeri.Text = "Veri Tabanı :";
-            
             // 
             // LblHdfTablo
             // 
@@ -156,7 +154,6 @@
             TxtboxKaynakSunucu.Name = "TxtboxKaynakSunucu";
             TxtboxKaynakSunucu.Size = new Size(127, 23);
             TxtboxKaynakSunucu.TabIndex = 7;
-           
             // 
             // CmbboxKaynakVeritabani
             // 
@@ -244,7 +241,6 @@
             GrbboxKaynak.TabIndex = 16;
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
-           
             // 
             // CmboxKaynakSutun
             // 
@@ -253,7 +249,6 @@
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
-            
             // 
             // TxtSifre
             // 
@@ -261,6 +256,7 @@
             TxtSifre.Name = "TxtSifre";
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
+            TxtSifre.TextChanged += TxtSifre_TextChanged;
             // 
             // label3
             // 
@@ -342,7 +338,6 @@
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
-            
             // 
             // CmboxHedefSutun
             // 
@@ -351,7 +346,6 @@
             CmboxHedefSutun.Name = "CmboxHedefSutun";
             CmboxHedefSutun.Size = new Size(130, 23);
             CmboxHedefSutun.TabIndex = 21;
-            
             // 
             // TxboxHedefSifre
             // 
@@ -359,6 +353,7 @@
             TxboxHedefSifre.Name = "TxboxHedefSifre";
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
+            TxboxHedefSifre.TextChanged += TxboxHedefSifre_TextChanged;
             // 
             // label4
             // 
@@ -369,7 +364,6 @@
             label4.Size = new Size(46, 20);
             label4.TabIndex = 18;
             label4.Text = "Şifre :";
-           
             // 
             // TxboxHedefKullanici
             // 

@@ -17,7 +17,7 @@ namespace DataTransfer
 
         }
 
-    
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -52,6 +52,7 @@ namespace DataTransfer
         {
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
+
 
             string kaynakConnection =
                $"Server={TxtboxKaynakSunucu.Text};" +
@@ -136,7 +137,7 @@ namespace DataTransfer
                     return;
                 }
 
-                
+
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
                 DataTable dt = GetTableData(server, db, table, sutun, user, pass);
@@ -257,7 +258,7 @@ namespace DataTransfer
                     return;
                 }
 
-               
+
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -286,9 +287,9 @@ namespace DataTransfer
             KaynakTabloDoldur();
         }
 
-        
 
-        
+
+
 
         //veritabanı combobox doldurma
         private void KaynakVeriTabanıCombobox()
@@ -566,9 +567,9 @@ namespace DataTransfer
             }
         }
 
-       
 
-       
+
+
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
             KaynakSutunDoldur();
@@ -584,7 +585,7 @@ namespace DataTransfer
             HedefTabloDoldur();
         }
 
-       
+
 
 
         private int? AktifSatirIndex = null;
@@ -594,13 +595,13 @@ namespace DataTransfer
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                
+
                 secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
                 int newRowIndex = GrdEslestirme.Rows.Add();
 
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
                 AktifSatirIndex = newRowIndex; //satırı kaydet
-                LstboxLog.Items.Add("kaynak"+secilenKaynakDeger.GetType());
+                LstboxLog.Items.Add("kaynak" + secilenKaynakDeger.GetType());
             }
         }
 
@@ -618,9 +619,11 @@ namespace DataTransfer
                 GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
                 AktifSatirIndex = null; //eşleştirme tamamlandıktan sonra sıfırla
                 secilenKaynakDeger = null; //seçilen kaynak değeri sıfırla
-                LstboxLog.Items.Add("hedef"+secilenHedefDeger.GetType());
+                LstboxLog.Items.Add("hedef" + secilenHedefDeger.GetType());
             }
         }
+
+        //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)
         {
             object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
@@ -630,8 +633,8 @@ namespace DataTransfer
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
                 {
                     row.Cells["Uygunluk"].Value = "Uyumsuz tip";
-                   row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor."+"\n Kaynak Deger: "+kaynakDeger.GetType()+"\n hedef deger: "+hedefDeger.GetType());
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
                     MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
@@ -642,7 +645,7 @@ namespace DataTransfer
             }
         }
 
-        
+
         //silme işlemi
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -652,15 +655,15 @@ namespace DataTransfer
                 object kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value;
                 object hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value;
 
-                
-                    DialogResult result = MessageBox.Show("Bu eşleşmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (result == DialogResult.Yes)
-                    {
-                        GrdEslestirme.Rows.RemoveAt(e.RowIndex);
-                    }
-                
-                    MessageBox.Show("Silinecek eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                
+
+                DialogResult result = MessageBox.Show("Bu eşleşmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    GrdEslestirme.Rows.RemoveAt(e.RowIndex);
+                }
+
+                MessageBox.Show("Silinecek eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
             }
 
 
@@ -669,24 +672,32 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            
-            KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
+
+            // KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
         }
-        
+
 
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
 
-           
+            KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
         }
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            
+
         }
-       
-       
+
+        private void TxtSifre_TextChanged(object sender, EventArgs e)
+        {
+            TxtSifre.PasswordChar = '\u25CF';
+        }
+
+        private void TxboxHedefSifre_TextChanged(object sender, EventArgs e)
+        {
+            TxboxHedefSifre.PasswordChar = '\u25CF';
+        }
     }
 
 }
