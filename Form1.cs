@@ -629,13 +629,15 @@ namespace DataTransfer
             {
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
                 {
-                    row.Cells["Uygunluk"].Value = "Uyumsuz";
+                    row.Cells["Uygunluk"].Value = "Uyumsuz tip";
+                   row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     LstboxLog.Items.Add("Veri tipleri uyuşmuyor."+"\n Kaynak Deger: "+kaynakDeger.GetType()+"\n hedef deger: "+hedefDeger.GetType());
                     MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
-                                    {
-                    row.Cells["Uygunluk"].Value = "Uygun";
+                {
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
+                    row.Cells["Uygunluk"].Value = "Uyumlu tip";
                 }
             }
         }
