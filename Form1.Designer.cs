@@ -453,6 +453,7 @@
             GrdEslestirme.Size = new Size(535, 187);
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
+            GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
             GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             // 

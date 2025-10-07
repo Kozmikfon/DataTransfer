@@ -25,7 +25,7 @@ namespace DataTransfer
             BtnTransferBaslat.Enabled = false;
             BtnKynkKolonYukle.Enabled = false;
             BtnHedefKolonYukle.Enabled = false;
-           
+
         }
 
 
@@ -54,7 +54,7 @@ namespace DataTransfer
         }
         private async void TestConnectionAsync()
         {
-            
+
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
 
@@ -635,15 +635,18 @@ namespace DataTransfer
         //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)
         {
+          
             object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
             object hedefDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[HedefSutun.Index].Value;
             if (kaynakDeger != null && hedefDeger != null) // her iki değerde dolu ise
             {
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
                 {
+                    
                     row.Cells["Uygunluk"].Value = "Uyumsuz tip";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                    //row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
@@ -651,9 +654,10 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
                     row.Cells["Uygunluk"].Value = "Uyumlu tip";
                 }
+               
             }
         }
-
+        
 
         //silme işlemi
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -682,24 +686,13 @@ namespace DataTransfer
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
 
-            // KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
+
         }
 
 
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
-            if (GrdEslestirme.Rows.Count == 0)
-            {
-                MessageBox.Show("Lütfen önce eşleştirme yapın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            else
-            {
-                KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
-
-            }
-
 
         }
 
@@ -716,6 +709,12 @@ namespace DataTransfer
         private void TxboxHedefSifre_TextChanged(object sender, EventArgs e)
         {
             TxboxHedefSifre.PasswordChar = '\u25CF';
+        }
+
+        private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
+        {
+            KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
+            
         }
     }
 
