@@ -82,7 +82,7 @@
             // 
             BtnBaglantiTest.Location = new Point(19, 16);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
-            BtnBaglantiTest.Size = new Size(146, 27);
+            BtnBaglantiTest.Size = new Size(146, 42);
             BtnBaglantiTest.TabIndex = 0;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
             BtnBaglantiTest.UseVisualStyleBackColor = true;
@@ -426,9 +426,9 @@
             // 
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
-            LstboxLog.Location = new Point(19, 49);
+            LstboxLog.Location = new Point(19, 64);
             LstboxLog.Name = "LstboxLog";
-            LstboxLog.Size = new Size(533, 184);
+            LstboxLog.Size = new Size(533, 169);
             LstboxLog.TabIndex = 0;
             // 
             // GrbboxEslesmeLog
@@ -450,7 +450,7 @@
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { KaynakSutun, HedefSutun, Uygunluk, Sil });
             GrdEslestirme.Location = new Point(6, 61);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(546, 187);
+            GrdEslestirme.Size = new Size(535, 187);
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;

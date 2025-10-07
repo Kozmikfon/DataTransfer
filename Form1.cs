@@ -21,7 +21,11 @@ namespace DataTransfer
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            BtnEslesmeDogrula.Enabled = false;
+            BtnTransferBaslat.Enabled = false;
+            BtnKynkKolonYukle.Enabled = false;
+            BtnHedefKolonYukle.Enabled = false;
+           
         }
 
 
@@ -50,6 +54,7 @@ namespace DataTransfer
         }
         private async void TestConnectionAsync()
         {
+            
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
 
@@ -94,6 +99,10 @@ namespace DataTransfer
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add("Bağlantı başarılı şekilde oluştu.");
                 }
+                BtnEslesmeDogrula.Enabled = true;
+                BtnTransferBaslat.Enabled = true;
+                BtnKynkKolonYukle.Enabled = true;
+                BtnHedefKolonYukle.Enabled = true;
 
             }
             catch (Exception ex)
@@ -680,8 +689,18 @@ namespace DataTransfer
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
+            if (GrdEslestirme.Rows.Count == 0)
+            {
+                MessageBox.Show("Lütfen önce eşleştirme yapın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            else
+            {
+                KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
 
-            KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
+            }
+
+
         }
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
