@@ -17,34 +17,13 @@ namespace DataTransfer
 
         }
 
-        private void LblHdfVeri_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblKynkVeri_Click(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-        private void GrbBoxSutunlar_Enter(object sender, EventArgs e)
-        {
-
-        }
+    
 
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
 
-
-
-        private void GrbboxKaynak_Enter(object sender, EventArgs e)
-        {
-
-        }
 
 
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
@@ -155,7 +134,7 @@ namespace DataTransfer
                     MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                KaynakKolonlar = KolonlariGetir(server, db, table, user, pass);
+                
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -277,7 +256,7 @@ namespace DataTransfer
                     return;
                 }
 
-                HedefKolonlar = KolonlariGetir(server, db, table, user, pass);
+               
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
@@ -306,16 +285,9 @@ namespace DataTransfer
             KaynakTabloDoldur();
         }
 
-        private void TxtboxKaynakSunucu_TextChanged(object sender, EventArgs e)
-        {
+        
 
-
-        }
-
-        private void BtnVeritabaniGetir_Click(object sender, EventArgs e)
-        {
-
-        }
+        
 
         //veritabanı combobox doldurma
         private void KaynakVeriTabanıCombobox()
@@ -593,16 +565,9 @@ namespace DataTransfer
             }
         }
 
-        private void GrbboxHedef_Enter(object sender, EventArgs e)
-        {
+       
 
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
+       
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
             KaynakSutunDoldur();
@@ -650,10 +615,7 @@ namespace DataTransfer
             }
         }
 
-        private void CmboxHedefSutun_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -679,117 +641,25 @@ namespace DataTransfer
         }
 
 
-        Dictionary<string, (string DataType, int length)> KaynakKolonlar =
-            new Dictionary<string, (string DataType, int length)>(StringComparer.OrdinalIgnoreCase);
-
-        Dictionary<string, (string DataType, int length)> HedefKolonlar =
-            new Dictionary<string, (string DataType, int length)>(StringComparer.OrdinalIgnoreCase);
-
-        private Dictionary<string, (string DataType, int Length)> KolonlariGetir(string server, string db, string table, string user, string pass)
-        {
-            var dict = new Dictionary<string, (string DataType, int Length)>(StringComparer.OrdinalIgnoreCase);
-
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                conn.Open();
-                string sql = @"SELECT COLUMN_NAME, DATA_TYPE, ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) AS MaxLength
-                       FROM INFORMATION_SCHEMA.COLUMNS
-                       WHERE TABLE_NAME=@TableName";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@TableName", table);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            string colName = reader["COLUMN_NAME"].ToString().Trim();
-                            string dataType = reader["DATA_TYPE"].ToString();
-                            int length = Convert.ToInt32(reader["MaxLength"]);
-
-                            dict[colName] = (dataType, length);
-                        }
-                    }
-                }
-            }
-            return dict;
-        }
-
-
-
-
-
-
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
 
         }
-        private void KontrolEt(DataGridViewRow row)
-        {
-            string kaynak = row.Cells[KaynakSutun.Index].Value?.ToString();
-            string hedef = row.Cells[HedefSutun.Index].Value?.ToString();
-
-            if (string.IsNullOrEmpty(kaynak) || string.IsNullOrEmpty(hedef))
-                return;
-
-            if (!KaynakKolonlar.ContainsKey(kaynak) || !HedefKolonlar.ContainsKey(hedef))
-            {
-                LstboxLog.Items.Add($"Sözlükte bulunamadı: Kaynak='{kaynak}' Hedef='{hedef}'");
-                return;
-            }
-
-            var kaynakInfo = KaynakKolonlar[kaynak];
-            var hedefInfo = HedefKolonlar[hedef];
-
-            if (!KaynakKolonlar.ContainsKey(kaynak))
-                LstboxLog.Items.Add($"Kaynak sözlükte yok: '{kaynak}'");
-
-            if (!HedefKolonlar.ContainsKey(hedef))
-                LstboxLog.Items.Add($"Hedef sözlükte yok: '{hedef}'");
-
-            LstboxLog.Items.Add(
-                $"Kaynak: {kaynak} ({kaynakInfo.DataType}, {kaynakInfo.length}) | " +
-                $"Hedef: {hedef} ({hedefInfo.DataType}, {hedefInfo.length})"
-            );
-
-            if (kaynakInfo.DataType == hedefInfo.DataType && kaynakInfo.length == hedefInfo.length)
-            {
-                row.Cells["Uygunluk"].Value = "✔ Uyumlu";
-                row.Cells["Uygunluk"].Style.BackColor = Color.LightGreen;
-            }
-            else
-            {
-                row.Cells["Uygunluk"].Value = "❌ Uygun Değil";
-                row.Cells["Uygunluk"].Style.BackColor = Color.LightCoral;
-            }
-        }
-
-
-
-
+        
 
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
-
-
 
             MessageBox.Show("Eşleşmeler doğrulandı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
-            {
-                KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
-            }
+            
         }
 
-        private void CmboxKaynakSutun_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
+       
     }
 
 }

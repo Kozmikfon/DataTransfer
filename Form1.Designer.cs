@@ -107,7 +107,7 @@
             lblKynkVeri.Size = new Size(87, 20);
             lblKynkVeri.TabIndex = 2;
             lblKynkVeri.Text = "Veri tabanı :";
-            lblKynkVeri.Click += lblKynkVeri_Click;
+           
             // 
             // LblKynkTablo
             // 
@@ -138,7 +138,7 @@
             LblHdfVeri.Size = new Size(88, 20);
             LblHdfVeri.TabIndex = 5;
             LblHdfVeri.Text = "Veri Tabanı :";
-            LblHdfVeri.Click += LblHdfVeri_Click;
+            
             // 
             // LblHdfTablo
             // 
@@ -156,7 +156,7 @@
             TxtboxKaynakSunucu.Name = "TxtboxKaynakSunucu";
             TxtboxKaynakSunucu.Size = new Size(127, 23);
             TxtboxKaynakSunucu.TabIndex = 7;
-            TxtboxKaynakSunucu.TextChanged += TxtboxKaynakSunucu_TextChanged;
+           
             // 
             // CmbboxKaynakVeritabani
             // 
@@ -244,7 +244,7 @@
             GrbboxKaynak.TabIndex = 16;
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
-            GrbboxKaynak.Enter += GrbboxKaynak_Enter;
+           
             // 
             // CmboxKaynakSutun
             // 
@@ -253,7 +253,7 @@
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
-            CmboxKaynakSutun.SelectedIndexChanged += CmboxKaynakSutun_SelectedIndexChanged;
+            
             // 
             // TxtSifre
             // 
@@ -342,7 +342,7 @@
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
-            GrbboxHedef.Enter += GrbboxHedef_Enter;
+            
             // 
             // CmboxHedefSutun
             // 
@@ -351,7 +351,7 @@
             CmboxHedefSutun.Name = "CmboxHedefSutun";
             CmboxHedefSutun.Size = new Size(130, 23);
             CmboxHedefSutun.TabIndex = 21;
-            CmboxHedefSutun.SelectedIndexChanged += CmboxHedefSutun_SelectedIndexChanged;
+            
             // 
             // TxboxHedefSifre
             // 
@@ -369,7 +369,7 @@
             label4.Size = new Size(46, 20);
             label4.TabIndex = 18;
             label4.Text = "Şifre :";
-            label4.Click += label4_Click;
+           
             // 
             // TxboxHedefKullanici
             // 
