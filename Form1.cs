@@ -584,18 +584,23 @@ namespace DataTransfer
             HedefTabloDoldur();
         }
 
+       
+
+
         private int? AktifSatirIndex = null;
-        private string secilenKaynakDeger = null;
+        private object secilenKaynakDeger = null;
 
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString().Trim();
+                DataGridViewRow row = new DataGridViewRow();
+                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
                 int newRowIndex = GrdEslestirme.Rows.Add();
 
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
                 AktifSatirIndex = newRowIndex; //satırı kaydet
+                LstboxLog.Items.Add("kaynak"+secilenKaynakDeger.GetType());//string geliyor
             }
         }
 
@@ -608,11 +613,12 @@ namespace DataTransfer
             }
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
             {
-                string secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString().Trim();
+                var secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
 
                 GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
                 AktifSatirIndex = null; //eşleştirme tamamlandıktan sonra sıfırla
                 secilenKaynakDeger = null; //seçilen kaynak değeri sıfırla
+                LstboxLog.Items.Add("hedef"+secilenHedefDeger.GetType());
             }
         }
 
@@ -620,6 +626,7 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            //silme islemi
             if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "Sil")
             {
                 string kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value?.ToString();
@@ -644,7 +651,7 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-
+            
         }
         
 
@@ -652,22 +659,14 @@ namespace DataTransfer
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
 
-            MessageBox.Show("Eşleşmeler doğrulandı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+           
         }
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             
         }
-        private void KontrolEt()
-        {
-            var kaynak= GrdEslestirme.Rows.Cast<DataGridViewRow>()
-                .Select(r => r.Cells[KaynakSutun.Index].Value?.ToString().Trim())
-                .Where(v => !string.IsNullOrWhiteSpace(v))
-                .ToList();
-            
-
-        }
+       
        
     }
 
