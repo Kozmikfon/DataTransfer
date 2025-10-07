@@ -594,13 +594,13 @@ namespace DataTransfer
         {
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                DataGridViewRow row = new DataGridViewRow();
+                
                 secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
                 int newRowIndex = GrdEslestirme.Rows.Add();
 
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
                 AktifSatirIndex = newRowIndex; //satırı kaydet
-                LstboxLog.Items.Add("kaynak"+secilenKaynakDeger.GetType());//string geliyor
+                LstboxLog.Items.Add("kaynak"+secilenKaynakDeger.GetType());
             }
         }
 
@@ -621,28 +621,44 @@ namespace DataTransfer
                 LstboxLog.Items.Add("hedef"+secilenHedefDeger.GetType());
             }
         }
+        private void KontrolEt(DataGridViewRow row)
+        {
+            object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
+            object hedefDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[HedefSutun.Index].Value;
+            if (kaynakDeger != null && hedefDeger != null) // her iki değerde dolu ise
+            {
+                if (kaynakDeger.GetType() != hedefDeger.GetType())
+                {
+                    row.Cells["Uygunluk"].Value = "Uyumsuz";
+                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor."+"\n Kaynak Deger: "+kaynakDeger.GetType()+"\n hedef deger: "+hedefDeger.GetType());
+                    MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                                    {
+                    row.Cells["Uygunluk"].Value = "Uygun";
+                }
+            }
+        }
 
         
-
+        //silme işlemi
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             //silme islemi
             if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "Sil")
             {
-                string kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value?.ToString();
-                string hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value?.ToString();
-                if ((!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) || (!string.IsNullOrWhiteSpace(kaynak)) || (!string.IsNullOrWhiteSpace(hedef)))
-                {
+                object kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value;
+                object hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value;
+
+                
                     DialogResult result = MessageBox.Show("Bu eşleşmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (result == DialogResult.Yes)
                     {
                         GrdEslestirme.Rows.RemoveAt(e.RowIndex);
                     }
-                }
-                else
-                {
+                
                     MessageBox.Show("Silinecek eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                
             }
 
 
@@ -652,6 +668,7 @@ namespace DataTransfer
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
             
+            KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
         }
         
 
