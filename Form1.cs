@@ -28,6 +28,7 @@ namespace DataTransfer
 
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
+            GrdEslestirme.Rows.Clear();
             LstboxLog.Items.Clear();
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
@@ -134,8 +135,8 @@ namespace DataTransfer
                     MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                
 
+                
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
                 DataTable dt = GetTableData(server, db, table, sutun, user, pass);
@@ -658,7 +659,15 @@ namespace DataTransfer
         {
             
         }
+        private void KontrolEt()
+        {
+            var kaynak= GrdEslestirme.Rows.Cast<DataGridViewRow>()
+                .Select(r => r.Cells[KaynakSutun.Index].Value?.ToString().Trim())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
+            
 
+        }
        
     }
 
