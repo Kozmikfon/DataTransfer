@@ -23,6 +23,7 @@ namespace DataTransfer
             BtnTransferBaslat.Enabled = false;
             BtnKynkKolonYukle.Enabled = false;
             BtnHedefKolonYukle.Enabled = false;
+            GrdEslestirme.Enabled=false;
 
         }
 
@@ -107,6 +108,7 @@ namespace DataTransfer
                 BtnTransferBaslat.Enabled = true;
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
+                GrdEslestirme.Enabled = true;
 
             }
             catch (Exception ex)
@@ -190,10 +192,13 @@ namespace DataTransfer
 
             List<string> columns = new List<string>();
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            
+            
 
+                    
 
-                conn= new SqlConnection(connStr);
-
+            using (conn = new SqlConnection(connStr))
+            {
                 if (conn.State == ConnectionState.Closed)
                 {
                     conn.Open();
@@ -202,19 +207,19 @@ namespace DataTransfer
                        FROM INFORMATION_SCHEMA.COLUMNS 
                        WHERE TABLE_NAME = @TableName AND COLUMN_NAME= @ColumnName";
 
+                cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TableName", table);
+                cmd.Parameters.AddWithValue("@ColumnName", sutun);
 
-                    cmd = new SqlCommand(sql, conn);
-                    
-                    cmd.Parameters.AddWithValue("@TableName", table);
-                    cmd.Parameters.AddWithValue("@ColumnName", sutun);
-
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            columns.Add(reader["COLUMN_NAME"].ToString());
-                        }
+                        columns.Add(reader["COLUMN_NAME"].ToString());
                     }
+                }
+            }
+
                 
             return columns;
         }
@@ -640,9 +645,9 @@ namespace DataTransfer
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
                 {                    
                     row.Cells["Uygunluk"].Value = "Uyumsuz tip";
-                    //row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
+                    LstboxLog.ForeColor = Color.Red;
                     MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
