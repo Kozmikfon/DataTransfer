@@ -681,7 +681,7 @@ namespace DataTransfer
                     GrdEslestirme.Rows.RemoveAt(e.RowIndex);
                 }
 
-                MessageBox.Show("Silinecek eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                
 
             }
 
