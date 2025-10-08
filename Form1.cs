@@ -17,8 +17,6 @@ namespace DataTransfer
 
         }
 
-
-
         private void Form1_Load(object sender, EventArgs e)
         {
             BtnEslesmeDogrula.Enabled = false;
@@ -28,7 +26,13 @@ namespace DataTransfer
 
         }
 
-
+        SqlConnection connHedef;
+        SqlConnection connKaynak;
+        SqlConnection conn;
+        SqlCommand cmd;
+        SqlDataAdapter dap;
+        SqlDataReader reader;
+        DataTable dt;
 
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
@@ -46,13 +50,13 @@ namespace DataTransfer
                 return;
             }
 
-            TestConnectionAsync();//baglantı testi
+            TestConnectionAsync(connHedef,connKaynak);//baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
 
         }
-        private async void TestConnectionAsync()
+        private async void TestConnectionAsync(SqlConnection connHedef, SqlConnection connKaynak)
         {
 
             BtnBaglantiTest.Enabled = false;
@@ -71,16 +75,16 @@ namespace DataTransfer
                $"Password={TxboxHedefSifre.Text};" +
                $"TrustServerCertificate=True;";
 
-
+            
             try
             {
-                SqlConnection connHedef = new SqlConnection(hedefConnection);
+                connHedef = new SqlConnection(hedefConnection);
                 if (connHedef.State == ConnectionState.Closed)
                 {
                     await connHedef.OpenAsync();
                 }
 
-                SqlConnection connKaynak = new SqlConnection(kaynakConnection);
+                connKaynak = new SqlConnection(kaynakConnection);
                 if (connKaynak.State == ConnectionState.Closed)
                 {
                     await connKaynak.OpenAsync();
@@ -92,7 +96,7 @@ namespace DataTransfer
                     MessageBox.Show("Bağlantı zaten açık.");
                 }
 
-                MessageBox.Show("Hem kaynak hem hedef bağlantısı başarılı!");
+                MessageBox.Show("Bağlantı Oluşturuldu!");
 
                 if (connKaynak.State == ConnectionState.Open && connHedef.State == ConnectionState.Open)
                 {
@@ -149,7 +153,7 @@ namespace DataTransfer
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
+                dt = GetTableData(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
@@ -172,6 +176,7 @@ namespace DataTransfer
         // kolonları listeleme metodu
         private List<string> GetColumns(string server, string db, string table, string sutun, string user, string pass)
         {
+            
             if (string.IsNullOrWhiteSpace(server)
                 || string.IsNullOrWhiteSpace(db)
                 || string.IsNullOrWhiteSpace(table)
@@ -187,8 +192,8 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
 
 
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
+                conn= new SqlConnection(connStr);
+
                 if (conn.State == ConnectionState.Closed)
                 {
                     conn.Open();
@@ -197,8 +202,9 @@ namespace DataTransfer
                        FROM INFORMATION_SCHEMA.COLUMNS 
                        WHERE TABLE_NAME = @TableName AND COLUMN_NAME= @ColumnName";
 
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
+
+                    cmd = new SqlCommand(sql, conn);
+                    
                     cmd.Parameters.AddWithValue("@TableName", table);
                     cmd.Parameters.AddWithValue("@ColumnName", sutun);
 
@@ -209,9 +215,7 @@ namespace DataTransfer
                             columns.Add(reader["COLUMN_NAME"].ToString());
                         }
                     }
-                }
-            }
-
+                
             return columns;
         }
         //kolon içeriklerini görme
@@ -226,18 +230,17 @@ namespace DataTransfer
             {
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            DataTable dt = new DataTable();//bellek içerisinde tablo oluşturur
+            dt = new DataTable();//bellek içerisinde tablo oluşturur
             string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
 
 
-            using (SqlConnection conn = new SqlConnection(connStr))
+            using (conn=new SqlConnection(connStr))
             {
                 conn.Open();
                 string sqlsorgu = $" SELECT [{sutun}] FROM [{table}]";
-                using (SqlDataAdapter da = new SqlDataAdapter(sqlsorgu, conn))
-                {
-                    da.Fill(dt);
-                }
+                dap= new SqlDataAdapter(sqlsorgu, conn);
+                dap.Fill(dt);
+                
             }
             return dt;
         }
@@ -271,7 +274,7 @@ namespace DataTransfer
 
                 //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-                DataTable dt = GetTableData(server, db, table, sutun, user, pass);
+                dt = GetTableData(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
@@ -322,19 +325,18 @@ namespace DataTransfer
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
-                    connection.Open();
+                    conn.Open();
                     string sql = "SELECT NAME FROM sys.databases ORDER BY name";
-                    using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    cmd = new SqlCommand(sql, conn);
+                    reader = cmd.ExecuteReader();
+                    CmbboxKaynakVeritabani.Items.Clear();
+                    while (reader.Read())
                     {
-                        CmbboxKaynakVeritabani.Items.Clear();
-                        while (reader.Read())
-                        {
-                            CmbboxKaynakVeritabani.Items.Add(reader["name"].ToString());
-                        }
+                      CmbboxKaynakVeritabani.Items.Add(reader["name"].ToString());
                     }
+                    
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add("Kaynak Veritabanları başarıyla yüklendi.");
@@ -371,19 +373,18 @@ namespace DataTransfer
                 $"TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
-                    connection.Open();
+                    conn.Open();
                     string sql = "SELECT NAME FROM sys.databases ORDER BY name";
-                    using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        CmbboxHedefVeriTabani.Items.Clear();
+                    cmd = new SqlCommand(sql, conn);
+                    reader = cmd.ExecuteReader();
+                    CmbboxHedefVeriTabani.Items.Clear();
                         while (reader.Read())
                         {
                             CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
                         }
-                    }
+                    
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add(" Hedef Veritabanları başarıyla yüklendi.");
@@ -415,19 +416,18 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
-                    connection.Open();
+                    conn.Open();
                     string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
-                    using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        CmbboxKaynaktablo.Items.Clear();
+                    cmd = new SqlCommand(sql, conn);
+                    reader = cmd.ExecuteReader();
+                    CmbboxKaynaktablo.Items.Clear();
                         while (reader.Read())
                         {
                             CmbboxKaynaktablo.Items.Add(reader["TABLE_NAME"].ToString());
                         }
-                    }
+                    
                 }
                 //MessageBox.Show("Tablolar başarıyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -453,19 +453,18 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection conn = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        CmbboxHedefTablo.Items.Clear();
+                    cmd = new SqlCommand(sql, conn);
+                    reader = cmd.ExecuteReader();
+                    CmbboxHedefTablo.Items.Clear();
                         while (reader.Read())
                         {
                             CmbboxHedefTablo.Items.Add(reader["TABLE_NAME"].ToString());
                         }
-                    }
+                    
                 }
             }
             catch (Exception ex)
@@ -494,25 +493,24 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
-                    connection.Open();
+                    conn.Open();
                     string sql = @"SELECT COLUMN_NAME 
                        FROM INFORMATION_SCHEMA.COLUMNS 
                        WHERE TABLE_NAME = @TableName
                        ORDER BY ORDINAL_POSITION";
-                    using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    {
-                        cmd.Parameters.AddWithValue("@TableName", table);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            CmboxKaynakSutun.Items.Clear();
+
+                    cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@TableName", table);
+                    reader = cmd.ExecuteReader();
+                    CmboxKaynakSutun.Items.Clear();
                             while (reader.Read())
                             {
                                 CmboxKaynakSutun.Items.Add(reader["COLUMN_NAME"].ToString());
                             }
-                        }
-                    }
+                        
+                    
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add("Kaynak Sütunlar başarıyla yüklendi.");
@@ -545,22 +543,20 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (SqlConnection conn = new SqlConnection(connStr))
+                using (conn=new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = @"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@TableName", table);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            CmboxHedefSutun.Items.Clear();
+                    cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@TableName", table);
+                    reader = cmd.ExecuteReader();
+                    CmboxHedefSutun.Items.Clear();
                             while (reader.Read())
                             {
                                 CmboxHedefSutun.Items.Add(reader["COLUMN_NAME"].ToString());
                             }
-                        }
-                    }
+                        
+                    
 
                 }
                 //LstboxLog.ForeColor = Color.Green;
@@ -656,6 +652,7 @@ namespace DataTransfer
                 }
                
             }
+            
         }
         
 
@@ -681,7 +678,6 @@ namespace DataTransfer
                     GrdEslestirme.Rows.RemoveAt(e.RowIndex);
                 }
 
-                
 
             }
 
