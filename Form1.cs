@@ -130,7 +130,7 @@ namespace DataTransfer
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
-
+            
             try
             {
                 string server = TxtboxKaynakSunucu.Text;
@@ -166,9 +166,11 @@ namespace DataTransfer
                 dt.Rows.Add(row);
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
+               
             }
             catch (Exception ex)
             {
+                
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
@@ -632,6 +634,13 @@ namespace DataTransfer
                 LstboxLog.Items.Add("hedef" + secilenHedefDeger.GetType());
             }
         }
+
+        Dictionary<string,(object DataType,int length,bool IsNullable)> KaynakKolonlar = 
+            new Dictionary<string, (object DataType, int length, bool IsNullable)>();
+        Dictionary<string,(object DataType,int length,bool IsNullable)> HedefKolonlar = 
+            new Dictionary<string, (object DataType, int length, bool IsNullable)>();
+
+
 
         //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)

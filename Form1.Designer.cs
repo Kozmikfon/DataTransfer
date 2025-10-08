@@ -80,12 +80,13 @@
             // 
             // BtnBaglantiTest
             // 
+            BtnBaglantiTest.BackColor = Color.White;
             BtnBaglantiTest.Location = new Point(19, 16);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
             BtnBaglantiTest.Size = new Size(146, 42);
             BtnBaglantiTest.TabIndex = 0;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
-            BtnBaglantiTest.UseVisualStyleBackColor = true;
+            BtnBaglantiTest.UseVisualStyleBackColor = false;
             BtnBaglantiTest.Click += BtnBaglantiTest_Click;
             // 
             // LblKynkSunucu
@@ -237,7 +238,7 @@
             GrbboxKaynak.Dock = DockStyle.Left;
             GrbboxKaynak.Location = new Point(0, 0);
             GrbboxKaynak.Name = "GrbboxKaynak";
-            GrbboxKaynak.Size = new Size(267, 667);
+            GrbboxKaynak.Size = new Size(267, 686);
             GrbboxKaynak.TabIndex = 16;
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
@@ -332,9 +333,9 @@
             GrbboxHedef.Controls.Add(LblHdfSunucu);
             GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
             GrbboxHedef.Dock = DockStyle.Right;
-            GrbboxHedef.Location = new Point(825, 0);
+            GrbboxHedef.Location = new Point(836, 0);
             GrbboxHedef.Name = "GrbboxHedef";
-            GrbboxHedef.Size = new Size(283, 667);
+            GrbboxHedef.Size = new Size(283, 686);
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
@@ -413,12 +414,13 @@
             // 
             // GrbboxButon
             // 
+            GrbboxButon.BackColor = SystemColors.Control;
             GrbboxButon.Controls.Add(LstboxLog);
             GrbboxButon.Controls.Add(BtnBaglantiTest);
             GrbboxButon.Dock = DockStyle.Top;
             GrbboxButon.Location = new Point(267, 0);
             GrbboxButon.Name = "GrbboxButon";
-            GrbboxButon.Size = new Size(558, 232);
+            GrbboxButon.Size = new Size(569, 232);
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
@@ -426,9 +428,9 @@
             // 
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
-            LstboxLog.Location = new Point(19, 64);
+            LstboxLog.Location = new Point(19, 65);
             LstboxLog.Name = "LstboxLog";
-            LstboxLog.Size = new Size(533, 169);
+            LstboxLog.Size = new Size(533, 154);
             LstboxLog.TabIndex = 0;
             // 
             // GrbboxEslesmeLog
@@ -437,9 +439,9 @@
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
             GrbboxEslesmeLog.Controls.Add(BtnEslesmeDogrula);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
-            GrbboxEslesmeLog.Location = new Point(267, 233);
+            GrbboxEslesmeLog.Location = new Point(267, 252);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
-            GrbboxEslesmeLog.Size = new Size(558, 434);
+            GrbboxEslesmeLog.Size = new Size(569, 434);
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
@@ -490,11 +492,15 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1108, 667);
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            AutoValidate = AutoValidate.EnablePreventFocusChange;
+            BackgroundImageLayout = ImageLayout.Center;
+            ClientSize = new Size(1119, 686);
             Controls.Add(GrbboxEslesmeLog);
             Controls.Add(GrbboxButon);
             Controls.Add(GrbboxHedef);
             Controls.Add(GrbboxKaynak);
+            FormBorderStyle = FormBorderStyle.SizableToolWindow;
             Name = "FrmVeriEslestirme";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Veri Aktarımı";
