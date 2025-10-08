@@ -638,11 +638,11 @@ namespace DataTransfer
           
             object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
             object hedefDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[HedefSutun.Index].Value;
+
             if (kaynakDeger != null && hedefDeger != null) // her iki değerde dolu ise
             {
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
-                {
-                    
+                {                    
                     row.Cells["Uygunluk"].Value = "Uyumsuz tip";
                     //row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
@@ -662,12 +662,18 @@ namespace DataTransfer
         //silme işlemi
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            
             //silme islemi
             if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "Sil")
             {
                 object kaynak = GrdEslestirme.Rows[e.RowIndex].Cells[KaynakSutun.Index].Value;
                 object hedef = GrdEslestirme.Rows[e.RowIndex].Cells[HedefSutun.Index].Value;
 
+                if (kaynak == null && hedef == null)
+                {
+                    MessageBox.Show("Silinecek eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 DialogResult result = MessageBox.Show("Bu eşleşmeyi silmek istiyor musunuz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
