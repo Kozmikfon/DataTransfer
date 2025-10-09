@@ -213,7 +213,7 @@
             // 
             BtnTransferBaslat.Location = new Point(84, 254);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
-            BtnTransferBaslat.Size = new Size(118, 45);
+            BtnTransferBaslat.Size = new Size(123, 52);
             BtnTransferBaslat.TabIndex = 15;
             BtnTransferBaslat.Text = "Veri Transferini Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Drawing.Imaging;
+using System.Xml.Serialization;
 
 namespace DataTransfer
 {
@@ -38,6 +39,18 @@ namespace DataTransfer
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
+            //CmbboxKaynakVeritabani.Items.Clear();
+            //CmbboxHedefVeriTabani.Items.Clear();
+            //CmbboxKaynaktablo.Items.Clear();
+            //CmbboxHedefTablo.Items.Clear();
+            //CmboxKaynakSutun.Items.Clear();
+            //CmboxHedefSutun.Items.Clear();
+           
+
+
+
+
+
             LstboxLog.Items.Clear();
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
@@ -121,6 +134,7 @@ namespace DataTransfer
             {
                 BtnBaglantiTest.Enabled = true;
                 BtnBaglantiTest.Text = "Bağlantıyı Test Et";
+                
             }
 
         }
@@ -195,10 +209,7 @@ namespace DataTransfer
             List<string> columns = new List<string>();
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             
-            
-
-                    
-
+           
             using (conn = new SqlConnection(connStr))
             {
                 if (conn.State == ConnectionState.Closed)
@@ -221,9 +232,7 @@ namespace DataTransfer
                     }
                 }
             }
-
-                
-            return columns;
+              return columns;
         }
         //kolon içeriklerini görme
         private DataTable GetTableData(string server, string db, string table, string sutun, string user, string password)
@@ -294,11 +303,12 @@ namespace DataTransfer
                 GrdHedef.DataSource = dt;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
-                throw;
+                MessageBox.Show("Hata", ex.Message);
             }
+            
         }
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
@@ -332,7 +342,7 @@ namespace DataTransfer
 
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = "SELECT NAME FROM sys.databases ORDER BY name";
@@ -341,9 +351,9 @@ namespace DataTransfer
                     CmbboxKaynakVeritabani.Items.Clear();
                     while (reader.Read())
                     {
-                      CmbboxKaynakVeritabani.Items.Add(reader["name"].ToString());
+                        CmbboxKaynakVeritabani.Items.Add(reader["name"].ToString());
                     }
-                    
+
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add("Kaynak Veritabanları başarıyla yüklendi.");
@@ -357,6 +367,10 @@ namespace DataTransfer
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add("Veritabanı yüklenemedi.");
                 return;
+            }
+            finally
+            {
+                conn.Close();
             }
 
         }
@@ -380,18 +394,18 @@ namespace DataTransfer
                 $"TrustServerCertificate=True;";
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = "SELECT NAME FROM sys.databases ORDER BY name";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxHedefVeriTabani.Items.Clear();
-                        while (reader.Read())
-                        {
-                            CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
-                        }
-                    
+                    while (reader.Read())
+                    {
+                        CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
+                    }
+
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add(" Hedef Veritabanları başarıyla yüklendi.");
@@ -404,6 +418,10 @@ namespace DataTransfer
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add("Veritabanı yüklenemedi.");
                 return;
+            }
+            finally
+            {
+                conn.Close();
             }
         }
         private void KaynakTabloDoldur()
@@ -423,24 +441,28 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxKaynaktablo.Items.Clear();
-                        while (reader.Read())
-                        {
-                            CmbboxKaynaktablo.Items.Add(reader["TABLE_NAME"].ToString());
-                        }
-                    
+                    while (reader.Read())
+                    {
+                        CmbboxKaynaktablo.Items.Add(reader["TABLE_NAME"].ToString());
+                    }
+
                 }
                 //MessageBox.Show("Tablolar başarıyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                conn.Close();
             }
         }
         private void HedefTabloDoldur()
@@ -479,7 +501,10 @@ namespace DataTransfer
 
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
+            finally
+            {
+                conn.Close();
+            }
         }
         private void KaynakSutunDoldur()
         {
@@ -500,7 +525,7 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = @"SELECT COLUMN_NAME 
@@ -512,12 +537,12 @@ namespace DataTransfer
                     cmd.Parameters.AddWithValue("@TableName", table);
                     reader = cmd.ExecuteReader();
                     CmboxKaynakSutun.Items.Clear();
-                            while (reader.Read())
-                            {
-                                CmboxKaynakSutun.Items.Add(reader["COLUMN_NAME"].ToString());
-                            }
-                        
-                    
+                    while (reader.Read())
+                    {
+                        CmboxKaynakSutun.Items.Add(reader["COLUMN_NAME"].ToString());
+                    }
+
+
                 }
                 //LstboxLog.ForeColor = Color.Green;
                 //LstboxLog.Items.Add("Kaynak Sütunlar başarıyla yüklendi.");
@@ -529,6 +554,10 @@ namespace DataTransfer
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add("Sütunlar yüklenemedi.");
                 return;
+            }
+            finally
+            { 
+                conn.Close();
             }
         }
         private void HedefSutunDoldur()
@@ -577,8 +606,26 @@ namespace DataTransfer
                 LstboxLog.Items.Add("Sütunlar yüklenemedi.");
                 return;
             }
+            finally
+            {
+                conn.Close();
+            }
         }
+        //private void IsNullableKOntrolEt()
+        //{
+            
+        //    if (conn.State==ConnectionState.Closed)
+        //    {
 
+        //        conn.Open(); 
+        //        string sql= @"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
+        //                    FROM INFORMATION_SCHEMA.COLUMNS
+        //                    WHERE TABLE_NAME = @TableName";
+        //        cmd = new SqlCommand(sql, conn);
+        //        cmd.Parameters.AddWithValue("@Table_Name",table);
+        //    }
+            
+        //}
 
 
 
