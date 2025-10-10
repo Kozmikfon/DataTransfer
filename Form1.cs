@@ -42,13 +42,9 @@ namespace DataTransfer
             //CmbboxKaynakVeritabani.Items.Clear();
             //CmbboxHedefVeriTabani.Items.Clear();
             //CmbboxKaynaktablo.Items.Clear();
-            //CmbboxHedefTablo.Items.Clear();
+            //CmbboxHedefTablo.Items.Clear(); 
             //CmboxKaynakSutun.Items.Clear();
             //CmboxHedefSutun.Items.Clear();
-           
-
-
-
 
 
             LstboxLog.Items.Clear();
@@ -71,7 +67,7 @@ namespace DataTransfer
 
         }
         private async void TestConnectionAsync(SqlConnection connHedef, SqlConnection connKaynak)
-        {
+        {   
 
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
@@ -88,8 +84,8 @@ namespace DataTransfer
                $"User Id={TxboxHedefKullanici.Text};" +
                $"Password={TxboxHedefSifre.Text};" +
                $"TrustServerCertificate=True;";
-
-            
+                    
+                
             try
             {
                 connHedef = new SqlConnection(hedefConnection);
@@ -168,8 +164,8 @@ namespace DataTransfer
 
 
                 //KolonYukle(server, db, table, sutun, user, pass);
-                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-                dt = GetTableData(server, db, table, sutun, user, pass);
+                List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
+                dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
@@ -192,7 +188,7 @@ namespace DataTransfer
         }
 
         // kolonları listeleme metodu
-        private List<string> GetColumns(string server, string db, string table, string sutun, string user, string pass)
+        private List<string> KolonlarıGetir(string server, string db, string table, string sutun, string user, string pass)
         {
             
             if (string.IsNullOrWhiteSpace(server)
@@ -235,7 +231,7 @@ namespace DataTransfer
               return columns;
         }
         //kolon içeriklerini görme
-        private DataTable GetTableData(string server, string db, string table, string sutun, string user, string password)
+        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string password)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
@@ -246,7 +242,8 @@ namespace DataTransfer
             {
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            dt = new DataTable();//bellek içerisinde tablo oluşturur
+
+            dt = new DataTable();//bellek içerisinde tablo oluşturuyoruz sanal
             string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
 
 
@@ -289,8 +286,8 @@ namespace DataTransfer
 
 
                 //KolonYukle(server, db, table, sutun, user, pass);
-                List<string> columns = GetColumns(server, db, table, sutun, user, pass);
-                dt = GetTableData(server, db, table, sutun, user, pass);
+                List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
+                dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 colSelect.HeaderText = "Hedef Kolonlar";
                 colSelect.ReadOnly = true;
