@@ -55,13 +55,13 @@ namespace DataTransfer
                 return;
             }
 
-            TestConnectionAsync(connHedef,connKaynak);//baglantı testi
+            BaglantiTestAsync(connHedef,connKaynak);//baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
             
         }
-        private async void TestConnectionAsync(SqlConnection connHedef, SqlConnection connKaynak)
+        private async void BaglantiTestAsync(SqlConnection connHedef, SqlConnection connKaynak)
         {   
 
             BtnBaglantiTest.Enabled = false;
@@ -129,8 +129,6 @@ namespace DataTransfer
             }
 
         }
-
-
 
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
@@ -319,9 +317,6 @@ namespace DataTransfer
         {
             KaynakTabloDoldur();
         }
-
-
-
 
 
         //veritabanı combobox doldurma
@@ -691,7 +686,7 @@ namespace DataTransfer
         Dictionary<string,(object DataType,int length,bool IsNullable)> HedefKolonlar = 
             new Dictionary<string, (object DataType, int length, bool IsNullable)>();
 
-
+        
 
         //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)
