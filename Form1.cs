@@ -39,12 +39,7 @@ namespace DataTransfer
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
-            //CmbboxKaynakVeritabani.Items.Clear();
-            //CmbboxHedefVeriTabani.Items.Clear();
-            //CmbboxKaynaktablo.Items.Clear();
-            //CmbboxHedefTablo.Items.Clear(); 
-            //CmboxKaynakSutun.Items.Clear();
-            //CmboxHedefSutun.Items.Clear();
+            
 
 
             LstboxLog.Items.Clear();
@@ -64,7 +59,7 @@ namespace DataTransfer
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
-
+            
         }
         private async void TestConnectionAsync(SqlConnection connHedef, SqlConnection connKaynak)
         {   
@@ -140,7 +135,12 @@ namespace DataTransfer
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
-            
+            KaynakKolonYukle();
+
+        }
+
+        private bool KaynakKolonYukle()
+        {
             try
             {
                 string server = TxtboxKaynakSunucu.Text;
@@ -159,11 +159,10 @@ namespace DataTransfer
                     )
                 {
                     MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    return false;
                 }
 
 
-                //KolonYukle(server, db, table, sutun, user, pass);
                 List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
                 dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
@@ -176,15 +175,16 @@ namespace DataTransfer
                 dt.Rows.Add(row);
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
-               
+
             }
             catch (Exception ex)
             {
-                
+
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 
+            return true;
         }
 
         // kolonları listeleme metodu
@@ -262,6 +262,12 @@ namespace DataTransfer
 
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
+            HedefKolonYükle();
+
+        }
+
+        private bool HedefKolonYükle()
+        {
             try
             {
                 string server = TxtboxHedefSunucu.Text;
@@ -280,7 +286,7 @@ namespace DataTransfer
                     )
                 {
                     MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    return false;
                 }
 
 
@@ -305,7 +311,8 @@ namespace DataTransfer
 
                 MessageBox.Show("Hata", ex.Message);
             }
-            
+
+            return true;
         }
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
