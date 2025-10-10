@@ -167,8 +167,8 @@ namespace DataTransfer
                 List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
                 dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                colSelect.HeaderText = "Hedef Kolonlar";
-                colSelect.ReadOnly = true;
+                //colSelect.HeaderText = "Hedef Kolonlar";
+                //colSelect.ReadOnly = true;
 
 
                 GrdKaynak.Columns.Add(colSelect);
@@ -289,8 +289,8 @@ namespace DataTransfer
                 List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
                 dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                colSelect.HeaderText = "Hedef Kolonlar";
-                colSelect.ReadOnly = true;
+                //colSelect.HeaderText = "Hedef Kolonlar";
+                //colSelect.ReadOnly = true;
 
 
                 GrdHedef.Columns.Add(colSelect);
