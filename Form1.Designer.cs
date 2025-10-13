@@ -163,6 +163,7 @@
             CmbboxKaynakVeritabani.Name = "CmbboxKaynakVeritabani";
             CmbboxKaynakVeritabani.Size = new Size(127, 23);
             CmbboxKaynakVeritabani.TabIndex = 8;
+            CmbboxKaynakVeritabani.DrawItem += CmbboxKaynakVeritabani_DrawItem;
             CmbboxKaynakVeritabani.SelectedIndexChanged += CmbboxKaynakVeritabani_SelectedIndexChanged;
             // 
             // CmbboxKaynaktablo
@@ -172,6 +173,7 @@
             CmbboxKaynaktablo.Name = "CmbboxKaynaktablo";
             CmbboxKaynaktablo.Size = new Size(127, 23);
             CmbboxKaynaktablo.TabIndex = 9;
+            CmbboxKaynaktablo.DrawItem += CmbboxKaynaktablo_DrawItem;
             CmbboxKaynaktablo.SelectedIndexChanged += CmbboxKaynaktablo_SelectedIndexChanged;
             // 
             // TxtboxHedefSunucu
@@ -188,6 +190,7 @@
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
+            CmbboxHedefVeriTabani.DrawItem += CmbboxHedefVeriTabani_DrawItem;
             CmbboxHedefVeriTabani.SelectedIndexChanged += CmbboxHedefVeriTabani_SelectedIndexChanged;
             // 
             // CmbboxHedefTablo
@@ -197,6 +200,7 @@
             CmbboxHedefTablo.Name = "CmbboxHedefTablo";
             CmbboxHedefTablo.Size = new Size(129, 23);
             CmbboxHedefTablo.TabIndex = 12;
+            CmbboxHedefTablo.DrawItem += CmbboxHedefTablo_DrawItem;
             CmbboxHedefTablo.SelectedIndexChanged += CmbboxHedefTablo_SelectedIndexChanged;
             // 
             // BtnEslesmeDogrula

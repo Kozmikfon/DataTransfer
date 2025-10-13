@@ -16,6 +16,28 @@ namespace DataTransfer
 
             InitializeComponent();
 
+            dbIcon = Properties.Resources.database;
+            dbIcontable = Properties.Resources.table;
+
+            //veritabanları
+            CmbboxKaynakVeritabani.DrawMode = DrawMode.OwnerDrawFixed;
+            CmbboxKaynakVeritabani.ItemHeight = 20;
+
+
+            CmbboxKaynakVeritabani.DrawItem += CmbboxKaynakVeritabani_DrawItem;
+
+            CmbboxHedefVeriTabani.DrawMode = DrawMode.OwnerDrawFixed;
+            CmbboxHedefVeriTabani.ItemHeight = 20;
+            CmbboxHedefVeriTabani.DrawItem += CmbboxHedefVeriTabani_DrawItem;
+
+            //tablolar
+            CmbboxKaynaktablo.DrawMode = DrawMode.OwnerDrawFixed;
+            CmbboxKaynaktablo.ItemHeight = 22;
+            CmbboxKaynaktablo.DrawItem += CmbboxKaynaktablo_DrawItem;
+
+            CmbboxHedefTablo.DrawMode = DrawMode.OwnerDrawFixed;
+            CmbboxHedefTablo.ItemHeight = 22;
+            CmbboxHedefTablo.DrawItem += CmbboxHedefTablo_DrawItem;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -24,7 +46,7 @@ namespace DataTransfer
             BtnTransferBaslat.Enabled = false;
             BtnKynkKolonYukle.Enabled = false;
             BtnHedefKolonYukle.Enabled = false;
-            GrdEslestirme.Enabled=false;
+            GrdEslestirme.Enabled = false;
 
         }
 
@@ -35,11 +57,12 @@ namespace DataTransfer
         SqlDataAdapter dap;
         SqlDataReader reader;
         DataTable dt;
-
+        Image dbIcon;
+        Image dbIcontable;
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
-            
+
 
 
             LstboxLog.Items.Clear();
@@ -55,14 +78,14 @@ namespace DataTransfer
                 return;
             }
 
-            BaglantiTestAsync(connHedef,connKaynak);//baglantı testi
+            BaglantiTestAsync(connHedef, connKaynak);//baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
-            
+
         }
         private async void BaglantiTestAsync(SqlConnection connHedef, SqlConnection connKaynak)
-        {   
+        {
 
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
@@ -79,8 +102,8 @@ namespace DataTransfer
                $"User Id={TxboxHedefKullanici.Text};" +
                $"Password={TxboxHedefSifre.Text};" +
                $"TrustServerCertificate=True;";
-                    
-                
+
+
             try
             {
                 connHedef = new SqlConnection(hedefConnection);
@@ -125,7 +148,7 @@ namespace DataTransfer
             {
                 BtnBaglantiTest.Enabled = true;
                 BtnBaglantiTest.Text = "Bağlantıyı Test Et";
-                
+
             }
 
         }
@@ -188,7 +211,7 @@ namespace DataTransfer
         // kolonları listeleme metodu
         private List<string> KolonlarıGetir(string server, string db, string table, string sutun, string user, string pass)
         {
-            
+
             if (string.IsNullOrWhiteSpace(server)
                 || string.IsNullOrWhiteSpace(db)
                 || string.IsNullOrWhiteSpace(table)
@@ -202,8 +225,8 @@ namespace DataTransfer
 
             List<string> columns = new List<string>();
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
-            
-           
+
+
             using (conn = new SqlConnection(connStr))
             {
                 if (conn.State == ConnectionState.Closed)
@@ -226,7 +249,7 @@ namespace DataTransfer
                     }
                 }
             }
-              return columns;
+            return columns;
         }
         //kolon içeriklerini görme
         private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string password)
@@ -245,13 +268,13 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
 
 
-            using (conn=new SqlConnection(connStr))
+            using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
                 string sqlsorgu = $" SELECT [{sutun}] FROM [{table}]";
-                dap= new SqlDataAdapter(sqlsorgu, conn);
+                dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
-                
+
             }
             return dt;
         }
@@ -315,6 +338,7 @@ namespace DataTransfer
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
+
             KaynakTabloDoldur();
         }
 
@@ -463,6 +487,7 @@ namespace DataTransfer
             {
                 conn.Close();
             }
+
         }
         private void HedefTabloDoldur()
         {
@@ -481,18 +506,18 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxHedefTablo.Items.Clear();
-                        while (reader.Read())
-                        {
-                            CmbboxHedefTablo.Items.Add(reader["TABLE_NAME"].ToString());
-                        }
-                    
+                    while (reader.Read())
+                    {
+                        CmbboxHedefTablo.Items.Add(reader["TABLE_NAME"].ToString());
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -555,7 +580,7 @@ namespace DataTransfer
                 return;
             }
             finally
-            { 
+            {
                 conn.Close();
             }
         }
@@ -578,7 +603,7 @@ namespace DataTransfer
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             try
             {
-                using (conn=new SqlConnection(connStr))
+                using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
                     string sql = @"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
@@ -586,12 +611,12 @@ namespace DataTransfer
                     cmd.Parameters.AddWithValue("@TableName", table);
                     reader = cmd.ExecuteReader();
                     CmboxHedefSutun.Items.Clear();
-                            while (reader.Read())
-                            {
-                                CmboxHedefSutun.Items.Add(reader["COLUMN_NAME"].ToString());
-                            }
-                        
-                    
+                    while (reader.Read())
+                    {
+                        CmboxHedefSutun.Items.Add(reader["COLUMN_NAME"].ToString());
+                    }
+
+
 
                 }
                 //LstboxLog.ForeColor = Color.Green;
@@ -612,7 +637,7 @@ namespace DataTransfer
         }
         //private void IsNullableKOntrolEt()
         //{
-            
+
         //    if (conn.State==ConnectionState.Closed)
         //    {
 
@@ -623,7 +648,7 @@ namespace DataTransfer
         //        cmd = new SqlCommand(sql, conn);
         //        cmd.Parameters.AddWithValue("@Table_Name",table);
         //    }
-            
+
         //}
 
 
@@ -681,24 +706,24 @@ namespace DataTransfer
             }
         }
 
-        Dictionary<string,(object DataType,int length,bool IsNullable)> KaynakKolonlar = 
+        Dictionary<string, (object DataType, int length, bool IsNullable)> KaynakKolonlar =
             new Dictionary<string, (object DataType, int length, bool IsNullable)>();
-        Dictionary<string,(object DataType,int length,bool IsNullable)> HedefKolonlar = 
+        Dictionary<string, (object DataType, int length, bool IsNullable)> HedefKolonlar =
             new Dictionary<string, (object DataType, int length, bool IsNullable)>();
 
-        
+
 
         //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)
         {
-          
+
             object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
             object hedefDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[HedefSutun.Index].Value;
 
             if (kaynakDeger != null && hedefDeger != null) // her iki değerde dolu ise
             {
                 if (kaynakDeger.GetType() != hedefDeger.GetType())
-                {                    
+                {
                     row.Cells["Uygunluk"].Value = "Uyumsuz tip";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
@@ -710,16 +735,16 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
                     row.Cells["Uygunluk"].Value = "Uyumlu tip";
                 }
-               
+
             }
-            
+
         }
-        
+
 
         //silme işlemi
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            
+
             //silme islemi
             if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "Sil")
             {
@@ -737,21 +762,14 @@ namespace DataTransfer
                 {
                     GrdEslestirme.Rows.RemoveAt(e.RowIndex);
                 }
-
-
             }
-
-
         }
 
 
         private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
 
-
         }
-
-
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
@@ -776,7 +794,60 @@ namespace DataTransfer
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
             KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
-            
+        }
+
+        private void CmbboxKaynakVeritabani_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0)
+            {
+                return;
+            }
+            e.DrawBackground();
+            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 20, 20);
+
+            string text = CmbboxKaynakVeritabani.Items[e.Index].ToString();
+            e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 2);
+            e.DrawFocusRectangle();
+        }
+
+        private void CmbboxHedefVeriTabani_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0)
+            {
+                return;
+            }
+            e.DrawBackground();
+            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            string text = CmbboxHedefVeriTabani.Items[e.Index].ToString();
+            e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 2);
+            e.DrawFocusRectangle();
+        }
+
+        private void CmbboxKaynaktablo_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0)
+            {
+                return;
+            }
+            e.DrawBackground();
+            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            string text = CmbboxKaynaktablo.Items[e.Index].ToString();
+            e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
+            e.DrawFocusRectangle();
+
+        }
+
+        private void CmbboxHedefTablo_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0)
+            {
+                return;
+            }
+            e.DrawBackground();
+            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            string text = CmbboxHedefTablo.Items[e.Index].ToString();
+            e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
+            e.DrawFocusRectangle();
         }
     }
 
