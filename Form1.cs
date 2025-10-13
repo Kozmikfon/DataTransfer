@@ -803,7 +803,7 @@ namespace DataTransfer
                 return;
             }
             e.DrawBackground();
-            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 18, 18);
 
             string text = CmbboxKaynakVeritabani.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 2);
@@ -817,7 +817,7 @@ namespace DataTransfer
                 return;
             }
             e.DrawBackground();
-            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            e.Graphics.DrawImage(dbIcon, e.Bounds.Left, e.Bounds.Top, 18, 18);
             string text = CmbboxHedefVeriTabani.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 2);
             e.DrawFocusRectangle();
@@ -830,7 +830,7 @@ namespace DataTransfer
                 return;
             }
             e.DrawBackground();
-            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 18, 18);
             string text = CmbboxKaynaktablo.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
             e.DrawFocusRectangle();
@@ -844,7 +844,7 @@ namespace DataTransfer
                 return;
             }
             e.DrawBackground();
-            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 20, 20);
+            e.Graphics.DrawImage(dbIcontable, e.Bounds.Left, e.Bounds.Top, 18, 18);
             string text = CmbboxHedefTablo.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
             e.DrawFocusRectangle();
