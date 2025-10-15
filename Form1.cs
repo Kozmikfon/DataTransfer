@@ -230,7 +230,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            List<string> columns = new List<string>();
+            List<string> kolonlar = new List<string>();
             string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
 
 
@@ -252,12 +252,12 @@ namespace DataTransfer
                 {
                     while (reader.Read())
                     {
-                        columns.Add(reader["COLUMN_NAME"].ToString());
+                        kolonlar.Add(reader["COLUMN_NAME"].ToString());
 
                     }
                 }
             }
-            return columns;
+            return kolonlar;
         }
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
         {
@@ -309,15 +309,10 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $@"
-            SELECT 
-                COLUMN_NAME, 
-                DATA_TYPE, 
-                CHARACTER_MAXIMUM_LENGTH, 
-                IS_NULLABLE
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_NAME = '{table}'
-            ORDER BY ORDINAL_POSITION";
+                string sqlsorgu = $@"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
+                                    FROM INFORMATION_SCHEMA.COLUMNS
+                                    WHERE TABLE_NAME = '{table}'
+                                    ORDER BY ORDINAL_POSITION";
                 dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
 
@@ -365,7 +360,6 @@ namespace DataTransfer
                 //colSelect.HeaderText = "Hedef Kolonlar";
                 //colSelect.ReadOnly = true;
 
-
                 GrdHedef.Columns.Add(colSelect);
                 DataRow row = dt.NewRow();
                 dt.Rows.Add(row);
@@ -375,13 +369,9 @@ namespace DataTransfer
                 {
                     LstboxLog.Items.Add(item);
                 }
-
-
-
             }
             catch (Exception ex)
             {
-
                 MessageBox.Show("Hata", ex.Message);
             }
 
@@ -723,7 +713,8 @@ namespace DataTransfer
 
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
                 AktifSatirIndex = newRowIndex; //satırı kaydet
-                LstboxLog.Items.Add("kaynak" + secilenKaynakDeger.GetType());
+                //LstboxLog.Items.Add("kaynak" + secilenKaynakDeger.GetType());
+                
             }
         }
 
@@ -741,7 +732,8 @@ namespace DataTransfer
                 GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
                 AktifSatirIndex = null; //eşleştirme tamamlandıktan sonra sıfırla
                 secilenKaynakDeger = null; //seçilen kaynak değeri sıfırla
-                LstboxLog.Items.Add("hedef" + secilenHedefDeger.GetType());
+                //LstboxLog.Items.Add("hedef" + secilenHedefDeger.GetType());
+                
             }
         }
 
