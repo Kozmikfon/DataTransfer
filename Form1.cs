@@ -157,7 +157,7 @@ namespace DataTransfer
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
             KaynakKolonYukle();
-
+            
         }
 
         private bool KaynakKolonYukle()
@@ -233,7 +233,7 @@ namespace DataTransfer
                 {
                     conn.Open();
                 }
-                string sql = @"SELECT COLUMN_NAME 
+                string sql = @"SELECT COLUMN_NAME,DATA_TYPE 
                        FROM INFORMATION_SCHEMA.COLUMNS 
                        WHERE TABLE_NAME = @TableName AND COLUMN_NAME= @ColumnName";
 
@@ -246,10 +246,38 @@ namespace DataTransfer
                     while (reader.Read())
                     {
                         columns.Add(reader["COLUMN_NAME"].ToString());
+                        
                     }
                 }
             }
             return columns;
+        }
+        private Dictionary<string, (object DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
+        {
+            var kolonlar = new Dictionary<string, (object DataType, int? Length, bool IsNullable)>();
+            string connstr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            using (conn=new SqlConnection(connstr))
+            {
+                conn.Open() ;
+                string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName";
+                using (cmd=new SqlCommand(sql,conn))
+                {
+                    cmd.Parameters.AddWithValue("@TableName", table);
+                    using (reader=cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string colName = reader["COLUMN_NAME"].ToString();
+                            string dataType = reader["DATA_TYPE"].ToString() ;
+                            int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
+                            bool isNullable = reader["IS_NULLABLE"].ToString() == "YES";
+                            kolonlar[colName] = (dataType, length, isNullable);
+                        }
+                    }
+                }
+            }
+            return kolonlar;
+
         }
         //kolon içeriklerini görme
         private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string password)
