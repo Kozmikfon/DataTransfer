@@ -173,7 +173,7 @@
             CmbboxKaynaktablo.Name = "CmbboxKaynaktablo";
             CmbboxKaynaktablo.Size = new Size(127, 23);
             CmbboxKaynaktablo.TabIndex = 9;
-           CmbboxKaynaktablo.DrawItem += CmbboxKaynaktablo_DrawItem;
+            CmbboxKaynaktablo.DrawItem += CmbboxKaynaktablo_DrawItem;
             CmbboxKaynaktablo.SelectedIndexChanged += CmbboxKaynaktablo_SelectedIndexChanged;
             // 
             // TxtboxHedefSunucu
@@ -190,7 +190,7 @@
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
-           CmbboxHedefVeriTabani.DrawItem += CmbboxHedefVeriTabani_DrawItem;
+            CmbboxHedefVeriTabani.DrawItem += CmbboxHedefVeriTabani_DrawItem;
             CmbboxHedefVeriTabani.SelectedIndexChanged += CmbboxHedefVeriTabani_SelectedIndexChanged;
             // 
             // CmbboxHedefTablo
@@ -254,7 +254,6 @@
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
-            //CmboxKaynakSutun.SelectedIndexChanged += CmboxKaynakSutun_SelectedIndexChanged;
             // 
             // TxtSifre
             // 
@@ -463,6 +462,7 @@
             GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
             GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
+            GrdEslestirme.CurrentCellDirtyStateChanged += GrdEslestirme_CurrentCellDirtyStateChanged;
             // 
             // KaynakSutun
             // 

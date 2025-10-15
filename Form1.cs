@@ -4,6 +4,7 @@ using Microsoft.VisualBasic.ApplicationServices;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing.Imaging;
 using System.Xml.Serialization;
 
@@ -157,7 +158,7 @@ namespace DataTransfer
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
             KaynakKolonYukle();
-            
+
         }
 
         private bool KaynakKolonYukle()
@@ -184,8 +185,8 @@ namespace DataTransfer
                 }
 
 
-                List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
-                dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
+                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
+                dt = TabloVerileriGetir(server, db, table, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 //colSelect.HeaderText = "Hedef Kolonlar";
                 //colSelect.ReadOnly = true;
@@ -197,7 +198,13 @@ namespace DataTransfer
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
+                foreach (var item in KaynakKolonlar.Keys)
+                {
+                    LstboxLog.Items.Add(item);
+                }
+
             }
+
             catch (Exception ex)
             {
 
@@ -246,46 +253,49 @@ namespace DataTransfer
                     while (reader.Read())
                     {
                         columns.Add(reader["COLUMN_NAME"].ToString());
-                        
+
                     }
                 }
             }
             return columns;
         }
-        private Dictionary<string, (object DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
         {
-            var kolonlar = new Dictionary<string, (object DataType, int? Length, bool IsNullable)>();
+            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>();
             string connstr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
-            using (conn=new SqlConnection(connstr))
+            using (conn = new SqlConnection(connstr))
             {
-                conn.Open() ;
+                conn.Open();
                 string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName";
-                using (cmd=new SqlCommand(sql,conn))
+                using (cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@TableName", table);
-                    using (reader=cmd.ExecuteReader())
+                    using (reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             string colName = reader["COLUMN_NAME"].ToString();
-                            string dataType = reader["DATA_TYPE"].ToString() ;
+                            string dataType = reader["DATA_TYPE"].ToString();
                             int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
                             bool isNullable = reader["IS_NULLABLE"].ToString() == "YES";
                             kolonlar[colName] = (dataType, length, isNullable);
                         }
+
                     }
                 }
+
             }
+
             return kolonlar;
 
         }
         //kolon içeriklerini görme
-        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string password)
+        private DataTable TabloVerileriGetir(string server, string db, string table,  string user, string password)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
-                string.IsNullOrWhiteSpace(sutun) ||
+                //string.IsNullOrWhiteSpace(sutun) ||
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(password))
             {
@@ -299,7 +309,15 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $" SELECT [{sutun}] FROM [{table}]";
+                string sqlsorgu = $@"
+            SELECT 
+                COLUMN_NAME, 
+                DATA_TYPE, 
+                CHARACTER_MAXIMUM_LENGTH, 
+                IS_NULLABLE
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_NAME = '{table}'
+            ORDER BY ORDINAL_POSITION";
                 dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
 
@@ -327,7 +345,7 @@ namespace DataTransfer
                 string pass = TxboxHedefSifre.Text;
 
                 if (string.IsNullOrWhiteSpace(table) ||
-                    string.IsNullOrWhiteSpace(sutun) ||
+                    //string.IsNullOrWhiteSpace(sutun) ||
                     string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(user) ||
@@ -341,8 +359,8 @@ namespace DataTransfer
 
 
                 //KolonYukle(server, db, table, sutun, user, pass);
-                List<string> columns = KolonlarıGetir(server, db, table, sutun, user, pass);
-                dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
+                HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
+                dt = TabloVerileriGetir(server, db, table, user, pass);
                 DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
                 //colSelect.HeaderText = "Hedef Kolonlar";
                 //colSelect.ReadOnly = true;
@@ -353,6 +371,12 @@ namespace DataTransfer
                 dt.Rows.Add(row);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
+                foreach (var item in HedefKolonlar.Keys)
+                {
+                    LstboxLog.Items.Add(item);
+                }
+
+
 
             }
             catch (Exception ex)
@@ -663,21 +687,8 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        //private void IsNullableKOntrolEt()
-        //{
+        
 
-        //    if (conn.State==ConnectionState.Closed)
-        //    {
-
-        //        conn.Open(); 
-        //        string sql= @"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
-        //                    FROM INFORMATION_SCHEMA.COLUMNS
-        //                    WHERE TABLE_NAME = @TableName";
-        //        cmd = new SqlCommand(sql, conn);
-        //        cmd.Parameters.AddWithValue("@Table_Name",table);
-        //    }
-
-        //}
 
 
 
@@ -734,39 +745,72 @@ namespace DataTransfer
             }
         }
 
-        Dictionary<string, (object DataType, int length, bool IsNullable)> KaynakKolonlar =
-            new Dictionary<string, (object DataType, int length, bool IsNullable)>();
-        Dictionary<string, (object DataType, int length, bool IsNullable)> HedefKolonlar =
-            new Dictionary<string, (object DataType, int length, bool IsNullable)>();
+        Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar =
+            new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, (string DataType, int? length, bool IsNullable)> HedefKolonlar =
+            new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
 
 
 
         //şu an sadece tip kontrolü yapıyor
         private void KontrolEt(DataGridViewRow row)
         {
+            string kaynakDeger = row.Cells[KaynakSutun.Index].Value?.ToString().Trim();
+            string hedefDeger = row.Cells[HedefSutun.Index].Value?.ToString().Trim();
 
-            object kaynakDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[KaynakSutun.Index].Value;
-            object hedefDeger = GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex].Cells[HedefSutun.Index].Value;
+            if (string.IsNullOrEmpty(kaynakDeger) || string.IsNullOrEmpty(hedefDeger))
+                return;
 
-            if (kaynakDeger != null && hedefDeger != null) // her iki değerde dolu ise
+            if (!KaynakKolonlar.TryGetValue(kaynakDeger, out var KaynakInfo))
             {
-                if (kaynakDeger.GetType() != hedefDeger.GetType())
-                {
-                    row.Cells["Uygunluk"].Value = "Uyumsuz tip";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    LstboxLog.Items.Add("Veri tipleri uyuşmuyor." + "\n Kaynak Deger: " + kaynakDeger.GetType() + "\n hedef deger: " + hedefDeger.GetType());
-                    LstboxLog.ForeColor = Color.Red;
-                    MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor. Lütfen uygun değerleri seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-                else
-                {
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
-                    row.Cells["Uygunluk"].Value = "Uyumlu tip";
-                }
-
+                LstboxLog.Items.Add($"UYARI: Kaynak kolon '{kaynakDeger}' Dictionary’de bulunamadı!");
+                row.Cells["Uygunluk"].Value = "Kaynak kolon yok";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                return;
             }
 
+            if (!HedefKolonlar.TryGetValue(hedefDeger, out var HedefInfo))
+            {
+                LstboxLog.Items.Add($"UYARI: Hedef kolon '{hedefDeger}' Dictionary’de bulunamadı!");
+                
+                row.Cells["Uygunluk"].Value = "Hedef kolon yok";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                return;
+            }
+
+            // Tip kontrolü
+            if (KaynakInfo.DataType != HedefInfo.DataType)
+            {
+                row.Cells["Uygunluk"].Value = "Uyumsuz tip";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"Veri tipleri uyuşmuyor: Kaynak({KaynakInfo.DataType}) - Hedef({HedefInfo.DataType})");
+                LstboxLog.ForeColor = Color.Red;
+                MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Nullable ve length kontrolleri
+            if (!HedefInfo.IsNullable && KaynakInfo.IsNullable)
+            {
+                row.Cells["Uygunluk"].Value = "Hedef NULL olamaz!";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
+                LstboxLog.Items.Add($"UYARI: {hedefDeger} boş geçilemez ama {kaynakDeger} NULL olabilir.");
+                return;
+            }
+
+            if (HedefInfo.length.HasValue && KaynakInfo.length.HasValue && KaynakInfo.length > HedefInfo.length)
+            {
+                row.Cells["Uygunluk"].Value = "Uzunluk aşıyor.";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
+                LstboxLog.Items.Add($"UYARI: {kaynakDeger} ({KaynakInfo.length}) hedef kolon ({HedefInfo.length}) boyutunu aşıyor");
+                return;
+            }
+
+            // Her şey uyumlu
+            row.Cells["Uygunluk"].Value = "Uygun";
+            row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
         }
+
 
 
         //silme işlemi
@@ -806,7 +850,9 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return; // başlık veya geçersiz hücre
+            var row = GrdEslestirme.Rows[e.RowIndex];
+            KontrolEt(row);
         }
 
         private void TxtSifre_TextChanged(object sender, EventArgs e)
@@ -821,7 +867,12 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
-            KontrolEt(GrdEslestirme.Rows[GrdEslestirme.CurrentCell.RowIndex]);
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+            var row = GrdEslestirme.Rows[e.RowIndex];
+            KontrolEt(row);
         }
 
         private void CmbboxKaynakVeritabani_DrawItem(object sender, DrawItemEventArgs e)
@@ -862,7 +913,6 @@ namespace DataTransfer
             string text = CmbboxKaynaktablo.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
             e.DrawFocusRectangle();
-
         }
 
         private void CmbboxHedefTablo_DrawItem(object sender, DrawItemEventArgs e)
@@ -876,6 +926,14 @@ namespace DataTransfer
             string text = CmbboxHedefTablo.Items[e.Index].ToString();
             e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 25, e.Bounds.Top + 1);
             e.DrawFocusRectangle();
+        }
+
+        private void GrdEslestirme_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (GrdEslestirme.IsCurrentCellDirty)
+            {
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
         }
     }
 
