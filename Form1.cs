@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing.Imaging;
+using System.IO.MemoryMappedFiles;
 using System.Xml.Serialization;
 
 namespace DataTransfer
@@ -259,6 +260,8 @@ namespace DataTransfer
             }
             return kolonlar;
         }
+
+        // kolon bilgilerini getiriyor 
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>();
@@ -266,7 +269,8 @@ namespace DataTransfer
             using (conn = new SqlConnection(connstr))
             {
                 conn.Open();
-                string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName";
+                string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
+
                 using (cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@TableName", table);
@@ -289,8 +293,8 @@ namespace DataTransfer
             return kolonlar;
 
         }
-        //kolon içeriklerini görme
-        private DataTable TabloVerileriGetir(string server, string db, string table,  string user, string password)
+        //kolon içeriklerini görme su an kolonları görüntülüyor.
+        private DataTable TabloVerileriGetir(string server, string db, string table, string user, string password)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
@@ -309,10 +313,7 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $@"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
-                                    FROM INFORMATION_SCHEMA.COLUMNS
-                                    WHERE TABLE_NAME = '{table}'
-                                    ORDER BY ORDINAL_POSITION";
+                string sqlsorgu = $@"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table}'"; // TÜM KOLONLAR VE VERİLER
                 dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
 
@@ -351,8 +352,6 @@ namespace DataTransfer
                     return false;
                 }
 
-
-
                 //KolonYukle(server, db, table, sutun, user, pass);
                 HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
                 dt = TabloVerileriGetir(server, db, table, user, pass);
@@ -376,6 +375,25 @@ namespace DataTransfer
             }
 
             return true;
+        }
+        private List<(string KaynakKolon,string HedefKolon)> EslemeListesi()
+        {
+            var eslestirme = new List<(string, string)>();
+            foreach (DataGridViewRow item in GrdEslestirme.Rows)
+            {
+                if (item.IsNewRow)
+                {
+                    continue;
+                }
+                var kaynak = item.Cells[KaynakSutun.Index].Value?.ToString().Trim();
+                var hedef = item.Cells[HedefSutun.Index].Value?.ToString().Trim();
+                if (!string.IsNullOrEmpty(kaynak) && !string.IsNullOrEmpty(hedef))
+                {
+                    eslestirme.Add((kaynak, hedef));
+               
+                }
+            }
+            return eslestirme;
         }
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
