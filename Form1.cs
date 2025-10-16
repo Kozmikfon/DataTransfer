@@ -186,16 +186,8 @@ namespace DataTransfer
                 }
 
 
-                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
-                dt = TabloVerileriGetir(server, db, table, user, pass);
-                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                //colSelect.HeaderText = "Hedef Kolonlar";
-                //colSelect.ReadOnly = true;
-
-
-                GrdKaynak.Columns.Add(colSelect);
-                DataRow row = dt.NewRow();
-                dt.Rows.Add(row);
+                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // bilgileri dictionary'e atıyorum
+                dt = TabloVerileriGetir(server, db, table, user, pass); // datatable içerisinde sanal tablo oluşturup tablo kolonlarını alıyroum. satılar sutunlar
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
@@ -352,18 +344,12 @@ namespace DataTransfer
                     return false;
                 }
 
-                //KolonYukle(server, db, table, sutun, user, pass);
+              
                 HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
                 dt = TabloVerileriGetir(server, db, table, user, pass);
-                DataGridViewTextBoxColumn colSelect = new DataGridViewTextBoxColumn();
-                //colSelect.HeaderText = "Hedef Kolonlar";
-                //colSelect.ReadOnly = true;
-
-                GrdHedef.Columns.Add(colSelect);
-                DataRow row = dt.NewRow();
-                dt.Rows.Add(row);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
+
                 foreach (var item in HedefKolonlar.Keys)
                 {
                     LstboxLog.Items.Add(item);
