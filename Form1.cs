@@ -7,7 +7,9 @@ using System.Data;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing.Imaging;
 using System.IO.MemoryMappedFiles;
+using System.Windows.Forms;
 using System.Xml.Serialization;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 namespace DataTransfer
 {
@@ -191,21 +193,27 @@ namespace DataTransfer
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
+                foreach (DataGridViewColumn Kolon in GrdKaynak.Columns)
+                {
+                    Kolon.Tag = Kolon.Name;
+                }
+                LstboxLog.Items.Add($"Kaynak Tablosu: '{table}' yuklendi. Kolonlar:");
                 foreach (var item in KaynakKolonlar.Keys)
                 {
-                    LstboxLog.Items.Add(item);
+                    LstboxLog.Items.Add("" + item);
                 }
 
-            }
 
+
+            }
             catch (Exception ex)
             {
 
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
             }
-
             return true;
+
+
         }
 
         // kolonları listeleme metodu
@@ -256,7 +264,7 @@ namespace DataTransfer
         // kolon bilgilerini getiriyor 
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
         {
-            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>();
+            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
             string connstr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
             using (conn = new SqlConnection(connstr))
             {
@@ -272,11 +280,10 @@ namespace DataTransfer
                         {
                             string colName = reader["COLUMN_NAME"].ToString();
                             string dataType = reader["DATA_TYPE"].ToString();
-                            int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
+                            int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);//sadece string deger okur int datetimeda null gelir
                             bool isNullable = reader["IS_NULLABLE"].ToString() == "YES";
                             kolonlar[colName] = (dataType, length, isNullable);
                         }
-
                     }
                 }
 
@@ -305,10 +312,9 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $@"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table}'"; // TÜM KOLONLAR VE VERİLER
+                string sqlsorgu = $@"SELECT TOP(200) * FROM [{table}]";
                 dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
-
             }
             return dt;
         }
@@ -318,7 +324,6 @@ namespace DataTransfer
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
             HedefKolonYükle();
-
         }
 
         private bool HedefKolonYükle()
@@ -344,15 +349,19 @@ namespace DataTransfer
                     return false;
                 }
 
-              
+
                 HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
                 dt = TabloVerileriGetir(server, db, table, user, pass);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
-
+                foreach (DataGridViewColumn Kolon in GrdHedef.Columns)
+                {
+                    Kolon.Tag = Kolon.Name;
+                }
+                LstboxLog.Items.Add($"Hedef kolonlar:'{table}' yuklendi Kolonlar: ");
                 foreach (var item in HedefKolonlar.Keys)
                 {
-                    LstboxLog.Items.Add(item);
+                    LstboxLog.Items.Add(" " + item);
                 }
             }
             catch (Exception ex)
@@ -362,7 +371,7 @@ namespace DataTransfer
 
             return true;
         }
-        private List<(string KaynakKolon,string HedefKolon)> EslemeListesi()
+        private List<(string KaynakKolon, string HedefKolon)> EslemeListesi()
         {
             var eslestirme = new List<(string, string)>();
             foreach (DataGridViewRow item in GrdEslestirme.Rows)
@@ -376,7 +385,7 @@ namespace DataTransfer
                 if (!string.IsNullOrEmpty(kaynak) && !string.IsNullOrEmpty(hedef))
                 {
                     eslestirme.Add((kaynak, hedef));
-               
+
                 }
             }
             return eslestirme;
@@ -424,10 +433,7 @@ namespace DataTransfer
                     }
 
                 }
-                //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add("Kaynak Veritabanları başarıyla yüklendi.");
-                //tablo combobox doldurma
-                //MessageBox.Show("Veritabanları başarıyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             }
             catch (Exception ex)
             {
@@ -466,7 +472,7 @@ namespace DataTransfer
                 using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    string sql = "SELECT NAME FROM sys.databases ORDER BY name";
+                    string sql = "SELECT NAME FROM sys.databases ORDER BY name"; //sys.databases her veritabanı hakkında bilgiler tutar ***alfabetik sıraya göre orde by name***
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxHedefVeriTabani.Items.Clear();
@@ -474,12 +480,7 @@ namespace DataTransfer
                     {
                         CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
                     }
-
                 }
-                //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add(" Hedef Veritabanları başarıyla yüklendi.");
-                //tablo combobox doldurma
-                //MessageBox.Show("Veritabanları başarıyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -513,7 +514,7 @@ namespace DataTransfer
                 using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+                    string sql = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxKaynaktablo.Items.Clear();
@@ -555,7 +556,7 @@ namespace DataTransfer
                 using (conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+                    string sql = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxHedefTablo.Items.Clear();
@@ -661,16 +662,10 @@ namespace DataTransfer
                     {
                         CmboxHedefSutun.Items.Add(reader["COLUMN_NAME"].ToString());
                     }
-
-
-
                 }
-                //LstboxLog.ForeColor = Color.Green;
-                //LstboxLog.Items.Add("Hedef Sütunlar başarıyla yüklendi.");
             }
             catch (Exception ex)
             {
-
                 MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add("Sütunlar yüklenemedi.");
@@ -681,10 +676,6 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        
-
-
-
 
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -712,34 +703,40 @@ namespace DataTransfer
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
 
-                secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-                int newRowIndex = GrdEslestirme.Rows.Add();
+                secilenKaynakDeger = GrdKaynak.Columns[e.ColumnIndex].Tag?.ToString() ?? GrdKaynak.Columns[e.ColumnIndex].Name;
 
+                // Yeni bir eşleme satırı ekle
+                int newRowIndex = GrdEslestirme.Rows.Add();
                 GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
-                AktifSatirIndex = newRowIndex; //satırı kaydet
-                //LstboxLog.Items.Add("kaynak" + secilenKaynakDeger.GetType());
-                
+
+                AktifSatirIndex = newRowIndex;
+                LstboxLog.Items.Add($"Eşleme için kaynak kolon seçildi: {secilenKaynakDeger}");
+
             }
         }
 
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
             if (!AktifSatirIndex.HasValue)
             {
-                MessageBox.Show("Önce Kaynak değeri seçin", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Önce Kaynak kolonunu seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && AktifSatirIndex.HasValue)
-            {
-                var secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
 
-                GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = secilenHedefDeger;
-                AktifSatirIndex = null; //eşleştirme tamamlandıktan sonra sıfırla
-                secilenKaynakDeger = null; //seçilen kaynak değeri sıfırla
-                //LstboxLog.Items.Add("hedef" + secilenHedefDeger.GetType());
-                
-            }
+            string hedefKolonAdi = GrdHedef.Columns[e.ColumnIndex].Tag?.ToString() ?? GrdHedef.Columns[e.ColumnIndex].Name;
+
+            GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = hedefKolonAdi;
+
+            // eşleşme yazıldıktan sonra KontrolEt ile doğrula
+            var row = GrdEslestirme.Rows[AktifSatirIndex.Value];
+            KontrolEt(row);
+
+            AktifSatirIndex = null;
+            LstboxLog.Items.Add($"Eşleme tamamlandı: {row.Cells[KaynakSutun.Index].Value} -> {hedefKolonAdi}");
         }
+
 
         Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar =
             new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
@@ -768,7 +765,7 @@ namespace DataTransfer
             if (!HedefKolonlar.TryGetValue(hedefDeger, out var HedefInfo))
             {
                 LstboxLog.Items.Add($"UYARI: Hedef kolon '{hedefDeger}' Dictionary’de bulunamadı!");
-                
+
                 row.Cells["Uygunluk"].Value = "Hedef kolon yok";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                 return;
@@ -931,6 +928,77 @@ namespace DataTransfer
                 GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
             }
         }
-    }
 
+        private void BtnTransferBaslat_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string kaynakServer = TxtboxKaynakSunucu.Text;
+                string kaynakDb = CmbboxKaynakVeritabani.Text;
+                string kaynakUser = TxtKullanıcı.Text;
+                string kaynakPass = TxtSifre.Text;
+
+                string hedefServer = TxtboxHedefSunucu.Text;
+                string hedefDb = CmbboxHedefVeriTabani.Text;
+                string hedefUser = TxboxHedefKullanici.Text;
+                string hedefPass = TxboxHedefSifre.Text;
+
+                string kaynakTablo = CmbboxKaynaktablo.Text;
+                string hedefTablo = CmbboxHedefTablo.Text;
+
+                if (string.IsNullOrWhiteSpace(kaynakTablo) || string.IsNullOrWhiteSpace(hedefTablo))
+                {
+                    MessageBox.Show("Lütfen kaynak ve hedef tablo seçin!");
+                    return;
+                }
+
+                // Kolon eşleştirmeleri DataGridView’den alınır
+                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();
+                foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                {
+                    if (row.Cells["KaynakSutun"].Value != null && row.Cells["HedefSutun"].Value != null)
+                    {
+                        string kaynak = row.Cells["KaynakSutun"].Value.ToString();
+                        string hedef = row.Cells["HedefSutun"].Value.ToString();
+                        eslesmeler.Add((kaynak, hedef));
+                    }
+                }
+
+                if (eslesmeler.Count == 0)
+                {
+                    MessageBox.Show("Hiç kolon eşleştirmesi yapılmamış!");
+                    return;
+                }
+
+                string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.kaynakKolon}]"));
+                string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.hedefKolon}]"));
+
+                string KaynakString = $"Server={kaynakServer};Database={kaynakDb};User Id={kaynakUser};Password={kaynakPass};TrustServerCertificate=True;";
+                string HedefString = $"Server={hedefServer};Database={hedefDb};User Id={hedefUser};Password={hedefPass};TrustServerCertificate=True;";
+
+                connKaynak = new SqlConnection(KaynakString);
+                connHedef = new SqlConnection(HedefString);
+                
+                    connKaynak.Open();
+                    connHedef.Open();
+
+                    string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) SELECT {KaynakListesi} FROM {kaynakTablo}";
+                    SqlCommand cmd = new SqlCommand(sql, connHedef);
+                    cmd.ExecuteNonQuery();
+                
+
+                MessageBox.Show("Veri transferi tamamlandı ");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Hata: {ex.Message}");
+            }
+            finally
+            {
+                connKaynak.Close();
+                connHedef.Close();
+            }
+        }
+
+    }
 }

@@ -205,7 +205,7 @@
             // 
             // BtnEslesmeDogrula
             // 
-            BtnEslesmeDogrula.Location = new Point(260, 254);
+            BtnEslesmeDogrula.Location = new Point(261, 284);
             BtnEslesmeDogrula.Name = "BtnEslesmeDogrula";
             BtnEslesmeDogrula.Size = new Size(134, 52);
             BtnEslesmeDogrula.TabIndex = 14;
@@ -215,12 +215,13 @@
             // 
             // BtnTransferBaslat
             // 
-            BtnTransferBaslat.Location = new Point(84, 254);
+            BtnTransferBaslat.Location = new Point(85, 284);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(123, 52);
             BtnTransferBaslat.TabIndex = 15;
             BtnTransferBaslat.Text = "Veri Transferini Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
+            BtnTransferBaslat.Click += BtnTransferBaslat_Click;
             // 
             // GrbboxKaynak
             // 
@@ -305,7 +306,7 @@
             GrdKaynak.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdKaynak.Location = new Point(12, 332);
             GrdKaynak.Name = "GrdKaynak";
-            GrdKaynak.Size = new Size(232, 168);
+            GrdKaynak.Size = new Size(232, 310);
             GrdKaynak.TabIndex = 19;
             GrdKaynak.CellClick += GrdKaynak_CellClick;
             // 
@@ -321,6 +322,7 @@
             // 
             // GrbboxHedef
             // 
+            GrbboxHedef.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             GrbboxHedef.BackColor = SystemColors.GradientInactiveCaption;
             GrbboxHedef.Controls.Add(CmboxHedefSutun);
             GrbboxHedef.Controls.Add(TxboxHedefSifre);
@@ -337,9 +339,9 @@
             GrbboxHedef.Controls.Add(LblHdfSunucu);
             GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
             GrbboxHedef.Dock = DockStyle.Right;
-            GrbboxHedef.Location = new Point(836, 0);
+            GrbboxHedef.Location = new Point(835, 0);
             GrbboxHedef.Name = "GrbboxHedef";
-            GrbboxHedef.Size = new Size(283, 686);
+            GrbboxHedef.Size = new Size(284, 686);
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
@@ -400,9 +402,9 @@
             // GrdHedef
             // 
             GrdHedef.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdHedef.Location = new Point(21, 340);
+            GrdHedef.Location = new Point(21, 332);
             GrdHedef.Name = "GrdHedef";
-            GrdHedef.Size = new Size(218, 168);
+            GrdHedef.Size = new Size(218, 310);
             GrdHedef.TabIndex = 15;
             GrdHedef.CellClick += GrdHedef_CellClick;
             // 
@@ -424,7 +426,7 @@
             GrbboxButon.Dock = DockStyle.Top;
             GrbboxButon.Location = new Point(267, 0);
             GrbboxButon.Name = "GrbboxButon";
-            GrbboxButon.Size = new Size(569, 232);
+            GrbboxButon.Size = new Size(568, 250);
             GrbboxButon.TabIndex = 20;
             GrbboxButon.TabStop = false;
             // 
@@ -443,9 +445,9 @@
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
             GrbboxEslesmeLog.Controls.Add(BtnEslesmeDogrula);
             GrbboxEslesmeLog.Dock = DockStyle.Bottom;
-            GrbboxEslesmeLog.Location = new Point(267, 252);
+            GrbboxEslesmeLog.Location = new Point(267, 256);
             GrbboxEslesmeLog.Name = "GrbboxEslesmeLog";
-            GrbboxEslesmeLog.Size = new Size(569, 434);
+            GrbboxEslesmeLog.Size = new Size(568, 430);
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
@@ -454,9 +456,9 @@
             // 
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { KaynakSutun, HedefSutun, Uygunluk, Sil });
-            GrdEslestirme.Location = new Point(6, 61);
+            GrdEslestirme.Location = new Point(19, 38);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(535, 187);
+            GrdEslestirme.Size = new Size(534, 200);
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
@@ -497,7 +499,6 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            AutoSizeMode = AutoSizeMode.GrowAndShrink;
             AutoValidate = AutoValidate.EnablePreventFocusChange;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1119, 686);
