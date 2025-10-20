@@ -694,54 +694,64 @@ namespace DataTransfer
         }
 
 
-
-
         private int? AktifSatirIndex = null;
-        private object secilenKaynakDeger = null;
+        private object? secilenKaynakDeger = null;
 
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
-            {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
 
-                secilenKaynakDeger = GrdKaynak.Columns[e.ColumnIndex].Tag?.ToString() ?? GrdKaynak.Columns[e.ColumnIndex].Name;
+            // Seçilen hücrenin değeri
+            secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+            //if (object.IsNullOrEmpty(secilenKaynakDeger))
+            //    return;
 
-                // Yeni bir eşleme satırı ekle
-                int newRowIndex = GrdEslestirme.Rows.Add();
-                GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
+            // Yeni eşleme satırı ekle
+            int newRowIndex = GrdEslestirme.Rows.Add();
+            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
 
-                AktifSatirIndex = newRowIndex;
-                LstboxLog.Items.Add($"Eşleme için kaynak kolon seçildi: {secilenKaynakDeger}");
+            // Hücrenin ait olduğu kolon bilgisini gizli tut
+            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag = GrdKaynak.Columns[e.ColumnIndex].Name;
 
-            }
+            AktifSatirIndex = newRowIndex;
+            LstboxLog.Items.Add($"Eşleme için kaynak veri seçildi: {secilenKaynakDeger}");
         }
 
+        // Hedef hücreye tıklama
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
 
             if (!AktifSatirIndex.HasValue)
             {
-                MessageBox.Show("Önce Kaynak kolonunu seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Önce kaynak hücreyi seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string hedefKolonAdi = GrdHedef.Columns[e.ColumnIndex].Tag?.ToString() ?? GrdHedef.Columns[e.ColumnIndex].Name;
+            var secilenHedefDeger = GrdHedef.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+            if (string.IsNullOrEmpty(secilenHedefDeger))
+                return;
 
-            GrdEslestirme.Rows[AktifSatirIndex.Value].Cells[HedefSutun.Index].Value = hedefKolonAdi;
-
-            // eşleşme yazıldıktan sonra KontrolEt ile doğrula
             var row = GrdEslestirme.Rows[AktifSatirIndex.Value];
+            row.Cells[HedefSutun.Index].Value = secilenHedefDeger;
+
+            // Hücrenin ait olduğu kolon bilgisini gizli tut
+            row.Cells[HedefSutun.Index].Tag = GrdHedef.Columns[e.ColumnIndex].Name;
+
+            // Kolon bilgileri ile kontroller
             KontrolEt(row);
 
             AktifSatirIndex = null;
-            if (row.Cells["Uygunluk"].Value == "Uygun")
+            if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
             {
-                LstboxLog.Items.Add($"Eşleme tamamlandı: {row.Cells[KaynakSutun.Index].Value} -> {hedefKolonAdi}");
+                LstboxLog.Items.Add($"Eşleme tamamlandı: {secilenKaynakDeger} -> {secilenHedefDeger}");
             }
             else
-                LstboxLog.Items.Add("Eşleşme tamamlanmadı");
-            
+            {
+                LstboxLog.Items.Add("Eşleme tamamlanmadı");
+            }
         }
 
 
@@ -753,6 +763,8 @@ namespace DataTransfer
 
 
 
+        // Kontrol fonksiyonu (artık veriye göre eşleme)
+        // Kontrol metodu (güncel kolon tag’lerini kullanacak)
         private void KontrolEt(DataGridViewRow row)
         {
             string kaynakDeger = row.Cells[KaynakSutun.Index].Value?.ToString().Trim();
@@ -761,18 +773,24 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(kaynakDeger) || string.IsNullOrEmpty(hedefDeger))
                 return;
 
-            if (!KaynakKolonlar.TryGetValue(kaynakDeger, out var KaynakInfo))
+            // Kaynak kolon adını Tag'den al
+            string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
+            string hedefKolonAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
+
+            if (string.IsNullOrEmpty(kaynakKolonAdi) || string.IsNullOrEmpty(hedefKolonAdi))
+                return;
+
+            if (!KaynakKolonlar.TryGetValue(kaynakKolonAdi, out var KaynakInfo))
             {
-                LstboxLog.Items.Add($"UYARI: Kaynak kolon '{kaynakDeger}' Dictionary’de bulunamadı!");
+                LstboxLog.Items.Add($"UYARI: Kaynak kolon '{kaynakKolonAdi}' Dictionary’de bulunamadı!");
                 row.Cells["Uygunluk"].Value = "Kaynak kolon yok";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                 return;
             }
 
-            if (!HedefKolonlar.TryGetValue(hedefDeger, out var HedefInfo))
+            if (!HedefKolonlar.TryGetValue(hedefKolonAdi, out var HedefInfo))
             {
-                LstboxLog.Items.Add($"UYARI: Hedef kolon '{hedefDeger}' Dictionary’de bulunamadı!");
-
+                LstboxLog.Items.Add($"UYARI: Hedef kolon '{hedefKolonAdi}' Dictionary’de bulunamadı!");
                 row.Cells["Uygunluk"].Value = "Hedef kolon yok";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                 return;
@@ -784,8 +802,6 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Value = "Uyumsuz tip";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                 LstboxLog.Items.Add($"Veri tipleri uyuşmuyor: Kaynak({KaynakInfo.DataType}) - Hedef({HedefInfo.DataType})");
-                LstboxLog.ForeColor = Color.Red;
-                MessageBox.Show("Seçilen kaynak ve hedef değerlerin veri tipleri uyuşmuyor.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -794,7 +810,7 @@ namespace DataTransfer
             {
                 row.Cells["Uygunluk"].Value = "Hedef NULL olamaz!";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
-                LstboxLog.Items.Add($"UYARI: {hedefDeger} boş geçilemez ama {kaynakDeger} NULL olabilir.");
+                LstboxLog.Items.Add($"UYARI: {hedefKolonAdi} boş geçilemez ama {kaynakKolonAdi} NULL olabilir.");
                 return;
             }
 
@@ -802,7 +818,7 @@ namespace DataTransfer
             {
                 row.Cells["Uygunluk"].Value = "Uzunluk aşıyor.";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
-                LstboxLog.Items.Add($"UYARI: {kaynakDeger} ({KaynakInfo.length}) hedef kolon ({HedefInfo.length}) boyutunu aşıyor");
+                LstboxLog.Items.Add($"UYARI: {kaynakKolonAdi} ({KaynakInfo.length}) hedef kolon ({HedefInfo.length}) boyutunu aşıyor");
                 return;
             }
 
@@ -939,10 +955,8 @@ namespace DataTransfer
 
         private void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-
             try
             {
-
                 string kaynakServer = TxtboxKaynakSunucu.Text;
                 string kaynakDb = CmbboxKaynakVeritabani.Text;
                 string kaynakUser = TxtKullanıcı.Text;
@@ -962,53 +976,79 @@ namespace DataTransfer
                     return;
                 }
 
-                // Kolon eşleştirmeleri Datagriden aldım
-                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();// boş bir eslesme listesi olusturdum.
+                // Kolon eşleştirmeleri
+                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();
                 foreach (DataGridViewRow row in GrdEslestirme.Rows)
                 {
                     if (row.Cells["KaynakSutun"].Value != null && row.Cells["HedefSutun"].Value != null)
                     {
                         string kaynak = row.Cells["KaynakSutun"].Value.ToString();
                         string hedef = row.Cells["HedefSutun"].Value.ToString();
-                        eslesmeler.Add((kaynak, hedef));
+
+                        // KontrolEt metoduyla uyumluluk kontrolü
+                        KontrolEt(row);
+                        if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
+                        {
+                            eslesmeler.Add((kaynak, hedef));
+                        }
+                        else
+                        {
+                            LstboxLog.Items.Add($"Eşleme atlandı: {kaynak} -> {hedef} (Uygun değil)");
+                        }
                     }
                 }
 
                 if (eslesmeler.Count == 0)
                 {
-                    MessageBox.Show("Hiç kolon eşleştirmesi yapılmamış!");
+                    MessageBox.Show("Hiç uygun kolon eşleştirmesi yok!");
                     return;
                 }
 
-                string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.kaynakKolon}]"));
-                string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.hedefKolon}]"));
+                // Transfer edilecek veri: kullanıcı seçmiş olduğu hücre veya tüm tablo
+                DataGridViewCell secilenHucre = GrdKaynak.CurrentCell;
+                if (secilenHucre == null)
+                {
+                    MessageBox.Show("Lütfen transfer için bir hücre seçin!");
+                    return;
+                }
 
-                string KaynakString = $"Server={kaynakServer};Database={kaynakDb};User Id={kaynakUser};Password={kaynakPass};TrustServerCertificate=True;";
-                string HedefString = $"Server={hedefServer};Database={hedefDb};User Id={hedefUser};Password={hedefPass};TrustServerCertificate=True;";
+                object secilenDeger = secilenHucre.Value;
+                string secilenKolon = GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
 
-                connKaynak = new SqlConnection(KaynakString);
-                connHedef = new SqlConnection(HedefString);
+                // Kaynak ve hedef bağlantıları
+                string connStrKaynak = $"Server={kaynakServer};Database={kaynakDb};User Id={kaynakUser};Password={kaynakPass};TrustServerCertificate=True;";
+                string connStrHedef = $"Server={hedefServer};Database={hedefDb};User Id={hedefUser};Password={hedefPass};TrustServerCertificate=True;";
 
-                connKaynak.Open();
-                connHedef.Open();
+                using (SqlConnection connKaynak = new SqlConnection(connStrKaynak))
+                using (SqlConnection connHedef = new SqlConnection(connStrHedef))
+                {
+                    connKaynak.Open();
+                    connHedef.Open();
 
-                string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) SELECT {KaynakListesi} FROM {kaynakTablo}";
-                SqlCommand cmd = new SqlCommand(sql, connHedef);
-                cmd.ExecuteNonQuery();
+                    // Dinamik kolon listesi
+                    string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.kaynakKolon}]"));
+                    string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.hedefKolon}]"));
 
 
-                MessageBox.Show("Veri transferi tamamlandı ");
+                    // Parameter kullanarak veri bazlı insert
+                    string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) " +
+                                 $"SELECT {KaynakListesi} FROM {kaynakTablo} " +
+                                 $"WHERE [{secilenKolon}] = @SecilenDeger";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connHedef))
+                    {
+                        cmd.Parameters.AddWithValue("@SecilenDeger", secilenDeger ?? DBNull.Value);
+                        int satirSayisi = cmd.ExecuteNonQuery();
+                        MessageBox.Show($"{satirSayisi} satır transfer edildi.");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Hata: {ex.Message}");
-            }
-            finally
-            {
-                connKaynak.Close();
-                connHedef.Close();
-            }
+            }            
         }
+
 
         private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
         {
