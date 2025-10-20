@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing.Imaging;
 using System.IO.MemoryMappedFiles;
+using System.Net;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
@@ -139,11 +140,12 @@ namespace DataTransfer
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
                 GrdEslestirme.Enabled = true;
+               
 
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Bağlantı başarısız:\n{ex.Message}");
+                MessageBox.Show($"Bağlantı başarısız:\n {ex.Message}");
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add("Bağlantı başarısız.");
             }
@@ -188,7 +190,7 @@ namespace DataTransfer
 
 
                 KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // bilgileri dictionary'e atıyorum
-                dt = TabloVerileriGetir(server, db, table, user, pass); // datatable içerisinde sanal tablo oluşturup tablo kolonlarını alıyroum. satılar sutunlar
+                dt = TabloVerileriGetir(server, db, table,sutun, user, pass); // datatable içerisinde sanal tablo oluşturup tablo kolonlarını alıyroum. satılar sutunlar
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
@@ -292,12 +294,12 @@ namespace DataTransfer
 
         }
         //kolon içeriklerini görme su an kolonları görüntülüyor.
-        private DataTable TabloVerileriGetir(string server, string db, string table, string user, string password)
+        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun,string user, string password)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
-                //string.IsNullOrWhiteSpace(sutun) ||
+                string.IsNullOrWhiteSpace(sutun) ||
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(password))
             {
@@ -311,7 +313,7 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $@"SELECT TOP(200) * FROM [{table}]";
+                string sqlsorgu = $@"SELECT {sutun}  FROM {table}";
                 dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
             }
@@ -350,7 +352,7 @@ namespace DataTransfer
 
 
                 HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
-                dt = TabloVerileriGetir(server, db, table, user, pass);
+                dt = TabloVerileriGetir(server, db, table, sutun,user, pass);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
                 foreach (DataGridViewColumn Kolon in GrdHedef.Columns)

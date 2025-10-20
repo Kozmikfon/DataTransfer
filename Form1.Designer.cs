@@ -95,7 +95,7 @@
             // 
             LblKynkSunucu.AutoSize = true;
             LblKynkSunucu.Font = new Font("Segoe UI", 11.25F);
-            LblKynkSunucu.Location = new Point(4, 19);
+            LblKynkSunucu.Location = new Point(6, 29);
             LblKynkSunucu.Name = "LblKynkSunucu";
             LblKynkSunucu.Size = new Size(63, 20);
             LblKynkSunucu.TabIndex = 1;
@@ -105,7 +105,7 @@
             // 
             lblKynkVeri.AutoSize = true;
             lblKynkVeri.Font = new Font("Segoe UI", 11.25F);
-            lblKynkVeri.Location = new Point(0, 150);
+            lblKynkVeri.Location = new Point(0, 168);
             lblKynkVeri.Name = "lblKynkVeri";
             lblKynkVeri.Size = new Size(87, 20);
             lblKynkVeri.TabIndex = 2;
@@ -115,7 +115,7 @@
             // 
             LblKynkTablo.AutoSize = true;
             LblKynkTablo.Font = new Font("Segoe UI", 11.25F);
-            LblKynkTablo.Location = new Point(1, 196);
+            LblKynkTablo.Location = new Point(1, 214);
             LblKynkTablo.Name = "LblKynkTablo";
             LblKynkTablo.Size = new Size(79, 20);
             LblKynkTablo.TabIndex = 3;
@@ -125,7 +125,7 @@
             // 
             LblHdfSunucu.AutoSize = true;
             LblHdfSunucu.Font = new Font("Segoe UI", 11.25F);
-            LblHdfSunucu.Location = new Point(9, 20);
+            LblHdfSunucu.Location = new Point(7, 32);
             LblHdfSunucu.Name = "LblHdfSunucu";
             LblHdfSunucu.Size = new Size(63, 20);
             LblHdfSunucu.TabIndex = 4;
@@ -135,7 +135,7 @@
             // 
             LblHdfVeri.AutoSize = true;
             LblHdfVeri.Font = new Font("Segoe UI", 11.25F);
-            LblHdfVeri.Location = new Point(8, 152);
+            LblHdfVeri.Location = new Point(10, 170);
             LblHdfVeri.Name = "LblHdfVeri";
             LblHdfVeri.Size = new Size(88, 20);
             LblHdfVeri.TabIndex = 5;
@@ -145,7 +145,7 @@
             // 
             LblHdfTablo.AutoSize = true;
             LblHdfTablo.Font = new Font("Segoe UI", 11.25F);
-            LblHdfTablo.Location = new Point(7, 195);
+            LblHdfTablo.Location = new Point(9, 213);
             LblHdfTablo.Name = "LblHdfTablo";
             LblHdfTablo.Size = new Size(79, 20);
             LblHdfTablo.TabIndex = 6;
@@ -153,7 +153,7 @@
             // 
             // TxtboxKaynakSunucu
             // 
-            TxtboxKaynakSunucu.Location = new Point(128, 20);
+            TxtboxKaynakSunucu.Location = new Point(129, 26);
             TxtboxKaynakSunucu.Name = "TxtboxKaynakSunucu";
             TxtboxKaynakSunucu.Size = new Size(127, 23);
             TxtboxKaynakSunucu.TabIndex = 7;
@@ -161,7 +161,7 @@
             // CmbboxKaynakVeritabani
             // 
             CmbboxKaynakVeritabani.FormattingEnabled = true;
-            CmbboxKaynakVeritabani.Location = new Point(128, 147);
+            CmbboxKaynakVeritabani.Location = new Point(128, 165);
             CmbboxKaynakVeritabani.Name = "CmbboxKaynakVeritabani";
             CmbboxKaynakVeritabani.Size = new Size(127, 23);
             CmbboxKaynakVeritabani.TabIndex = 8;
@@ -171,7 +171,7 @@
             // CmbboxKaynaktablo
             // 
             CmbboxKaynaktablo.FormattingEnabled = true;
-            CmbboxKaynaktablo.Location = new Point(128, 193);
+            CmbboxKaynaktablo.Location = new Point(128, 211);
             CmbboxKaynaktablo.Name = "CmbboxKaynaktablo";
             CmbboxKaynaktablo.Size = new Size(127, 23);
             CmbboxKaynaktablo.TabIndex = 9;
@@ -180,7 +180,7 @@
             // 
             // TxtboxHedefSunucu
             // 
-            TxtboxHedefSunucu.Location = new Point(120, 16);
+            TxtboxHedefSunucu.Location = new Point(121, 29);
             TxtboxHedefSunucu.Name = "TxtboxHedefSunucu";
             TxtboxHedefSunucu.Size = new Size(129, 23);
             TxtboxHedefSunucu.TabIndex = 10;
@@ -188,7 +188,7 @@
             // CmbboxHedefVeriTabani
             // 
             CmbboxHedefVeriTabani.FormattingEnabled = true;
-            CmbboxHedefVeriTabani.Location = new Point(121, 149);
+            CmbboxHedefVeriTabani.Location = new Point(123, 167);
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(129, 23);
             CmbboxHedefVeriTabani.TabIndex = 11;
@@ -198,7 +198,7 @@
             // CmbboxHedefTablo
             // 
             CmbboxHedefTablo.FormattingEnabled = true;
-            CmbboxHedefTablo.Location = new Point(120, 192);
+            CmbboxHedefTablo.Location = new Point(122, 210);
             CmbboxHedefTablo.Name = "CmbboxHedefTablo";
             CmbboxHedefTablo.Size = new Size(129, 23);
             CmbboxHedefTablo.TabIndex = 12;
@@ -244,6 +244,7 @@
             GrbboxKaynak.Controls.Add(LblKynkSunucu);
             GrbboxKaynak.Controls.Add(TxtboxKaynakSunucu);
             GrbboxKaynak.Dock = DockStyle.Left;
+            GrbboxKaynak.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 162);
             GrbboxKaynak.Location = new Point(0, 0);
             GrbboxKaynak.Name = "GrbboxKaynak";
             GrbboxKaynak.Size = new Size(267, 686);
@@ -254,7 +255,7 @@
             // CkboxSifreGoster
             // 
             CkboxSifreGoster.AutoSize = true;
-            CkboxSifreGoster.Location = new Point(128, 122);
+            CkboxSifreGoster.Location = new Point(130, 132);
             CkboxSifreGoster.Name = "CkboxSifreGoster";
             CkboxSifreGoster.Size = new Size(86, 19);
             CkboxSifreGoster.TabIndex = 1;
@@ -265,14 +266,14 @@
             // CmboxKaynakSutun
             // 
             CmboxKaynakSutun.FormattingEnabled = true;
-            CmboxKaynakSutun.Location = new Point(128, 236);
+            CmboxKaynakSutun.Location = new Point(128, 254);
             CmboxKaynakSutun.Name = "CmboxKaynakSutun";
             CmboxKaynakSutun.Size = new Size(127, 23);
             CmboxKaynakSutun.TabIndex = 26;
             // 
             // TxtSifre
             // 
-            TxtSifre.Location = new Point(127, 93);
+            TxtSifre.Location = new Point(129, 103);
             TxtSifre.Name = "TxtSifre";
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
@@ -282,7 +283,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label3.Location = new Point(1, 239);
+            label3.Location = new Point(1, 257);
             label3.Name = "label3";
             label3.Size = new Size(80, 20);
             label3.TabIndex = 25;
@@ -292,7 +293,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label2.Location = new Point(4, 106);
+            label2.Location = new Point(8, 106);
             label2.Name = "label2";
             label2.Size = new Size(46, 20);
             label2.TabIndex = 22;
@@ -300,7 +301,7 @@
             // 
             // TxtKullanıcı
             // 
-            TxtKullanıcı.Location = new Point(127, 59);
+            TxtKullanıcı.Location = new Point(128, 65);
             TxtKullanıcı.Name = "TxtKullanıcı";
             TxtKullanıcı.Size = new Size(128, 23);
             TxtKullanıcı.TabIndex = 21;
@@ -309,7 +310,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label1.Location = new Point(4, 62);
+            label1.Location = new Point(6, 68);
             label1.Name = "label1";
             label1.Size = new Size(99, 20);
             label1.TabIndex = 20;
@@ -364,7 +365,7 @@
             // ChkboxHedefSifre
             // 
             ChkboxHedefSifre.AutoSize = true;
-            ChkboxHedefSifre.Location = new Point(124, 129);
+            ChkboxHedefSifre.Location = new Point(124, 135);
             ChkboxHedefSifre.Name = "ChkboxHedefSifre";
             ChkboxHedefSifre.Size = new Size(86, 19);
             ChkboxHedefSifre.TabIndex = 22;
@@ -375,14 +376,14 @@
             // CmboxHedefSutun
             // 
             CmboxHedefSutun.FormattingEnabled = true;
-            CmboxHedefSutun.Location = new Point(119, 236);
+            CmboxHedefSutun.Location = new Point(121, 254);
             CmboxHedefSutun.Name = "CmboxHedefSutun";
             CmboxHedefSutun.Size = new Size(130, 23);
             CmboxHedefSutun.TabIndex = 21;
             // 
             // TxboxHedefSifre
             // 
-            TxboxHedefSifre.Location = new Point(120, 102);
+            TxboxHedefSifre.Location = new Point(123, 106);
             TxboxHedefSifre.Name = "TxboxHedefSifre";
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
@@ -392,7 +393,7 @@
             // 
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            label4.Location = new Point(9, 105);
+            label4.Location = new Point(10, 109);
             label4.Name = "label4";
             label4.Size = new Size(46, 20);
             label4.TabIndex = 18;
@@ -400,7 +401,7 @@
             // 
             // TxboxHedefKullanici
             // 
-            TxboxHedefKullanici.Location = new Point(121, 62);
+            TxboxHedefKullanici.Location = new Point(122, 65);
             TxboxHedefKullanici.Name = "TxboxHedefKullanici";
             TxboxHedefKullanici.Size = new Size(129, 23);
             TxboxHedefKullanici.TabIndex = 17;
@@ -409,17 +410,17 @@
             // 
             LblHedefSutun.AutoSize = true;
             LblHedefSutun.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            LblHedefSutun.Location = new Point(7, 239);
+            LblHedefSutun.Location = new Point(10, 257);
             LblHedefSutun.Name = "LblHedefSutun";
             LblHedefSutun.Size = new Size(80, 20);
             LblHedefSutun.TabIndex = 20;
-            LblHedefSutun.Text = "Sütun Adı .";
+            LblHedefSutun.Text = "Sütun Adı :";
             // 
             // LblHedefKullanici
             // 
             LblHedefKullanici.AutoSize = true;
             LblHedefKullanici.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            LblHedefKullanici.Location = new Point(8, 65);
+            LblHedefKullanici.Location = new Point(7, 68);
             LblHedefKullanici.Name = "LblHedefKullanici";
             LblHedefKullanici.Size = new Size(99, 20);
             LblHedefKullanici.TabIndex = 16;
