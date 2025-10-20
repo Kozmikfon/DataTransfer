@@ -735,7 +735,13 @@ namespace DataTransfer
             KontrolEt(row);
 
             AktifSatirIndex = null;
-            LstboxLog.Items.Add($"Eşleme tamamlandı: {row.Cells[KaynakSutun.Index].Value} -> {hedefKolonAdi}");
+            if (row.Cells["Uygunluk"].Value == "Uygun")
+            {
+                LstboxLog.Items.Add($"Eşleme tamamlandı: {row.Cells[KaynakSutun.Index].Value} -> {hedefKolonAdi}");
+            }
+            else
+                LstboxLog.Items.Add("Eşleşme tamamlanmadı");
+            
         }
 
 
