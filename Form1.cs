@@ -169,61 +169,66 @@ namespace DataTransfer
         {
             try
             {
-                string server = TxtboxKaynakSunucu.Text;
-                string db = CmbboxKaynakVeritabani.Text;
-                string table = CmbboxKaynaktablo.Text;
-                string user = TxtKullanıcı.Text;
-                string pass = TxtSifre.Text;
-                string sutun = CmboxKaynakSutun.Text;
+                string server = TxtboxKaynakSunucu.Text.Trim();
+                string db = CmbboxKaynakVeritabani.Text.Trim();
+                string table = CmbboxKaynaktablo.Text.Trim();
+                string user = TxtKullanıcı.Text.Trim();
+                string pass = TxtSifre.Text.Trim();
+                string sutun = CmboxKaynakSutun.Text.Trim();
 
-                if (string.IsNullOrWhiteSpace(table) ||
-                    (string.IsNullOrWhiteSpace(sutun)) ||
-                    (string.IsNullOrWhiteSpace(server)) ||
-                    (string.IsNullOrWhiteSpace(db)) ||
-                    (string.IsNullOrWhiteSpace(user)) ||
-                    (string.IsNullOrWhiteSpace(pass))
-                    )
+                // Boş alan kontrolü
+                if (string.IsNullOrWhiteSpace(server) ||
+                    string.IsNullOrWhiteSpace(db) ||
+                    string.IsNullOrWhiteSpace(table) ||
+                    string.IsNullOrWhiteSpace(user) ||
+                    string.IsNullOrWhiteSpace(pass) ||
+                    string.IsNullOrWhiteSpace(sutun))
                 {
-                    MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Lütfen tablo, sütun ve bağlantı bilgilerini eksiksiz girin.",
+                                    "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
+                // Kolon bilgilerini dictionary'e al
+                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
 
-                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // bilgileri dictionary'e atıyorum
-                dt = TabloVerileriGetir(server, db, table,sutun, user, pass); // datatable içerisinde sanal tablo oluşturup tablo kolonlarını alıyroum. satılar sutunlar
+                if (!KaynakKolonlar.ContainsKey(sutun))
+                {
+                    MessageBox.Show($"Seçilen sütun '{sutun}' kaynak tabloda bulunamadı.",
+                                    "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+
+                // DataTable oluştur ve Grid'e bağla
+                DataTable dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
-                // Kaynak tabloyu doldururken
-                using (SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM " + table, connKaynak))
+                // Grid kolon tag'lerini ayarla (gerçek SQL kolon adı)
+                foreach (DataGridViewColumn col in GrdKaynak.Columns)
                 {
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    GrdKaynak.DataSource = dt;
-
-                    foreach (DataGridViewColumn col in GrdKaynak.Columns)
-                    {
-                        col.Tag = col.DataPropertyName;  // gerçek SQL kolon adı
-                    }
+                    col.Tag = col.DataPropertyName;
                 }
 
-
-                LstboxLog.Items.Add($"Kaynak Tablosu: '{table}' yuklendi. Kolonlar:");
-                foreach (var item in KaynakKolonlar.Keys)
+                // Log ekle
+                LstboxLog.Items.Add($"Kaynak Tablosu '{table}' yüklendi. Kolonlar:");
+                foreach (var kol in KaynakKolonlar.Keys)
                 {
-                    LstboxLog.Items.Add("" + item);
+                    LstboxLog.Items.Add(kol);
                 }
 
-
-
+                return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"SQL Hatası: {sqlEx.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
             catch (Exception ex)
             {
-
-                MessageBox.Show($"Hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Beklenmeyen Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
-            return true;
 
 
         }
@@ -342,57 +347,66 @@ namespace DataTransfer
         {
             try
             {
-                string server = TxtboxHedefSunucu.Text;
-                string db = CmbboxHedefVeriTabani.Text;
-                string table = CmbboxHedefTablo.Text;
-                string sutun = CmboxHedefSutun.Text;
-                string user = TxboxHedefKullanici.Text;
-                string pass = TxboxHedefSifre.Text;
+                string server = TxtboxHedefSunucu.Text.Trim();
+                string db = CmbboxHedefVeriTabani.Text.Trim();
+                string table = CmbboxHedefTablo.Text.Trim();
+                string user = TxboxHedefKullanici.Text.Trim();
+                string pass = TxboxHedefSifre.Text.Trim();
+                string sutun = CmboxHedefSutun.Text.Trim();
 
-                if (string.IsNullOrWhiteSpace(table) ||
-                    //string.IsNullOrWhiteSpace(sutun) ||
-                    string.IsNullOrWhiteSpace(server) ||
+                // Boş alan kontrolü
+                if (string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
+                    string.IsNullOrWhiteSpace(table) ||
                     string.IsNullOrWhiteSpace(user) ||
-                    string.IsNullOrWhiteSpace(pass)
-                    )
+                    string.IsNullOrWhiteSpace(pass) ||
+                    string.IsNullOrWhiteSpace(sutun))
                 {
-                    MessageBox.Show("Lütfen tablo ve sütun adını girin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Lütfen tablo, sütun ve bağlantı bilgilerini eksiksiz girin.",
+                                    "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
-
+                // Kolon bilgilerini dictionary'e al
                 HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
-                dt = TabloVerileriGetir(server, db, table, sutun,user, pass);
+
+                if (!HedefKolonlar.ContainsKey(sutun))
+                {
+                    MessageBox.Show($"Seçilen sütun '{sutun}' hedef tabloda bulunamadı.",
+                                    "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+
+                // DataTable oluştur ve Grid'e bağla
+                DataTable dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
 
-                // Hedef tabloyu doldururken
-                using (SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM " + table, connHedef))
+                // Grid kolon tag'lerini ayarla (gerçek SQL kolon adı)
+                foreach (DataGridViewColumn col in GrdHedef.Columns)
                 {
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    GrdHedef.DataSource = dt;
-
-                    foreach (DataGridViewColumn col in GrdHedef.Columns)
-                    {
-                        col.Tag = col.DataPropertyName;  // gerçek SQL kolon adı
-                    }
+                    col.Tag = col.DataPropertyName;
                 }
 
-                LstboxLog.Items.Add($"Hedef kolonlar:'{table}' yuklendi Kolonlar: ");
-                foreach (var item in HedefKolonlar.Keys)
+                // Log ekle
+                LstboxLog.Items.Add($"Hedef Tablosu '{table}' yüklendi. Kolonlar:");
+                foreach (var kol in HedefKolonlar.Keys)
                 {
-                    LstboxLog.Items.Add(" " + item);
+                    LstboxLog.Items.Add(kol);
                 }
+
+                return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"SQL Hatası: {sqlEx.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata", ex.Message);
+                MessageBox.Show($"Beklenmeyen Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
-
-            return true;
         }
         private List<(string KaynakKolon, string HedefKolon)> EslemeListesi()
         {
@@ -545,6 +559,9 @@ namespace DataTransfer
                     {
                         CmbboxKaynaktablo.Items.Add(reader["TABLE_NAME"].ToString());
                     }
+
+                    
+
 
                 }
                 //MessageBox.Show("Tablolar başarıyla yüklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -979,8 +996,8 @@ namespace DataTransfer
         {
             try
             {
-                string kaynakTablo = CmbboxKaynaktablo.Text;
-                string hedefTablo = CmbboxHedefTablo.Text;
+                string kaynakTablo = CmbboxKaynaktablo.Text.Trim();
+                string hedefTablo = CmbboxHedefTablo.Text.Trim();
 
                 if (string.IsNullOrWhiteSpace(kaynakTablo) || string.IsNullOrWhiteSpace(hedefTablo))
                 {
@@ -989,7 +1006,7 @@ namespace DataTransfer
                 }
 
                 // Eşleştirmeleri topla
-                var eslesmeler = GetEslestirmeler();
+                var eslesmeler = EslemeListesi();
                 if (eslesmeler.Count == 0)
                 {
                     MessageBox.Show("Hiç uygun kolon eşleştirmesi yok!");
@@ -1015,8 +1032,8 @@ namespace DataTransfer
                     connKaynak.Open();
                     connHedef.Open();
 
-                    string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.kaynakKolon}]"));
-                    string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.hedefKolon}]"));
+                    string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.KaynakKolon}]"));
+                    string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
 
                     string sql = $@"
                 INSERT INTO {hedefTablo} ({HedefListesi})
