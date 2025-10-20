@@ -194,10 +194,21 @@ namespace DataTransfer
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
-                foreach (DataGridViewColumn Kolon in GrdKaynak.Columns)
+                // Kaynak tabloyu doldururken
+                using (SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM " + table, connKaynak))
                 {
-                   Kolon.Tag = Kolon.Name;
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    GrdKaynak.DataSource = dt;
+
+                    foreach (DataGridViewColumn col in GrdKaynak.Columns)
+                    {
+                        col.Tag = col.DataPropertyName;  // gerçek SQL kolon adı
+                    }
                 }
+
+
                 LstboxLog.Items.Add($"Kaynak Tablosu: '{table}' yuklendi. Kolonlar:");
                 foreach (var item in KaynakKolonlar.Keys)
                 {
@@ -355,10 +366,21 @@ namespace DataTransfer
                 dt = TabloVerileriGetir(server, db, table, sutun,user, pass);
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
-                foreach (DataGridViewColumn Kolon in GrdHedef.Columns)
+
+                // Hedef tabloyu doldururken
+                using (SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM " + table, connHedef))
                 {
-                    Kolon.Tag = Kolon.Name;
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    GrdHedef.DataSource = dt;
+
+                    foreach (DataGridViewColumn col in GrdHedef.Columns)
+                    {
+                        col.Tag = col.DataPropertyName;  // gerçek SQL kolon adı
+                    }
                 }
+
                 LstboxLog.Items.Add($"Hedef kolonlar:'{table}' yuklendi Kolonlar: ");
                 foreach (var item in HedefKolonlar.Keys)
                 {
@@ -697,28 +719,26 @@ namespace DataTransfer
         private int? AktifSatirIndex = null;
         private object? secilenKaynakDeger = null;
 
+        // Kaynak hücre seçildiğinde
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
                 return;
 
-            // Seçilen hücrenin değeri
-            secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
-            //if (object.IsNullOrEmpty(secilenKaynakDeger))
-            //    return;
+            secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
 
-            // Yeni eşleme satırı ekle
             int newRowIndex = GrdEslestirme.Rows.Add();
             GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
 
-            // Hücrenin ait olduğu kolon bilgisini gizli tut
-            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag = GrdKaynak.Columns[e.ColumnIndex].Name;
+            // SQL kolon adı olarak Tag’i kaydet
+            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag =
+                GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
 
             AktifSatirIndex = newRowIndex;
-            LstboxLog.Items.Add($"Eşleme için kaynak veri seçildi: {secilenKaynakDeger}");
+            LstboxLog.Items.Add($"Eşleme için kaynak seçildi: {secilenKaynakDeger}");
         }
 
-        // Hedef hücreye tıklama
+        // Hedef hücre seçildiğinde
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
@@ -737,10 +757,10 @@ namespace DataTransfer
             var row = GrdEslestirme.Rows[AktifSatirIndex.Value];
             row.Cells[HedefSutun.Index].Value = secilenHedefDeger;
 
-            // Hücrenin ait olduğu kolon bilgisini gizli tut
-            row.Cells[HedefSutun.Index].Tag = GrdHedef.Columns[e.ColumnIndex].Name;
+            row.Cells[HedefSutun.Index].Tag =
+                GrdHedef.Columns[e.ColumnIndex].Tag ?? GrdHedef.Columns[e.ColumnIndex].Name;
 
-            // Kolon bilgileri ile kontroller
+            // Kolon tip kontrolü
             KontrolEt(row);
 
             AktifSatirIndex = null;
@@ -753,6 +773,7 @@ namespace DataTransfer
                 LstboxLog.Items.Add("Eşleme tamamlanmadı");
             }
         }
+
 
 
         Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar =
@@ -953,20 +974,11 @@ namespace DataTransfer
             }
         }
 
+
         private void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
             try
             {
-                string kaynakServer = TxtboxKaynakSunucu.Text;
-                string kaynakDb = CmbboxKaynakVeritabani.Text;
-                string kaynakUser = TxtKullanıcı.Text;
-                string kaynakPass = TxtSifre.Text;
-
-                string hedefServer = TxtboxHedefSunucu.Text;
-                string hedefDb = CmbboxHedefVeriTabani.Text;
-                string hedefUser = TxboxHedefKullanici.Text;
-                string hedefPass = TxboxHedefSifre.Text;
-
                 string kaynakTablo = CmbboxKaynaktablo.Text;
                 string hedefTablo = CmbboxHedefTablo.Text;
 
@@ -976,77 +988,110 @@ namespace DataTransfer
                     return;
                 }
 
-                // Kolon eşleştirmeleri
-                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();
-                foreach (DataGridViewRow row in GrdEslestirme.Rows)
-                {
-                    if (row.Cells["KaynakSutun"].Value != null && row.Cells["HedefSutun"].Value != null)
-                    {
-                        string kaynak = row.Cells["KaynakSutun"].Tag?.ToString();
-                        string hedef = row.Cells["HedefSutun"].Tag?.ToString();
-
-                        // KontrolEt metoduyla uyumluluk kontrolü
-                        KontrolEt(row);
-                        if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
-                        {
-                            eslesmeler.Add((kaynak, hedef));
-                        }
-                        else
-                        {
-                            LstboxLog.Items.Add($"Eşleme atlandı: {kaynak} -> {hedef} (Uygun değil)");
-                        }
-                    }
-                }
-
+                // Eşleştirmeleri topla
+                var eslesmeler = GetEslestirmeler();
                 if (eslesmeler.Count == 0)
                 {
                     MessageBox.Show("Hiç uygun kolon eşleştirmesi yok!");
                     return;
                 }
 
-                // Transfer edilecek veri: kullanıcı seçmiş olduğu hücre veya tüm tablo
-                DataGridViewCell secilenHucre = GrdKaynak.CurrentCell;
-                if (secilenHucre == null)
+                // Seçili hücre kontrolü
+                if (GrdKaynak.CurrentCell == null)
                 {
                     MessageBox.Show("Lütfen transfer için bir hücre seçin!");
                     return;
                 }
 
-                object secilenDeger = secilenHucre.Value;
-                string secilenKolon = GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
+                var secilenHucre = GrdKaynak.CurrentCell;
+                object secilenDeger = secilenHucre.Value ?? DBNull.Value;
+                string secilenKolon = GrdKaynak.Columns[secilenHucre.ColumnIndex].Tag?.ToString()
+                                      ?? GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
 
-                // Kaynak ve hedef bağlantıları
-                string connStrKaynak = $"Server={kaynakServer};Database={kaynakDb};User Id={kaynakUser};Password={kaynakPass};TrustServerCertificate=True;";
-                string connStrHedef = $"Server={hedefServer};Database={hedefDb};User Id={hedefUser};Password={hedefPass};TrustServerCertificate=True;";
-
-                using (SqlConnection connKaynak = new SqlConnection(connStrKaynak))
-                using (SqlConnection connHedef = new SqlConnection(connStrHedef))
+                // Bağlantılar
+                using (SqlConnection connKaynak = new SqlConnection(GetConnStrKaynak()))
+                using (SqlConnection connHedef = new SqlConnection(GetConnStrHedef()))
                 {
                     connKaynak.Open();
                     connHedef.Open();
 
-                    // Dinamik kolon listesi
                     string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.kaynakKolon}]"));
                     string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.hedefKolon}]"));
 
-
-                    // Parameter kullanarak veri bazlı insert
-                    string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) " +
-                                 $"SELECT {KaynakListesi} FROM {kaynakTablo} " +
-                                 $"WHERE [{secilenKolon}] = @SecilenDeger";
+                    string sql = $@"
+                INSERT INTO {hedefTablo} ({HedefListesi})
+                SELECT {KaynakListesi}
+                FROM {kaynakTablo}
+                WHERE [{secilenKolon}] = @SecilenDeger";
 
                     using (SqlCommand cmd = new SqlCommand(sql, connHedef))
                     {
-                        cmd.Parameters.AddWithValue("@SecilenDeger", secilenDeger ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SecilenDeger", secilenDeger);
                         int satirSayisi = cmd.ExecuteNonQuery();
+                        LstboxLog.Items.Add($"{satirSayisi} satır transfer edildi.");
                         MessageBox.Show($"{satirSayisi} satır transfer edildi.");
                     }
                 }
             }
             catch (Exception ex)
             {
+                LstboxLog.Items.Add($"Hata: {ex.Message}");
                 MessageBox.Show($"Hata: {ex.Message}");
-            }            
+            }
+        }
+
+        /// <summary>
+        /// Grid’den kolon eşleşmelerini döndürür
+        /// </summary>
+        private List<(string kaynakKolon, string hedefKolon)> GetEslestirmeler()
+        {
+            var list = new List<(string, string)>();
+
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                string kaynak = row.Cells["KaynakSutun"].Tag?.ToString();
+                string hedef = row.Cells["HedefSutun"].Tag?.ToString();
+
+                if (!string.IsNullOrEmpty(kaynak) && !string.IsNullOrEmpty(hedef))
+                {
+                    // Uygunluk kontrolü
+                    KontrolEt(row);
+                    if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
+                    {
+                        list.Add((kaynak, hedef));
+                    }
+                    else
+                    {
+                        LstboxLog.Items.Add($"Eşleme atlandı: {kaynak} -> {hedef} (Uygun değil)");
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Kaynak bağlantı stringini döndürür
+        /// </summary>
+        private string GetConnStrKaynak()
+        {
+            return $"Server={TxtboxKaynakSunucu.Text};" +
+                   $"Database={CmbboxKaynakVeritabani.Text};" +
+                   $"User Id={TxtKullanıcı.Text};" +
+                   $"Password={TxtSifre.Text};" +
+                   "TrustServerCertificate=True;";
+        }
+
+        /// <summary>
+        /// Hedef bağlantı stringini döndürür
+        /// </summary>
+        private string GetConnStrHedef()
+        {
+            return $"Server={TxtboxHedefSunucu.Text};" +
+                   $"Database={CmbboxHedefVeriTabani.Text};" +
+                   $"User Id={TxboxHedefKullanici.Text};" +
+                   $"Password={TxboxHedefSifre.Text};" +
+                   "TrustServerCertificate=True;";
         }
 
 
