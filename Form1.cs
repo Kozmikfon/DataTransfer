@@ -136,7 +136,6 @@ namespace DataTransfer
                     LstboxLog.Items.Add("Bağlantı başarılı şekilde oluştu.");
                 }
                 BtnEslesmeDogrula.Enabled = true;
-                BtnTransferBaslat.Enabled = true;
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
                 GrdEslestirme.Enabled = true;
@@ -745,7 +744,7 @@ namespace DataTransfer
 
 
 
-        //şu an sadece tip kontrolü yapıyor
+
         private void KontrolEt(DataGridViewRow row)
         {
             string kaynakDeger = row.Cells[KaynakSutun.Index].Value?.ToString().Trim();
@@ -838,12 +837,13 @@ namespace DataTransfer
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
-
+            BtnTransferBaslat.Enabled = true;
         }
+
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return; // başlık veya geçersiz hücre
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return; // başlık veya geçersiz hücre varsa çık
             var row = GrdEslestirme.Rows[e.RowIndex];
             KontrolEt(row);
         }
@@ -931,8 +931,10 @@ namespace DataTransfer
 
         private void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
+
             try
             {
+
                 string kaynakServer = TxtboxKaynakSunucu.Text;
                 string kaynakDb = CmbboxKaynakVeritabani.Text;
                 string kaynakUser = TxtKullanıcı.Text;
@@ -952,8 +954,8 @@ namespace DataTransfer
                     return;
                 }
 
-                // Kolon eşleştirmeleri DataGridView’den alınır
-                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();
+                // Kolon eşleştirmeleri Datagriden aldım
+                List<(string kaynakKolon, string hedefKolon)> eslesmeler = new List<(string, string)>();// boş bir eslesme listesi olusturdum.
                 foreach (DataGridViewRow row in GrdEslestirme.Rows)
                 {
                     if (row.Cells["KaynakSutun"].Value != null && row.Cells["HedefSutun"].Value != null)
@@ -978,14 +980,14 @@ namespace DataTransfer
 
                 connKaynak = new SqlConnection(KaynakString);
                 connHedef = new SqlConnection(HedefString);
-                
-                    connKaynak.Open();
-                    connHedef.Open();
 
-                    string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) SELECT {KaynakListesi} FROM {kaynakTablo}";
-                    SqlCommand cmd = new SqlCommand(sql, connHedef);
-                    cmd.ExecuteNonQuery();
-                
+                connKaynak.Open();
+                connHedef.Open();
+
+                string sql = $"INSERT INTO {hedefTablo} ({HedefListesi}) SELECT {KaynakListesi} FROM {kaynakTablo}";
+                SqlCommand cmd = new SqlCommand(sql, connHedef);
+                cmd.ExecuteNonQuery();
+
 
                 MessageBox.Show("Veri transferi tamamlandı ");
             }
@@ -1000,5 +1002,28 @@ namespace DataTransfer
             }
         }
 
+        private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
+        {
+            if (CkboxSifreGoster.Checked)
+            {
+                TxtSifre.PasswordChar = '\0';
+            }
+            else
+            {
+                TxtSifre.PasswordChar = '\u25CF';
+            }
+        }
+
+        private void ChkboxSifre_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ChkboxHedefSifre.Checked)
+            {
+                TxboxHedefSifre.PasswordChar = '\0';
+            }
+            else
+            {
+                TxboxHedefSifre.PasswordChar = '\u25CF';
+            }
+        }
     }
 }

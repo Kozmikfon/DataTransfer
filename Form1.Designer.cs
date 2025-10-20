@@ -44,6 +44,7 @@
             BtnEslesmeDogrula = new Button();
             BtnTransferBaslat = new Button();
             GrbboxKaynak = new GroupBox();
+            CkboxSifreGoster = new CheckBox();
             CmboxKaynakSutun = new ComboBox();
             TxtSifre = new TextBox();
             label3 = new Label();
@@ -53,6 +54,7 @@
             GrdKaynak = new DataGridView();
             BtnKynkKolonYukle = new Button();
             GrbboxHedef = new GroupBox();
+            ChkboxHedefSifre = new CheckBox();
             CmboxHedefSutun = new ComboBox();
             TxboxHedefSifre = new TextBox();
             label4 = new Label();
@@ -226,6 +228,7 @@
             // GrbboxKaynak
             // 
             GrbboxKaynak.BackColor = SystemColors.GradientInactiveCaption;
+            GrbboxKaynak.Controls.Add(CkboxSifreGoster);
             GrbboxKaynak.Controls.Add(CmbboxKaynakVeritabani);
             GrbboxKaynak.Controls.Add(CmboxKaynakSutun);
             GrbboxKaynak.Controls.Add(TxtSifre);
@@ -248,6 +251,17 @@
             GrbboxKaynak.TabStop = false;
             GrbboxKaynak.Text = "Kaynak";
             // 
+            // CkboxSifreGoster
+            // 
+            CkboxSifreGoster.AutoSize = true;
+            CkboxSifreGoster.Location = new Point(128, 122);
+            CkboxSifreGoster.Name = "CkboxSifreGoster";
+            CkboxSifreGoster.Size = new Size(86, 19);
+            CkboxSifreGoster.TabIndex = 1;
+            CkboxSifreGoster.Text = "Şifre Göster";
+            CkboxSifreGoster.UseVisualStyleBackColor = true;
+            CkboxSifreGoster.CheckedChanged += CkboxSifreGoster_CheckedChanged;
+            // 
             // CmboxKaynakSutun
             // 
             CmboxKaynakSutun.FormattingEnabled = true;
@@ -258,7 +272,7 @@
             // 
             // TxtSifre
             // 
-            TxtSifre.Location = new Point(127, 103);
+            TxtSifre.Location = new Point(127, 93);
             TxtSifre.Name = "TxtSifre";
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
@@ -324,6 +338,7 @@
             // 
             GrbboxHedef.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             GrbboxHedef.BackColor = SystemColors.GradientInactiveCaption;
+            GrbboxHedef.Controls.Add(ChkboxHedefSifre);
             GrbboxHedef.Controls.Add(CmboxHedefSutun);
             GrbboxHedef.Controls.Add(TxboxHedefSifre);
             GrbboxHedef.Controls.Add(LblHdfVeri);
@@ -345,6 +360,17 @@
             GrbboxHedef.TabIndex = 17;
             GrbboxHedef.TabStop = false;
             GrbboxHedef.Text = "Hedef";
+            // 
+            // ChkboxHedefSifre
+            // 
+            ChkboxHedefSifre.AutoSize = true;
+            ChkboxHedefSifre.Location = new Point(124, 129);
+            ChkboxHedefSifre.Name = "ChkboxHedefSifre";
+            ChkboxHedefSifre.Size = new Size(86, 19);
+            ChkboxHedefSifre.TabIndex = 22;
+            ChkboxHedefSifre.Text = "Şifre Göster";
+            ChkboxHedefSifre.UseVisualStyleBackColor = true;
+            ChkboxHedefSifre.CheckedChanged += ChkboxSifre_CheckedChanged;
             // 
             // CmboxHedefSutun
             // 
@@ -566,5 +592,7 @@
         private DataGridViewTextBoxColumn HedefSutun;
         private DataGridViewTextBoxColumn Uygunluk;
         private DataGridViewButtonColumn Sil;
+        private CheckBox CkboxSifreGoster;
+        private CheckBox ChkboxHedefSifre;
     }
 }
