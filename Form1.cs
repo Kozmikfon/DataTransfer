@@ -196,7 +196,7 @@ namespace DataTransfer
 
                 foreach (DataGridViewColumn Kolon in GrdKaynak.Columns)
                 {
-                    Kolon.Tag = Kolon.Name;
+                   Kolon.Tag = Kolon.Name;
                 }
                 LstboxLog.Items.Add($"Kaynak Tablosu: '{table}' yuklendi. Kolonlar:");
                 foreach (var item in KaynakKolonlar.Keys)
@@ -982,8 +982,8 @@ namespace DataTransfer
                 {
                     if (row.Cells["KaynakSutun"].Value != null && row.Cells["HedefSutun"].Value != null)
                     {
-                        string kaynak = row.Cells["KaynakSutun"].Value.ToString();
-                        string hedef = row.Cells["HedefSutun"].Value.ToString();
+                        string kaynak = row.Cells["KaynakSutun"].Tag?.ToString();
+                        string hedef = row.Cells["HedefSutun"].Tag?.ToString();
 
                         // KontrolEt metoduyla uyumluluk kontrolü
                         KontrolEt(row);
