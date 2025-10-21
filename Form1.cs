@@ -45,8 +45,7 @@ namespace DataTransfer
 
         }
 
-        SqlConnection connHedef;
-        SqlConnection connKaynak;
+
         SqlConnection conn;
         SqlCommand cmd;
         SqlDataAdapter dap;
@@ -73,7 +72,7 @@ namespace DataTransfer
                 return;
             }
 
-            BaglantiTestAsync();//baglantı testi
+            BaglantiTestAsync(); //baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
@@ -84,8 +83,8 @@ namespace DataTransfer
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
 
-            string KaynakSorgu = $"Server={TxtboxKaynakSunucu.Text};User Id={TxtKullanıcı.Text};Password={TxtSifre.Text};TrustServerCertificate=True;";
-            string HedefSorgu = $"Server={TxtboxHedefSunucu.Text};User Id={TxboxHedefKullanici.Text};Password={TxboxHedefSifre.Text};TrustServerCertificate=True;";
+            string KaynakSorgu = $"Server={TxtboxKaynakSunucu.Text}; User Id={TxtKullanıcı.Text}; Password={TxtSifre.Text}; TrustServerCertificate=True;";
+            string HedefSorgu = $"Server={TxtboxHedefSunucu.Text}; User Id={TxboxHedefKullanici.Text}; Password={TxboxHedefSifre.Text}; TrustServerCertificate=True;";
 
             try
             {
@@ -97,10 +96,10 @@ namespace DataTransfer
 
                     
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Kaynak ve hedef bağlantıları başarıyla açıldı.");
+                    LstboxLog.Items.Add($"Kaynak ve hedef bağlantıları başarıyla açıldı.");
                 }
 
-                // Butonları ve gridleri aktif et
+                
                 BtnEslesmeDogrula.Enabled = true;
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
@@ -142,7 +141,7 @@ namespace DataTransfer
                 string pass = TxtSifre.Text.Trim();
                 string sutun = CmboxKaynakSutun.Text.Trim();
 
-                // Boş alan kontrolü
+                
                 if (string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(table) ||
@@ -155,7 +154,7 @@ namespace DataTransfer
                     return false;
                 }
 
-                // Kolon bilgilerini dictionary'e al
+                // Kolon bilgilerini dictionary içn dolduruyoruz
                 KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
 
                 if (!KaynakKolonlar.ContainsKey(sutun))
@@ -170,13 +169,13 @@ namespace DataTransfer
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
-                // Grid kolon tag'lerini ayarla (gerçek SQL kolon adı)
+                
                 foreach (DataGridViewColumn col in GrdKaynak.Columns)
                 {
                     col.Tag = col.DataPropertyName;
                 }
 
-                // Log ekle
+                
                 LstboxLog.Items.Add($"Kaynak Tablosu '{table}' yüklendi. Kolonlar:");
                 foreach (var kol in KaynakKolonlar.Keys)
                 {
