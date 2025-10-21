@@ -1,16 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic.ApplicationServices;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
-using System.Drawing.Imaging;
-using System.IO.MemoryMappedFiles;
-using System.Net;
-using System.Windows.Forms;
-using System.Xml.Serialization;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
+
 
 namespace DataTransfer
 {
@@ -83,80 +73,56 @@ namespace DataTransfer
                 return;
             }
 
-            BaglantiTestAsync(connHedef, connKaynak);//baglantı testi
+            BaglantiTestAsync();//baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
 
         }
-        private async void BaglantiTestAsync(SqlConnection connHedef, SqlConnection connKaynak)
+        private async Task<bool> BaglantiTestAsync()
         {
-
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
 
-
-            string kaynakConnection =
-               $"Server={TxtboxKaynakSunucu.Text};" +
-               $"User Id={TxtKullanıcı.Text};" +
-               $"Password={TxtSifre.Text};" +
-               $"TrustServerCertificate=True;";
-
-            string hedefConnection =
-               $"Server={TxtboxHedefSunucu.Text};" +
-               $"User Id={TxboxHedefKullanici.Text};" +
-               $"Password={TxboxHedefSifre.Text};" +
-               $"TrustServerCertificate=True;";
-
+            string KaynakSorgu = $"Server={TxtboxKaynakSunucu.Text};User Id={TxtKullanıcı.Text};Password={TxtSifre.Text};TrustServerCertificate=True;";
+            string HedefSorgu = $"Server={TxtboxHedefSunucu.Text};User Id={TxboxHedefKullanici.Text};Password={TxboxHedefSifre.Text};TrustServerCertificate=True;";
 
             try
             {
-                connHedef = new SqlConnection(hedefConnection);
-                if (connHedef.State == ConnectionState.Closed)
+                using (var KaynakBaglanti = new SqlConnection(KaynakSorgu))
+                using (var HedefBaglanti = new SqlConnection(HedefSorgu))
                 {
-                    await connHedef.OpenAsync();
-                }
+                    await KaynakBaglanti.OpenAsync();
+                    await HedefBaglanti.OpenAsync();
 
-                connKaynak = new SqlConnection(kaynakConnection);
-                if (connKaynak.State == ConnectionState.Closed)
-                {
-                    await connKaynak.OpenAsync();
-                }
-
-
-                else
-                {
-                    MessageBox.Show("Bağlantı zaten açık.");
-                }
-
-                MessageBox.Show("Bağlantı Oluşturuldu!");
-
-                if (connKaynak.State == ConnectionState.Open && connHedef.State == ConnectionState.Open)
-                {
+                    
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add("Bağlantı başarılı şekilde oluştu.");
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Kaynak ve hedef bağlantıları başarıyla açıldı.");
                 }
+
+                // Butonları ve gridleri aktif et
                 BtnEslesmeDogrula.Enabled = true;
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
                 GrdEslestirme.Enabled = true;
-               
 
+                MessageBox.Show("Bağlantı Oluşturuldu!");
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Bağlantı başarısız:\n {ex.Message}");
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Bağlantı başarısız.");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Bağlantı başarısız: {ex.Message}");
+                MessageBox.Show($"Bağlantı başarısız:\n{ex.Message}");
+                return false;
             }
             finally
             {
                 BtnBaglantiTest.Enabled = true;
                 BtnBaglantiTest.Text = "Bağlantıyı Test Et";
-
             }
-
         }
+
 
 
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
@@ -991,71 +957,119 @@ namespace DataTransfer
             }
         }
 
-
+        //kaynkatan select ile oku hedefe insert olarak yaz
         private void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
             try
             {
+                // Tablo isimlerini al
                 string kaynakTablo = CmbboxKaynaktablo.Text.Trim();
                 string hedefTablo = CmbboxHedefTablo.Text.Trim();
 
                 if (string.IsNullOrWhiteSpace(kaynakTablo) || string.IsNullOrWhiteSpace(hedefTablo))
                 {
-                    MessageBox.Show("Lütfen kaynak ve hedef tablo seçin!");
+                    MessageBox.Show("Lütfen kaynak ve hedef tablo seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Eşleştirmeleri topla
-                var eslesmeler = EslemeListesi();
+                // Eşleştirmeleri al (DataGridView'den)
+                var eslesmeler = new List<(string KaynakKolon, string HedefKolon)>();
+                foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                {
+                    if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
+                    {
+                        string kaynakKolon = row.Cells[KaynakSutun.Index].Tag?.ToString();
+                        string hedefKolon = row.Cells[HedefSutun.Index].Tag?.ToString();
+
+                        if (!string.IsNullOrEmpty(kaynakKolon) && !string.IsNullOrEmpty(hedefKolon))
+                            eslesmeler.Add((kaynakKolon, hedefKolon));
+                    }
+                }
+
                 if (eslesmeler.Count == 0)
                 {
-                    MessageBox.Show("Hiç uygun kolon eşleştirmesi yok!");
+                    MessageBox.Show("Hiç uygun kolon eşleştirmesi bulunamadı!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Seçili hücre kontrolü
+                // Kullanıcı hangi hücreye tıkladıysa, o değeri filtre olarak al
                 if (GrdKaynak.CurrentCell == null)
                 {
-                    MessageBox.Show("Lütfen transfer için bir hücre seçin!");
+                    MessageBox.Show("Lütfen transfer için bir satır seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 var secilenHucre = GrdKaynak.CurrentCell;
                 object secilenDeger = secilenHucre.Value ?? DBNull.Value;
                 string secilenKolon = GrdKaynak.Columns[secilenHucre.ColumnIndex].Tag?.ToString()
-                                      ?? GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
+                                       ?? GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
 
-                // Bağlantılar
-                using (SqlConnection connKaynak = new SqlConnection(GetConnStrKaynak()))
-                using (SqlConnection connHedef = new SqlConnection(GetConnStrHedef()))
+                // Güvenli isimlendirme
+                string safeKaynakTablo = "[" + kaynakTablo.Replace("]", "]]") + "]";
+                string safeHedefTablo = "[" + hedefTablo.Replace("]", "]]") + "]";
+                string safeSecilenKolon = "[" + secilenKolon.Replace("]", "]]") + "]";
+
+                string kaynakKolonListesi = string.Join(", ", eslesmeler.Select(x => "[" + x.KaynakKolon.Replace("]", "]]") + "]"));
+                string hedefKolonListesi = string.Join(", ", eslesmeler.Select(x => "[" + x.HedefKolon.Replace("]", "]]") + "]"));
+
+                // 🔹 Bağlantılar
+                string connStrKaynak = GetConnStrKaynak();
+                string connStrHedef = GetConnStrHedef();
+
+                using (SqlConnection connKaynak = new SqlConnection(connStrKaynak))
+                using (SqlConnection connHedef = new SqlConnection(connStrHedef))
                 {
                     connKaynak.Open();
                     connHedef.Open();
 
-                    string KaynakListesi = string.Join(",", eslesmeler.Select(x => $"[{x.KaynakKolon}]"));
-                    string HedefListesi = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
-
-                    string sql = $@"
-                INSERT INTO {hedefTablo} ({HedefListesi})
-                SELECT {KaynakListesi}
-                FROM {kaynakTablo}
-                WHERE [{secilenKolon}] = @SecilenDeger";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, connHedef))
+                    // 1️⃣ Kaynak veriyi oku
+                    string selectSql = $"SELECT {kaynakKolonListesi} FROM {safeKaynakTablo} WHERE {safeSecilenKolon} = @SecilenDeger";
+                    using (SqlCommand cmdSelect = new SqlCommand(selectSql, connKaynak))
                     {
-                        cmd.Parameters.AddWithValue("@SecilenDeger", secilenDeger);
-                        int satirSayisi = cmd.ExecuteNonQuery();
-                        LstboxLog.Items.Add($"{satirSayisi} satır transfer edildi.");
-                        MessageBox.Show($"{satirSayisi} satır transfer edildi.");
+                        cmdSelect.Parameters.AddWithValue("@SecilenDeger", secilenDeger);
+
+                        using (SqlDataReader reader = cmdSelect.ExecuteReader())
+                        {
+                            using (SqlTransaction tran = connHedef.BeginTransaction())
+                            {
+                                int aktarilanSatir = 0;
+                                while (reader.Read())
+                                {
+                                    // 2️⃣ Hedefe satır satır insert et
+                                    string insertSql = $"INSERT INTO {safeHedefTablo} ({hedefKolonListesi}) VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
+                                    using (SqlCommand cmdInsert = new SqlCommand(insertSql, connHedef, tran))
+                                    {
+                                        for (int i = 0; i < eslesmeler.Count; i++)
+                                        {
+                                            object value = reader[eslesmeler[i].KaynakKolon];
+                                            cmdInsert.Parameters.AddWithValue("@p" + i, value ?? DBNull.Value);
+                                        }
+                                        aktarilanSatir += cmdInsert.ExecuteNonQuery();
+                                    }
+                                }
+
+                                tran.Commit();
+                                LstboxLog.Items.Add($"{aktarilanSatir} satır başarıyla transfer edildi.");
+                                MessageBox.Show($"{aktarilanSatir} satır başarıyla transfer edildi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                        }
                     }
                 }
+            }
+            catch (SqlException sqlEx)
+            {
+                LstboxLog.Items.Add($"SQL Hatası: {sqlEx.Message}");
+                MessageBox.Show($"SQL Hatası:\n{sqlEx.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
                 LstboxLog.Items.Add($"Hata: {ex.Message}");
-                MessageBox.Show($"Hata: {ex.Message}");
+                MessageBox.Show($"Hata:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+
+
 
         /// <summary>
         /// Grid’den kolon eşleşmelerini döndürür
