@@ -53,11 +53,10 @@ namespace DataTransfer
         DataTable dt;
         Image dbIcon;
         Image dbIcontable;
+        
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
-
-
 
             LstboxLog.Items.Clear();
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
@@ -169,13 +168,13 @@ namespace DataTransfer
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
-                
+
                 foreach (DataGridViewColumn col in GrdKaynak.Columns)
                 {
                     col.Tag = col.DataPropertyName;
                 }
 
-                
+
                 LstboxLog.Items.Add($"Kaynak Tablosu '{table}' yüklendi. Kolonlar:");
                 foreach (var kol in KaynakKolonlar.Keys)
                 {
@@ -198,50 +197,7 @@ namespace DataTransfer
 
         }
 
-        // kolonları listeleme metodu
-        private List<string> KolonlarıGetir(string server, string db, string table, string sutun, string user, string pass)
-        {
-
-            if (string.IsNullOrWhiteSpace(server)
-                || string.IsNullOrWhiteSpace(db)
-                || string.IsNullOrWhiteSpace(table)
-                || string.IsNullOrWhiteSpace(sutun)
-                || string.IsNullOrWhiteSpace(user)
-                || string.IsNullOrWhiteSpace(pass)
-                )
-            {
-                MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-
-            List<string> kolonlar = new List<string>();
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
-
-
-            using (conn = new SqlConnection(connStr))
-            {
-                if (conn.State == ConnectionState.Closed)
-                {
-                    conn.Open();
-                }
-                string sql = @"SELECT COLUMN_NAME,DATA_TYPE 
-                       FROM INFORMATION_SCHEMA.COLUMNS 
-                       WHERE TABLE_NAME = @TableName AND COLUMN_NAME= @ColumnName";
-
-                cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@TableName", table);
-                cmd.Parameters.AddWithValue("@ColumnName", sutun);
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        kolonlar.Add(reader["COLUMN_NAME"].ToString());
-
-                    }
-                }
-            }
-            return kolonlar;
-        }
+    
 
         // kolon bilgilerini getiriyor 
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
@@ -268,12 +224,10 @@ namespace DataTransfer
                         }
                     }
                 }
-
             }
-
             return kolonlar;
-
         }
+
         //kolon içeriklerini görme su an kolonları görüntülüyor.
         private DataTable TabloVerileriGetir(string server, string db, string table, string sutun,string user, string password)
         {
@@ -373,25 +327,7 @@ namespace DataTransfer
                 return false;
             }
         }
-        private List<(string KaynakKolon, string HedefKolon)> EslemeListesi()
-        {
-            var eslestirme = new List<(string, string)>();
-            foreach (DataGridViewRow item in GrdEslestirme.Rows)
-            {
-                if (item.IsNewRow)
-                {
-                    continue;
-                }
-                var kaynak = item.Cells[KaynakSutun.Index].Value?.ToString().Trim();
-                var hedef = item.Cells[HedefSutun.Index].Value?.ToString().Trim();
-                if (!string.IsNullOrEmpty(kaynak) && !string.IsNullOrEmpty(hedef))
-                {
-                    eslestirme.Add((kaynak, hedef));
-
-                }
-            }
-            return eslestirme;
-        }
+        
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -765,9 +701,6 @@ namespace DataTransfer
 
 
 
-
-        // Kontrol fonksiyonu (artık veriye göre eşleme)
-        // Kontrol metodu (güncel kolon tag’lerini kullanacak)
         private void KontrolEt(DataGridViewRow row)
         {
             string kaynakDeger = row.Cells[KaynakSutun.Index].Value?.ToString().Trim();
@@ -776,7 +709,7 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(kaynakDeger) || string.IsNullOrEmpty(hedefDeger))
                 return;
 
-            // Kaynak kolon adını Tag'den al
+            
             string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
             string hedefKolonAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
 
@@ -1021,7 +954,7 @@ namespace DataTransfer
                     connKaynak.Open();
                     connHedef.Open();
 
-                    // 1️⃣ Kaynak veriyi oku
+                    //  Kaynak veriyi oku
                     string selectSql = $"SELECT {kaynakKolonListesi} FROM {safeKaynakTablo} WHERE {safeSecilenKolon} = @SecilenDeger";
                     using (SqlCommand cmdSelect = new SqlCommand(selectSql, connKaynak))
                     {
@@ -1034,7 +967,7 @@ namespace DataTransfer
                                 int aktarilanSatir = 0;
                                 while (reader.Read())
                                 {
-                                    // 2️⃣ Hedefe satır satır insert et
+                                    // Hedefe satır satır insert et
                                     string insertSql = $"INSERT INTO {safeHedefTablo} ({hedefKolonListesi}) VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
                                     using (SqlCommand cmdInsert = new SqlCommand(insertSql, connHedef, tran))
                                     {
@@ -1068,41 +1001,6 @@ namespace DataTransfer
         }
 
 
-
-
-        /// <summary>
-        /// Grid’den kolon eşleşmelerini döndürür
-        /// </summary>
-        private List<(string kaynakKolon, string hedefKolon)> GetEslestirmeler()
-        {
-            var list = new List<(string, string)>();
-
-            foreach (DataGridViewRow row in GrdEslestirme.Rows)
-            {
-                string kaynak = row.Cells["KaynakSutun"].Tag?.ToString();
-                string hedef = row.Cells["HedefSutun"].Tag?.ToString();
-
-                if (!string.IsNullOrEmpty(kaynak) && !string.IsNullOrEmpty(hedef))
-                {
-                    // Uygunluk kontrolü
-                    KontrolEt(row);
-                    if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
-                    {
-                        list.Add((kaynak, hedef));
-                    }
-                    else
-                    {
-                        LstboxLog.Items.Add($"Eşleme atlandı: {kaynak} -> {hedef} (Uygun değil)");
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        /// <summary>
-        /// Kaynak bağlantı stringini döndürür
-        /// </summary>
         private string GetConnStrKaynak()
         {
             return $"Server={TxtboxKaynakSunucu.Text};" +
@@ -1112,9 +1010,7 @@ namespace DataTransfer
                    "TrustServerCertificate=True;";
         }
 
-        /// <summary>
-        /// Hedef bağlantı stringini döndürür
-        /// </summary>
+      
         private string GetConnStrHedef()
         {
             return $"Server={TxtboxHedefSunucu.Text};" +
