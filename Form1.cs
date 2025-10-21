@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.Data;
 
 
@@ -200,10 +201,12 @@ namespace DataTransfer
     
 
         // kolon bilgilerini getiriyor 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string pass)
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string sifre)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
-            string connstr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connstr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;"; // 5 adet sorgu
+
+
             using (conn = new SqlConnection(connstr))
             {
                 conn.Open();
@@ -229,20 +232,20 @@ namespace DataTransfer
         }
 
         //kolon içeriklerini görme su an kolonları görüntülüyor.
-        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun,string user, string password)
+        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun,string user, string sifre)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
                 string.IsNullOrWhiteSpace(sutun) ||
                 string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(password))
+                string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             dt = new DataTable();//bellek içerisinde tablo oluşturuyoruz sanal
-            string connStr = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
 
 
             using (conn = new SqlConnection(connStr))
@@ -437,16 +440,16 @@ namespace DataTransfer
             string server = TxtboxKaynakSunucu.Text;
             string db = CmbboxKaynakVeritabani.Text;
             string user = TxtKullanıcı.Text;
-            string pass = TxtSifre.Text;
+            string sifre = TxtSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(pass))
+                string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -482,16 +485,16 @@ namespace DataTransfer
             string server = TxtboxHedefSunucu.Text;
             string db = CmbboxHedefVeriTabani.Text;
             string user = TxboxHedefKullanici.Text;
-            string pass = TxboxHedefSifre.Text;
+            string sifre = TxboxHedefSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(pass))
+                string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -524,17 +527,17 @@ namespace DataTransfer
             string db = CmbboxKaynakVeritabani.Text;
             string table = CmbboxKaynaktablo.Text;
             string user = TxtKullanıcı.Text;
-            string pass = TxtSifre.Text;
+            string sifre = TxtSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
                 string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(pass))
+                string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -572,23 +575,27 @@ namespace DataTransfer
                 conn.Close();
             }
         }
+        private void ConnOrtak(string server,string db,string user,string sifre)
+        {
+            string connstr= $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+        }
         private void HedefSutunDoldur()
         {
             string server = TxtboxHedefSunucu.Text;
             string db = CmbboxHedefVeriTabani.Text;
             string table = CmbboxHedefTablo.Text;
             string user = TxboxHedefKullanici.Text;
-            string pass = TxboxHedefSifre.Text;
+            string sifre = TxboxHedefSifre.Text;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
                 string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(pass))
+                string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={pass};TrustServerCertificate=True;";
+            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             try
             {
                 using (conn = new SqlConnection(connStr))
