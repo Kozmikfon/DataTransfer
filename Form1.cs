@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.VisualBasic.ApplicationServices;
 using System.Data;
 
@@ -204,7 +205,7 @@ namespace DataTransfer
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string sifre)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
-            string connstr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;"; // 5 adet sorgu
+            string connstr = ConnOrtak(server,db,user,sifre); // 5 adet sorgu
 
 
             using (conn = new SqlConnection(connstr))
@@ -245,7 +246,7 @@ namespace DataTransfer
             }
 
             dt = new DataTable();//bellek içerisinde tablo oluşturuyoruz sanal
-            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connStr = ConnOrtak(server,db,user,sifre);
 
 
             using (conn = new SqlConnection(connStr))
@@ -449,7 +450,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connStr = ConnOrtak(server,db,user,sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -494,7 +495,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connStr = ConnOrtak(server,db,user,sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -537,7 +538,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connStr = ConnOrtak(server,db,user,sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -575,9 +576,10 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        private void ConnOrtak(string server,string db,string user,string sifre)
+        private string ConnOrtak(string server,string db,string user,string sifre)
         {
             string connstr= $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            return connstr;
         }
         private void HedefSutunDoldur()
         {
@@ -595,7 +597,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connStr = ConnOrtak(server,db,user,sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
