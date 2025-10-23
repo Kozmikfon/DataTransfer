@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             BtnBaglantiTest = new Button();
             LblKynkSunucu = new Label();
             lblKynkVeri = new Label();
@@ -66,11 +67,13 @@
             GrbboxButon = new GroupBox();
             LstboxLog = new ListBox();
             GrbboxEslesmeLog = new GroupBox();
+            PrgsbarTransfer = new ProgressBar();
             GrdEslestirme = new DataGridView();
             KaynakSutun = new DataGridViewButtonColumn();
             HedefSutun = new DataGridViewTextBoxColumn();
             Uygunluk = new DataGridViewTextBoxColumn();
             Sil = new DataGridViewButtonColumn();
+            timer1 = new System.Windows.Forms.Timer(components);
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
@@ -207,7 +210,7 @@
             // 
             // BtnEslesmeDogrula
             // 
-            BtnEslesmeDogrula.Location = new Point(261, 284);
+            BtnEslesmeDogrula.Location = new Point(302, 273);
             BtnEslesmeDogrula.Name = "BtnEslesmeDogrula";
             BtnEslesmeDogrula.Size = new Size(134, 52);
             BtnEslesmeDogrula.TabIndex = 14;
@@ -217,7 +220,7 @@
             // 
             // BtnTransferBaslat
             // 
-            BtnTransferBaslat.Location = new Point(85, 284);
+            BtnTransferBaslat.Location = new Point(116, 273);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(123, 52);
             BtnTransferBaslat.TabIndex = 15;
@@ -321,6 +324,7 @@
             GrdKaynak.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdKaynak.Location = new Point(12, 332);
             GrdKaynak.Name = "GrdKaynak";
+            GrdKaynak.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             GrdKaynak.Size = new Size(232, 310);
             GrdKaynak.TabIndex = 19;
             GrdKaynak.CellClick += GrdKaynak_CellClick;
@@ -468,6 +472,7 @@
             // 
             // GrbboxEslesmeLog
             // 
+            GrbboxEslesmeLog.Controls.Add(PrgsbarTransfer);
             GrbboxEslesmeLog.Controls.Add(GrdEslestirme);
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
             GrbboxEslesmeLog.Controls.Add(BtnEslesmeDogrula);
@@ -478,6 +483,13 @@
             GrbboxEslesmeLog.TabIndex = 21;
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
+            // 
+            // PrgsbarTransfer
+            // 
+            PrgsbarTransfer.Location = new Point(116, 375);
+            PrgsbarTransfer.Name = "PrgsbarTransfer";
+            PrgsbarTransfer.Size = new Size(135, 23);
+            PrgsbarTransfer.TabIndex = 17;
             // 
             // GrdEslestirme
             // 
@@ -595,5 +607,7 @@
         private DataGridViewButtonColumn Sil;
         private CheckBox CkboxSifreGoster;
         private CheckBox ChkboxHedefSifre;
+        private ProgressBar PrgsbarTransfer;
+        private System.Windows.Forms.Timer timer1;
     }
 }

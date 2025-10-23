@@ -44,6 +44,7 @@ namespace DataTransfer
             BtnKynkKolonYukle.Enabled = false;
             BtnHedefKolonYukle.Enabled = false;
             GrdEslestirme.Enabled = false;
+            PrgsbarTransfer.Visible = false;
 
         }
 
@@ -903,7 +904,6 @@ namespace DataTransfer
         {
             try
             {
-                // Tablo isimlerini al
                 string kaynakTablo = CmbboxKaynaktablo.Text.Trim();
                 string hedefTablo = CmbboxHedefTablo.Text.Trim();
 
@@ -913,7 +913,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // Eşleştirmeleri al (DataGridView'den)
+                // Eşleştirmeleri al (sadece 'Uygun' olanlar)
                 var eslesmeler = new List<(string KaynakKolon, string HedefKolon)>();
                 foreach (DataGridViewRow row in GrdEslestirme.Rows)
                 {
@@ -933,67 +933,45 @@ namespace DataTransfer
                     return;
                 }
 
-                // Kullanıcı hangi hücreye tıkladıysa, o değeri filtre olarak al
-                if (GrdKaynak.CurrentCell == null)
+                // Seçili satırları al
+                if (GrdKaynak.SelectedRows.Count == 0)
                 {
-                    MessageBox.Show("Lütfen transfer için bir satır seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Lütfen transfer etmek için en az bir satır seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                var secilenHucre = GrdKaynak.CurrentCell;
-                object secilenDeger = secilenHucre.Value ?? DBNull.Value;
-                string secilenKolon = GrdKaynak.Columns[secilenHucre.ColumnIndex].Tag?.ToString()
-                                       ?? GrdKaynak.Columns[secilenHucre.ColumnIndex].Name;
-
-                // Güvenli isimlendirme
-                string safeKaynakTablo = "[" + kaynakTablo.Replace("]", "]]") + "]";
                 string safeHedefTablo = "[" + hedefTablo.Replace("]", "]]") + "]";
-                string safeSecilenKolon = "[" + secilenKolon.Replace("]", "]]") + "]";
 
-                string kaynakKolonListesi = string.Join(", ", eslesmeler.Select(x => "[" + x.KaynakKolon.Replace("]", "]]") + "]"));
-                string hedefKolonListesi = string.Join(", ", eslesmeler.Select(x => "[" + x.HedefKolon.Replace("]", "]]") + "]"));
-
-                // 🔹 Bağlantılar
-                string connStrKaynak = GetConnStrKaynak();
-                string connStrHedef = GetConnStrHedef();
-
-                using (SqlConnection connKaynak = new SqlConnection(connStrKaynak))
-                using (SqlConnection connHedef = new SqlConnection(connStrHedef))
+                using (SqlConnection connHedef = new SqlConnection(GetConnStrHedef()))
                 {
-                    connKaynak.Open();
                     connHedef.Open();
-
-                    //  Kaynak veriyi oku
-                    string selectSql = $"SELECT {kaynakKolonListesi} FROM {safeKaynakTablo} WHERE {safeSecilenKolon} = @SecilenDeger";
-                    using (SqlCommand cmdSelect = new SqlCommand(selectSql, connKaynak))
+                    using (SqlTransaction tran = connHedef.BeginTransaction())
                     {
-                        cmdSelect.Parameters.AddWithValue("@SecilenDeger", secilenDeger);
+                        int toplamAktarilan = 0;
 
-                        using (SqlDataReader reader = cmdSelect.ExecuteReader())
+                        foreach (DataGridViewRow kaynakRow in GrdKaynak.SelectedRows)
                         {
-                            using (SqlTransaction tran = connHedef.BeginTransaction())
+                            // Insert komutu
+                            string insertSql = $"INSERT INTO {safeHedefTablo} " +
+                                $"({string.Join(", ", eslesmeler.Select(x => $"[{x.HedefKolon.Replace("]", "]]")}]"))}) " +
+                                $"VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
+
+                            using (SqlCommand cmd = new SqlCommand(insertSql, connHedef, tran))
                             {
-                                int aktarilanSatir = 0;
-                                while (reader.Read())
+                                for (int i = 0; i < eslesmeler.Count; i++)
                                 {
-                                    // Hedefe satır satır insert et
-                                    string insertSql = $"INSERT INTO {safeHedefTablo} ({hedefKolonListesi}) VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
-                                    using (SqlCommand cmdInsert = new SqlCommand(insertSql, connHedef, tran))
-                                    {
-                                        for (int i = 0; i < eslesmeler.Count; i++)
-                                        {
-                                            object value = reader[eslesmeler[i].KaynakKolon];
-                                            cmdInsert.Parameters.AddWithValue("@p" + i, value ?? DBNull.Value);
-                                        }
-                                        aktarilanSatir += cmdInsert.ExecuteNonQuery();
-                                    }
+                                    string kaynakKolon = eslesmeler[i].KaynakKolon;
+                                    object value = kaynakRow.Cells[kaynakKolon]?.Value ?? DBNull.Value;
+                                    cmd.Parameters.AddWithValue("@p" + i, value);
                                 }
 
-                                tran.Commit();
-                                LstboxLog.Items.Add($"{aktarilanSatir} satır başarıyla transfer edildi.");
-                                MessageBox.Show($"{aktarilanSatir} satır başarıyla transfer edildi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                toplamAktarilan += cmd.ExecuteNonQuery();
                             }
                         }
+
+                        tran.Commit();
+                        LstboxLog.Items.Add($"{toplamAktarilan} satır başarıyla transfer edildi.");
+                        MessageBox.Show($"{toplamAktarilan} satır başarıyla transfer edildi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
@@ -1008,6 +986,7 @@ namespace DataTransfer
                 MessageBox.Show($"Hata:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
 
         private string GetConnStrKaynak()
