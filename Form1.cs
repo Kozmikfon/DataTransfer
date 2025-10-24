@@ -818,12 +818,12 @@ namespace DataTransfer
 
         private void TxtSifre_TextChanged(object sender, EventArgs e)
         {
-            TxtSifre.PasswordChar = '\u25CF';
+           
         }
 
         private void TxboxHedefSifre_TextChanged(object sender, EventArgs e)
         {
-            TxboxHedefSifre.PasswordChar = '\u25CF';
+            
         }
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
@@ -900,143 +900,34 @@ namespace DataTransfer
         //kaynkatan select ile oku hedefe insert olarak yaz
         private void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string kaynakTablo = CmbboxKaynaktablo.Text.Trim();
-                string hedefTablo = CmbboxHedefTablo.Text.Trim();
-
-                if (string.IsNullOrWhiteSpace(kaynakTablo) || string.IsNullOrWhiteSpace(hedefTablo))
-                {
-                    MessageBox.Show("Lütfen kaynak ve hedef tablo seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Eşleştirmeleri al (sadece 'Uygun' olanlar)
-                var eslesmeler = new List<(string KaynakKolon, string HedefKolon)>();
-                foreach (DataGridViewRow row in GrdEslestirme.Rows)
-                {
-                    if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
-                    {
-                        string kaynakKolon = row.Cells[KaynakSutun.Index].Tag?.ToString();
-                        string hedefKolon = row.Cells[HedefSutun.Index].Tag?.ToString();
-
-                        if (!string.IsNullOrEmpty(kaynakKolon) && !string.IsNullOrEmpty(hedefKolon))
-                            eslesmeler.Add((kaynakKolon, hedefKolon));
-                    }
-                }
-
-                if (eslesmeler.Count == 0)
-                {
-                    MessageBox.Show("Hiç uygun kolon eşleştirmesi bulunamadı!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Seçili satırları al
-                if (GrdKaynak.SelectedRows.Count == 0)
-                {
-                    MessageBox.Show("Lütfen transfer etmek için en az bir satır seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string safeHedefTablo = "[" + hedefTablo.Replace("]", "]]") + "]";
-
-                using (SqlConnection connHedef = new SqlConnection(GetConnStrHedef()))
-                {
-                    connHedef.Open();
-                    using (SqlTransaction tran = connHedef.BeginTransaction())
-                    {
-                        int toplamAktarilan = 0;
-
-                        foreach (DataGridViewRow kaynakRow in GrdKaynak.SelectedRows)
-                        {
-                            string insertSql = $"INSERT INTO {safeHedefTablo} " +
-                                $"({string.Join(", ", eslesmeler.Select(x => $"[{x.HedefKolon.Replace("]", "]]")}]"))}) " +
-                                $"VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
-
-                            using (SqlCommand cmd = new SqlCommand(insertSql, connHedef, tran))
-                            {
-                                for (int i = 0; i < eslesmeler.Count; i++)
-                                {
-                                    string kaynakKolon = eslesmeler[i].KaynakKolon;
-
-                                    // 🔹 Kolon gerçekten gridde var mı kontrol et
-                                    if (!GrdKaynak.Columns.Contains(kaynakKolon))
-                                    {
-                                        LstboxLog.Items.Add($"Uyarı: {kaynakKolon} kolonu kaynak gridde bulunamadı, atlandı.");
-                                        cmd.Parameters.AddWithValue("@p" + i, DBNull.Value);
-                                        continue;
-                                    }
-
-                                    object value = kaynakRow.Cells[kaynakKolon]?.Value ?? DBNull.Value;
-                                    cmd.Parameters.AddWithValue("@p" + i, value);
-                                }
-
-                                toplamAktarilan += cmd.ExecuteNonQuery();
-                            }
-                        }
-
-
-                        tran.Commit();
-                        LstboxLog.Items.Add($"{toplamAktarilan} satır başarıyla transfer edildi.");
-                        MessageBox.Show($"{toplamAktarilan} satır başarıyla transfer edildi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-            catch (SqlException sqlEx)
-            {
-                LstboxLog.Items.Add($"SQL Hatası: {sqlEx.Message}");
-                MessageBox.Show($"SQL Hatası:\n{sqlEx.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                LstboxLog.Items.Add($"Hata: {ex.Message}");
-                MessageBox.Show($"Hata:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            
         }
-
-
-
-        private string GetConnStrKaynak()
-        {
-            return $"Server={TxtboxKaynakSunucu.Text};" +
-                   $"Database={CmbboxKaynakVeritabani.Text};" +
-                   $"User Id={TxtKullanıcı.Text};" +
-                   $"Password={TxtSifre.Text};" +
-                   "TrustServerCertificate=True;";
-        }
-
-      
-        private string GetConnStrHedef()
-        {
-            return $"Server={TxtboxHedefSunucu.Text};" +
-                   $"Database={CmbboxHedefVeriTabani.Text};" +
-                   $"User Id={TxboxHedefKullanici.Text};" +
-                   $"Password={TxboxHedefSifre.Text};" +
-                   "TrustServerCertificate=True;";
-        }
-
 
         private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
         {
-            if (CkboxSifreGoster.Checked)
+            if (CkboxSifreGoster.CheckState==CheckState.Checked)
             {
-                TxtSifre.PasswordChar = '\0';
+                TxtSifre.UseSystemPasswordChar = true;
+                CkboxSifreGoster.Text = "Şifre Gizle";
             }
-            else
+            else if (CkboxSifreGoster.CheckState==CheckState.Unchecked)
             {
-                TxtSifre.PasswordChar = '\u25CF';
+                TxtSifre.UseSystemPasswordChar = false;
+                CkboxSifreGoster.Text = "Şifre Göster";
             }
         }
 
         private void ChkboxSifre_CheckedChanged(object sender, EventArgs e)
         {
-            if (ChkboxHedefSifre.Checked)
+            if (ChkboxHedefSifre.CheckState==CheckState.Checked)
             {
-                TxboxHedefSifre.PasswordChar = '\0';
+                TxboxHedefSifre.UseSystemPasswordChar = true;
+                ChkboxHedefSifre.Text = "Şifre Gizle";
             }
-            else
+            else if (ChkboxHedefSifre.CheckState==CheckState.Unchecked)
             {
-                TxboxHedefSifre.PasswordChar = '\u25CF';
+                TxboxHedefSifre.UseSystemPasswordChar = false;
+                ChkboxHedefSifre.Text = "Şifre Göster";
             }
         }
     }

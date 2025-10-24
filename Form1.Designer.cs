@@ -258,7 +258,7 @@
             // CkboxSifreGoster
             // 
             CkboxSifreGoster.AutoSize = true;
-            CkboxSifreGoster.Location = new Point(130, 132);
+            CkboxSifreGoster.Location = new Point(129, 135);
             CkboxSifreGoster.Name = "CkboxSifreGoster";
             CkboxSifreGoster.Size = new Size(86, 19);
             CkboxSifreGoster.TabIndex = 1;
@@ -277,7 +277,9 @@
             // TxtSifre
             // 
             TxtSifre.Location = new Point(129, 103);
+            TxtSifre.Multiline = true;
             TxtSifre.Name = "TxtSifre";
+            TxtSifre.PasswordChar = '*';
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
             TxtSifre.TextChanged += TxtSifre_TextChanged;
@@ -388,7 +390,9 @@
             // TxboxHedefSifre
             // 
             TxboxHedefSifre.Location = new Point(123, 106);
+            TxboxHedefSifre.Multiline = true;
             TxboxHedefSifre.Name = "TxboxHedefSifre";
+            TxboxHedefSifre.PasswordChar = '*';
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
             TxboxHedefSifre.TextChanged += TxboxHedefSifre_TextChanged;
