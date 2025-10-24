@@ -717,7 +717,8 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(kaynakDeger) || string.IsNullOrEmpty(hedefDeger))
                 return;
 
-            
+             
+
             string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
             string hedefKolonAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
 
@@ -740,7 +741,7 @@ namespace DataTransfer
                 return;
             }
 
-            // Tip kontrolü
+            // Tip kontrolünu 
             if (KaynakInfo.DataType != HedefInfo.DataType)
             {
                 row.Cells["Uygunluk"].Value = "Uyumsuz tip";
@@ -750,11 +751,11 @@ namespace DataTransfer
             }
 
             // Nullable ve length kontrolleri
-            if (!HedefInfo.IsNullable && KaynakInfo.IsNullable)
+            if (!HedefInfo.IsNullable)
             {
-                row.Cells["Uygunluk"].Value = "Hedef NULL olamaz!";
+                row.Cells["Uygunluk"].Value = "boş geçilemez";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
-                LstboxLog.Items.Add($"UYARI: {hedefKolonAdi} boş geçilemez ama {kaynakKolonAdi} NULL olabilir.");
+                LstboxLog.Items.Add($"UYARI: {hedefKolonAdi} boş geçilemez");
                 return;
             }
 
