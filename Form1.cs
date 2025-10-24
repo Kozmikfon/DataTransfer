@@ -1,6 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.VisualBasic.ApplicationServices;
 using System.Data;
 
 
@@ -951,7 +949,6 @@ namespace DataTransfer
 
                         foreach (DataGridViewRow kaynakRow in GrdKaynak.SelectedRows)
                         {
-                            // Insert komutu
                             string insertSql = $"INSERT INTO {safeHedefTablo} " +
                                 $"({string.Join(", ", eslesmeler.Select(x => $"[{x.HedefKolon.Replace("]", "]]")}]"))}) " +
                                 $"VALUES ({string.Join(", ", eslesmeler.Select((x, i) => "@p" + i))})";
@@ -961,6 +958,15 @@ namespace DataTransfer
                                 for (int i = 0; i < eslesmeler.Count; i++)
                                 {
                                     string kaynakKolon = eslesmeler[i].KaynakKolon;
+
+                                    // 🔹 Kolon gerçekten gridde var mı kontrol et
+                                    if (!GrdKaynak.Columns.Contains(kaynakKolon))
+                                    {
+                                        LstboxLog.Items.Add($"Uyarı: {kaynakKolon} kolonu kaynak gridde bulunamadı, atlandı.");
+                                        cmd.Parameters.AddWithValue("@p" + i, DBNull.Value);
+                                        continue;
+                                    }
+
                                     object value = kaynakRow.Cells[kaynakKolon]?.Value ?? DBNull.Value;
                                     cmd.Parameters.AddWithValue("@p" + i, value);
                                 }
@@ -968,6 +974,7 @@ namespace DataTransfer
                                 toplamAktarilan += cmd.ExecuteNonQuery();
                             }
                         }
+
 
                         tran.Commit();
                         LstboxLog.Items.Add($"{toplamAktarilan} satır başarıyla transfer edildi.");
