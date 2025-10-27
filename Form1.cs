@@ -55,7 +55,7 @@ namespace DataTransfer
         DataTable dt;
         Image dbIcon;
         Image dbIcontable;
-        
+
         private void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
@@ -95,12 +95,12 @@ namespace DataTransfer
                     await KaynakBaglanti.OpenAsync();
                     await HedefBaglanti.OpenAsync();
 
-                    
+
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add($"Kaynak ve hedef bağlantıları başarıyla açıldı.");
                 }
 
-                
+
                 BtnEslesmeDogrula.Enabled = true;
                 BtnKynkKolonYukle.Enabled = true;
                 BtnHedefKolonYukle.Enabled = true;
@@ -142,7 +142,7 @@ namespace DataTransfer
                 string pass = TxtSifre.Text.Trim();
                 string sutun = CmboxKaynakSutun.Text.Trim();
 
-                
+
                 if (string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(table) ||
@@ -155,7 +155,7 @@ namespace DataTransfer
                     return false;
                 }
 
-                
+
                 KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // kaynakkolonları kolonbilgilerini ile dolduruyorum
 
                 if (!KaynakKolonlar.ContainsKey(sutun))//surun kontrolü yapıyorm
@@ -198,12 +198,12 @@ namespace DataTransfer
 
 
         }
-    
+
         // kolon bilgilerini getiriyor
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string sifre)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
-            string connstr = ConnOrtak(server,db,user,sifre); //5 adet sorgu iiçn
+            string connstr = ConnOrtak(server, db, user, sifre); //5 adet sorgu iiçn
 
 
             using (conn = new SqlConnection(connstr))
@@ -231,7 +231,7 @@ namespace DataTransfer
         }
 
         //kolon içeriklerini görme su an kolonları görüntülüyor.
-        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun,string user, string sifre)
+        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string sifre)
         {
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
@@ -244,14 +244,14 @@ namespace DataTransfer
             }
 
             dt = new DataTable();//bellek içerisinde tablo oluşturuyoruz sanal
-            string connStr = ConnOrtak(server,db,user,sifre);
+            string connStr = ConnOrtak(server, db, user, sifre);
 
 
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
                 string sqlsorgu = $@"SELECT {sutun}  FROM {table}"; //select sutun from tablo seçtiğimşz tablo ve sutuna göre veriiler geliyor.
-                dap = new SqlDataAdapter(sqlsorgu, conn); 
+                dap = new SqlDataAdapter(sqlsorgu, conn);
                 dap.Fill(dt);
             }
             return dt;
@@ -329,7 +329,7 @@ namespace DataTransfer
                 return false;
             }
         }
-        
+
 
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -448,7 +448,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server,db,user,sifre);
+            string connStr = ConnOrtak(server, db, user, sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -463,7 +463,7 @@ namespace DataTransfer
                         CmbboxKaynaktablo.Items.Add(reader["TABLE_NAME"].ToString());
                     }
 
-                    
+
 
 
                 }
@@ -493,7 +493,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server,db,user,sifre);
+            string connStr = ConnOrtak(server, db, user, sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -536,7 +536,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server,db,user,sifre);
+            string connStr = ConnOrtak(server, db, user, sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -574,9 +574,9 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        private string ConnOrtak(string server,string db,string user,string sifre)
+        private string ConnOrtak(string server, string db, string user, string sifre)
         {
-            string connstr= $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
+            string connstr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             return connstr;
         }
         private void HedefSutunDoldur()
@@ -596,7 +596,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server,db,user,sifre);
+            string connStr = ConnOrtak(server, db, user, sifre);
             try
             {
                 using (conn = new SqlConnection(connStr))
@@ -656,7 +656,7 @@ namespace DataTransfer
             int newRowIndex = GrdEslestirme.Rows.Add();
             GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
 
-            
+
             GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag =
                 GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
 
@@ -702,7 +702,7 @@ namespace DataTransfer
 
 
 
-        Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar = 
+        Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar =
             new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);//kaynaktaki tüm kolonların istenilen bilgilerini tutacak sozluk
 
         Dictionary<string, (string DataType, int? length, bool IsNullable)> HedefKolonlar =
@@ -718,7 +718,7 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(kaynakDeger) || string.IsNullOrEmpty(hedefDeger))
                 return;
 
-             
+
 
             string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
             string hedefKolonAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
@@ -821,12 +821,12 @@ namespace DataTransfer
 
         private void TxtSifre_TextChanged(object sender, EventArgs e)
         {
-           
+
         }
 
         private void TxboxHedefSifre_TextChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
@@ -894,7 +894,7 @@ namespace DataTransfer
 
         private void GrdEslestirme_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
@@ -986,7 +986,7 @@ namespace DataTransfer
 
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-           
+
             BtnTransferBaslat.Enabled = false;
             PrgsbarTransfer.Visible = true;
             PrgsbarTransfer.Style = ProgressBarStyle.Marquee;
@@ -1065,7 +1065,7 @@ namespace DataTransfer
             }
             finally
             {
-               
+
                 BtnTransferBaslat.Enabled = true;
                 PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
                 PrgsbarTransfer.Visible = false;
@@ -1075,12 +1075,12 @@ namespace DataTransfer
 
         private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
         {
-            if (CkboxSifreGoster.CheckState==CheckState.Checked)
+            if (CkboxSifreGoster.CheckState == CheckState.Checked)
             {
                 TxtSifre.UseSystemPasswordChar = true;
                 CkboxSifreGoster.Text = "Şifre Gizle";
             }
-            else if (CkboxSifreGoster.CheckState==CheckState.Unchecked)
+            else if (CkboxSifreGoster.CheckState == CheckState.Unchecked)
             {
                 TxtSifre.UseSystemPasswordChar = false;
                 CkboxSifreGoster.Text = "Şifre Göster";
@@ -1089,16 +1089,21 @@ namespace DataTransfer
 
         private void ChkboxSifre_CheckedChanged(object sender, EventArgs e)
         {
-            if (ChkboxHedefSifre.CheckState==CheckState.Checked)
+            if (ChkboxHedefSifre.CheckState == CheckState.Checked)
             {
                 TxboxHedefSifre.UseSystemPasswordChar = true;
                 ChkboxHedefSifre.Text = "Şifre Gizle";
             }
-            else if (ChkboxHedefSifre.CheckState==CheckState.Unchecked)
+            else if (ChkboxHedefSifre.CheckState == CheckState.Unchecked)
             {
                 TxboxHedefSifre.UseSystemPasswordChar = false;
                 ChkboxHedefSifre.Text = "Şifre Göster";
             }
+        }
+
+        private void BtnGrdTemizle_Click(object sender, EventArgs e)
+        {
+            GrdEslestirme.Rows.Clear();
         }
     }
 }

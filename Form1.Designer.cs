@@ -74,6 +74,7 @@
             Uygunluk = new DataGridViewTextBoxColumn();
             Sil = new DataGridViewButtonColumn();
             timer1 = new System.Windows.Forms.Timer(components);
+            BtnGrdTemizle = new Button();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
@@ -476,6 +477,7 @@
             // 
             // GrbboxEslesmeLog
             // 
+            GrbboxEslesmeLog.Controls.Add(BtnGrdTemizle);
             GrbboxEslesmeLog.Controls.Add(PrgsbarTransfer);
             GrbboxEslesmeLog.Controls.Add(GrdEslestirme);
             GrbboxEslesmeLog.Controls.Add(BtnTransferBaslat);
@@ -537,6 +539,16 @@
             Sil.Resizable = DataGridViewTriState.True;
             Sil.SortMode = DataGridViewColumnSortMode.Automatic;
             Sil.Width = 70;
+            // 
+            // BtnGrdTemizle
+            // 
+            BtnGrdTemizle.Location = new Point(444, 244);
+            BtnGrdTemizle.Name = "BtnGrdTemizle";
+            BtnGrdTemizle.Size = new Size(108, 23);
+            BtnGrdTemizle.TabIndex = 1;
+            BtnGrdTemizle.Text = "Temizle";
+            BtnGrdTemizle.UseVisualStyleBackColor = true;
+            BtnGrdTemizle.Click += BtnGrdTemizle_Click;
             // 
             // FrmVeriEslestirme
             // 
@@ -613,5 +625,6 @@
         private CheckBox ChkboxHedefSifre;
         private ProgressBar PrgsbarTransfer;
         private System.Windows.Forms.Timer timer1;
+        private Button BtnGrdTemizle;
     }
 }
