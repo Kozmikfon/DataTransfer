@@ -37,6 +37,7 @@ namespace DataTransfer
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            Control.CheckForIllegalCrossThreadCalls = false;
             BtnEslesmeDogrula.Enabled = false;
             BtnTransferBaslat.Enabled = false;
             BtnKynkKolonYukle.Enabled = false;
@@ -896,81 +897,96 @@ namespace DataTransfer
             
         }
 
+        private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
+        {
+            var liste = new List<(string KaynakKolon, string HedefKolon)>();
+
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                if (row.IsNewRow) continue;
+                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
+
+                string kaynakKolon = row.Cells[KaynakSutun.Index].Tag?.ToString();
+                string hedefKolon = row.Cells[HedefSutun.Index].Tag?.ToString();
+
+                if (!string.IsNullOrEmpty(kaynakKolon) && !string.IsNullOrEmpty(hedefKolon))
+                    liste.Add((kaynakKolon, hedefKolon));
+            }
+
+            return liste;
+        }
+
 
         //kolon içeriklerini görme
         private DataTable TransferVerisiGetir(string server, string db, string table, string user, string sifre)
         {
-            // Bağlantı bilgisi eksikse uyarı ver
             if (string.IsNullOrWhiteSpace(server) ||
-        
-
-         string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
-        
-
-         string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return null;
             }
 
-            // Eşleştirme gridinden haritalanan kaynak kolon adlarını Tag'lerden topla
-            var kaynakKolonAdlari = new List<string>();
-            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            // 🔹 1. Eşleşen kolonları al
+            var eslestirmeler = EslestirmeListesi();
+            if (eslestirmeler.Count == 0)
             {
-                if (row.IsNewRow ||
-        
-
-         row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
-
-                string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
-                if (!string.IsNullOrEmpty(kaynakKolonAdi) && !kaynakKolonAdlari.Contains(kaynakKolonAdi))
-                {
-                    kaynakKolonAdlari.Add(kaynakKolonAdi);
-                }
-            }
-
-            if (kaynakKolonAdlari.Count == 0)
-            {
-                LstboxLog.Items.Add("HATA: Transfer edilecek uygun eşleşen kolon bulunamadı.");
-                MessageBox.Show("Transfer edilecek uygun eşleşen kolon bulunamadı.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.Items.Add("HATA: Uygun eşleşme bulunamadı.");
                 return null;
             }
 
-            // Seçilen kolon adlarını güvenli bir şekilde SQL sorgusu için formatla
-            string kolonListesi = string.Join(", ", kaynakKolonAdlari.Select(c => $"[{c}]"));
+            var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList();
+            string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));
 
-            DataTable dtVeri = new DataTable();
+            // 🔹 2. Kullanıcının GrdKaynak'ta seçtiği veriye göre WHERE oluştur
+            string whereKosulu = "";
+            if (GrdKaynak.SelectedCells.Count > 0)
+            {
+                // İlk seçilen hücre baz alınır (örneğin FaturaNo sütunundan bir hücre)
+                var cell = GrdKaynak.SelectedCells[0];
+                string kolonAdi = GrdKaynak.Columns[cell.ColumnIndex].Name;
+                object deger = cell.Value;
+
+                if (deger != null && deger != DBNull.Value)
+                {
+                    string filtreDeger = deger.ToString().Replace("'", "''");
+                    whereKosulu = $"WHERE [{kolonAdi}] = '{filtreDeger}'";
+                }
+            }
+
+            string sqlSorgu = $"SELECT {kolonListesi} FROM [{table}] {whereKosulu}";
+
+            DataTable dt = new DataTable();
             string connStr = ConnOrtak(server, db, user, sifre);
 
             try
             {
                 using (SqlConnection conn = new SqlConnection(connStr))
+                using (SqlDataAdapter dap = new SqlDataAdapter(sqlSorgu, conn))
                 {
                     conn.Open();
-                    // SELECT sorgusu ile tüm veriyi çek
-                    string sqlSorgu = $@"SELECT {kolonListesi} FROM [{table}]";
-                    using (SqlDataAdapter dap = new SqlDataAdapter(sqlSorgu, conn))
-                    {
-                        dap.Fill(dtVeri);
-                    }
+                    dap.Fill(dt);
                 }
-                LstboxLog.Items.Add($"Kaynak tablodan {dtVeri.Rows.Count} satır veri çekildi.");
-                return dtVeri;
+
+                LstboxLog.Items.Add($"Kaynak tablodan {dt.Rows.Count} satır veri çekildi.");
+                return dt;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Veri Çekme Hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Veri çekme hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
 
 
-        //kaynkatan select ile oku hedefe insert olarak yaz
+
+
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-            // UI Durumunu Güncelle
+           
             BtnTransferBaslat.Enabled = false;
             PrgsbarTransfer.Visible = true;
             PrgsbarTransfer.Style = ProgressBarStyle.Marquee;
@@ -994,11 +1010,7 @@ namespace DataTransfer
                 // 2. Transfer Edilecek Veriyi Kaynaktan Çek
                 DataTable kaynakVeri = await Task.Run(() => TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass));
 
-                if (kaynakVeri == null ||
-
-
-
-         kaynakVeri.Rows.Count == 0)
+                if (kaynakVeri == null || kaynakVeri.Rows.Count == 0)
                 {
                     LstboxLog.Items.Add("HATA: Transfer edilecek veri bulunamadı veya çekilemedi.");
                     return;
@@ -1016,11 +1028,8 @@ namespace DataTransfer
                     // 4. Kolon Eşleştirmelerini Tanımla
                     foreach (DataGridViewRow row in GrdEslestirme.Rows)
                     {
-                        if (row.IsNewRow ||
-
-
-
-         row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
+                        if (row.IsNewRow || row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
+                            continue;
 
                         // Tag'ler gerçek SQL kolon adlarını tutar
                         string kaynakAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
@@ -1056,7 +1065,7 @@ namespace DataTransfer
             }
             finally
             {
-                // UI'yı eski haline getir
+               
                 BtnTransferBaslat.Enabled = true;
                 PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
                 PrgsbarTransfer.Visible = false;
