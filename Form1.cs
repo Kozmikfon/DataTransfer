@@ -154,10 +154,10 @@ namespace DataTransfer
                     return false;
                 }
 
-                // Kolon bilgilerini dictionary içn dolduruyoruz
-                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
+                
+                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // kaynakkolonları kolonbilgilerini ile dolduruyorum
 
-                if (!KaynakKolonlar.ContainsKey(sutun))
+                if (!KaynakKolonlar.ContainsKey(sutun))//surun kontrolü yapıyorm
                 {
                     MessageBox.Show($"Seçilen sütun '{sutun}' kaynak tabloda bulunamadı.",
                                     "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -197,14 +197,12 @@ namespace DataTransfer
 
 
         }
-
     
-
-        // kolon bilgilerini getiriyor 
+        // kolon bilgilerini getiriyor
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string sifre)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
-            string connstr = ConnOrtak(server,db,user,sifre); // 5 adet sorgu
+            string connstr = ConnOrtak(server,db,user,sifre); //5 adet sorgu iiçn
 
 
             using (conn = new SqlConnection(connstr))
@@ -212,17 +210,17 @@ namespace DataTransfer
                 conn.Open();
                 string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
 
-                using (cmd = new SqlCommand(sql, conn))
+                using (cmd = new SqlCommand(sql, conn))// sorguyu çalıştırdım
                 {
                     cmd.Parameters.AddWithValue("@TableName", table);
-                    using (reader = cmd.ExecuteReader())
+                    using (reader = cmd.ExecuteReader()) //veriyi okudum
                     {
                         while (reader.Read())
                         {
                             string colName = reader["COLUMN_NAME"].ToString();
                             string dataType = reader["DATA_TYPE"].ToString();
                             int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);//sadece string deger okur int datetimeda null gelir
-                            bool isNullable = reader["IS_NULLABLE"].ToString() == "YES";
+                            bool isNullable = reader["IS_NULLABLE"].ToString() == "YES"; // eger yes ise true döner no ise false döner
                             kolonlar[colName] = (dataType, length, isNullable);
                         }
                     }
@@ -251,8 +249,8 @@ namespace DataTransfer
             using (conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string sqlsorgu = $@"SELECT {sutun}  FROM {table}";
-                dap = new SqlDataAdapter(sqlsorgu, conn);
+                string sqlsorgu = $@"SELECT {sutun}  FROM {table}"; //select sutun from tablo seçtiğimşz tablo ve sutuna göre veriiler geliyor.
+                dap = new SqlDataAdapter(sqlsorgu, conn); 
                 dap.Fill(dt);
             }
             return dt;
@@ -587,6 +585,7 @@ namespace DataTransfer
             string table = CmbboxHedefTablo.Text;
             string user = TxboxHedefKullanici.Text;
             string sifre = TxboxHedefSifre.Text;
+
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
@@ -642,11 +641,11 @@ namespace DataTransfer
         }
 
 
-        private int? AktifSatirIndex = null;
-        private object? secilenKaynakDeger = null;
+        private int? AktifSatirIndex = null;//grdkaynak ve hedeften seçtiğimiz satırın indeksini tutmak için
+        private object? secilenKaynakDeger = null; //secilenkaynaktaki bilgileri tutumak object tğrü yerine farklı bir tür tercih edilmeli
 
         // Kaynak hücre seçildiğinde
-        private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e) //tıklanıldığında teetiklenen
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
                 return;
@@ -656,7 +655,7 @@ namespace DataTransfer
             int newRowIndex = GrdEslestirme.Rows.Add();
             GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
 
-            // SQL kolon adı olarak Tag’i kaydet
+            
             GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag =
                 GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
 
@@ -702,8 +701,9 @@ namespace DataTransfer
 
 
 
-        Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar =
-            new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, (string DataType, int? length, bool IsNullable)> KaynakKolonlar = 
+            new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);//kaynaktaki tüm kolonların istenilen bilgilerini tutacak sozluk
+
         Dictionary<string, (string DataType, int? length, bool IsNullable)> HedefKolonlar =
             new Dictionary<string, (string DataType, int? length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
 
@@ -751,7 +751,7 @@ namespace DataTransfer
             }
 
             // Nullable ve length kontrolleri
-            if (!HedefInfo.IsNullable)
+            if (HedefInfo.IsNullable) // hedef not null ise boş geçilemez
             {
                 row.Cells["Uygunluk"].Value = "boş geçilemez";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
@@ -761,6 +761,7 @@ namespace DataTransfer
 
             if (HedefInfo.length.HasValue && KaynakInfo.length.HasValue && KaynakInfo.length > HedefInfo.length)
             {
+
                 row.Cells["Uygunluk"].Value = "Uzunluk aşıyor.";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
                 LstboxLog.Items.Add($"UYARI: {kaynakKolonAdi} ({KaynakInfo.length}) hedef kolon ({HedefInfo.length}) boyutunu aşıyor");
@@ -892,16 +893,175 @@ namespace DataTransfer
 
         private void GrdEslestirme_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
-            if (GrdEslestirme.IsCurrentCellDirty)
+            
+        }
+
+
+        //kolon içeriklerini görme
+        private DataTable TransferVerisiGetir(string server, string db, string table, string user, string sifre)
+        {
+            // Bağlantı bilgisi eksikse uyarı ver
+            if (string.IsNullOrWhiteSpace(server) ||
+        
+
+         string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(table) ||
+        
+
+         string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(sifre))
             {
-                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return null;
+            }
+
+            // Eşleştirme gridinden haritalanan kaynak kolon adlarını Tag'lerden topla
+            var kaynakKolonAdlari = new List<string>();
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                if (row.IsNewRow ||
+        
+
+         row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
+
+                string kaynakKolonAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
+                if (!string.IsNullOrEmpty(kaynakKolonAdi) && !kaynakKolonAdlari.Contains(kaynakKolonAdi))
+                {
+                    kaynakKolonAdlari.Add(kaynakKolonAdi);
+                }
+            }
+
+            if (kaynakKolonAdlari.Count == 0)
+            {
+                LstboxLog.Items.Add("HATA: Transfer edilecek uygun eşleşen kolon bulunamadı.");
+                MessageBox.Show("Transfer edilecek uygun eşleşen kolon bulunamadı.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+
+            // Seçilen kolon adlarını güvenli bir şekilde SQL sorgusu için formatla
+            string kolonListesi = string.Join(", ", kaynakKolonAdlari.Select(c => $"[{c}]"));
+
+            DataTable dtVeri = new DataTable();
+            string connStr = ConnOrtak(server, db, user, sifre);
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    // SELECT sorgusu ile tüm veriyi çek
+                    string sqlSorgu = $@"SELECT {kolonListesi} FROM [{table}]";
+                    using (SqlDataAdapter dap = new SqlDataAdapter(sqlSorgu, conn))
+                    {
+                        dap.Fill(dtVeri);
+                    }
+                }
+                LstboxLog.Items.Add($"Kaynak tablodan {dtVeri.Rows.Count} satır veri çekildi.");
+                return dtVeri;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Veri Çekme Hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
             }
         }
 
+
         //kaynkatan select ile oku hedefe insert olarak yaz
-        private void BtnTransferBaslat_Click(object sender, EventArgs e)
+        private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-            
+            // UI Durumunu Güncelle
+            BtnTransferBaslat.Enabled = false;
+            PrgsbarTransfer.Visible = true;
+            PrgsbarTransfer.Style = ProgressBarStyle.Marquee;
+            LstboxLog.Items.Add("Veri transferi başlatılıyor...");
+
+            try
+            {
+                // 1. Giriş Parametrelerini Al
+                string KaynakServer = TxtboxKaynakSunucu.Text.Trim();
+                string KaynakDB = CmbboxKaynakVeritabani.Text.Trim();
+                string KaynakTable = CmbboxKaynaktablo.Text.Trim();
+                string KaynakUser = TxtKullanıcı.Text.Trim();
+                string KaynakPass = TxtSifre.Text.Trim();
+
+                string HedefServer = TxtboxHedefSunucu.Text.Trim();
+                string HedefDB = CmbboxHedefVeriTabani.Text.Trim();
+                string HedefTable = CmbboxHedefTablo.Text.Trim();
+                string HedefUser = TxboxHedefKullanici.Text.Trim();
+                string HedefPass = TxboxHedefSifre.Text.Trim();
+
+                // 2. Transfer Edilecek Veriyi Kaynaktan Çek
+                DataTable kaynakVeri = await Task.Run(() => TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass));
+
+                if (kaynakVeri == null ||
+
+
+
+         kaynakVeri.Rows.Count == 0)
+                {
+                    LstboxLog.Items.Add("HATA: Transfer edilecek veri bulunamadı veya çekilemedi.");
+                    return;
+                }
+
+                // 3. Hedef Bağlantı ve SqlBulkCopy Hazırlığı
+                string hedefConnStr = ConnOrtak(HedefServer, HedefDB, HedefUser, HedefPass);
+
+                using (SqlConnection hedefConn = new SqlConnection(hedefConnStr))
+                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(hedefConn))
+                {
+                    await hedefConn.OpenAsync();
+                    bulkCopy.DestinationTableName = HedefTable;
+
+                    // 4. Kolon Eşleştirmelerini Tanımla
+                    foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                    {
+                        if (row.IsNewRow ||
+
+
+
+         row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
+
+                        // Tag'ler gerçek SQL kolon adlarını tutar
+                        string kaynakAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
+                        string hedefAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
+
+                        if (!string.IsNullOrEmpty(kaynakAdi) && !string.IsNullOrEmpty(hedefAdi))
+                        {
+                            // Kaynak Kolon Adı -> Hedef Kolon Adı Eşleştirmesini Ekle
+                            bulkCopy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(kaynakAdi, hedefAdi));
+                            LstboxLog.Items.Add($"Eşleme eklendi: {kaynakAdi} -> {hedefAdi}");
+                        }
+                    }
+
+                    // Eğer eşleştirme yoksa, bulkCopy başarılı olamaz
+                    if (bulkCopy.ColumnMappings.Count == 0)
+                    {
+                        throw new InvalidOperationException("Aktarım için geçerli kolon eşleştirmesi bulunamadı.");
+                    }
+
+                    // 5. Veriyi Yükle
+                    await bulkCopy.WriteToServerAsync(kaynakVeri);
+
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add($"BAŞARILI: {kaynakVeri.Rows.Count} satır veri başarıyla '{HedefTable}' tablosuna aktarıldı.");
+                    MessageBox.Show("Veri transferi başarıyla tamamlandı!", "Başarı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"KRİTİK HATA: Veri transferi başarısız oldu: {ex.Message}");
+                MessageBox.Show($"Veri transferi sırasında bir hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // UI'yı eski haline getir
+                BtnTransferBaslat.Enabled = true;
+                PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
+                PrgsbarTransfer.Visible = false;
+                LstboxLog.ForeColor = Color.Black; // Log rengini sıfırla
+            }
         }
 
         private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
