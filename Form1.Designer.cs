@@ -67,6 +67,7 @@
             GrbboxButon = new GroupBox();
             LstboxLog = new ListBox();
             GrbboxEslesmeLog = new GroupBox();
+            BtnGrdTemizle = new Button();
             PrgsbarTransfer = new ProgressBar();
             GrdEslestirme = new DataGridView();
             KaynakSutun = new DataGridViewButtonColumn();
@@ -74,7 +75,6 @@
             Uygunluk = new DataGridViewTextBoxColumn();
             Sil = new DataGridViewButtonColumn();
             timer1 = new System.Windows.Forms.Timer(components);
-            BtnGrdTemizle = new Button();
             GrbboxKaynak.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)GrdKaynak).BeginInit();
             GrbboxHedef.SuspendLayout();
@@ -283,7 +283,7 @@
             TxtSifre.PasswordChar = '*';
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
-            TxtSifre.TextChanged += TxtSifre_TextChanged;
+           
             // 
             // label3
             // 
@@ -396,7 +396,7 @@
             TxboxHedefSifre.PasswordChar = '*';
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
-            TxboxHedefSifre.TextChanged += TxboxHedefSifre_TextChanged;
+           
             // 
             // label4
             // 
@@ -471,6 +471,7 @@
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
             LstboxLog.Location = new Point(19, 65);
+            LstboxLog.MultiColumn = true;
             LstboxLog.Name = "LstboxLog";
             LstboxLog.Size = new Size(533, 154);
             LstboxLog.TabIndex = 0;
@@ -490,6 +491,16 @@
             GrbboxEslesmeLog.TabStop = false;
             GrbboxEslesmeLog.Text = "groupBox4";
             // 
+            // BtnGrdTemizle
+            // 
+            BtnGrdTemizle.Location = new Point(444, 244);
+            BtnGrdTemizle.Name = "BtnGrdTemizle";
+            BtnGrdTemizle.Size = new Size(108, 23);
+            BtnGrdTemizle.TabIndex = 1;
+            BtnGrdTemizle.Text = "Temizle";
+            BtnGrdTemizle.UseVisualStyleBackColor = true;
+            BtnGrdTemizle.Click += BtnGrdTemizle_Click;
+            // 
             // PrgsbarTransfer
             // 
             PrgsbarTransfer.Location = new Point(116, 375);
@@ -507,9 +518,9 @@
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
-            GrdEslestirme.CellValidating += GrdEslestirme_CellValidating;
+            
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
-            GrdEslestirme.CurrentCellDirtyStateChanged += GrdEslestirme_CurrentCellDirtyStateChanged;
+            
             // 
             // KaynakSutun
             // 
@@ -539,16 +550,6 @@
             Sil.Resizable = DataGridViewTriState.True;
             Sil.SortMode = DataGridViewColumnSortMode.Automatic;
             Sil.Width = 70;
-            // 
-            // BtnGrdTemizle
-            // 
-            BtnGrdTemizle.Location = new Point(444, 244);
-            BtnGrdTemizle.Name = "BtnGrdTemizle";
-            BtnGrdTemizle.Size = new Size(108, 23);
-            BtnGrdTemizle.TabIndex = 1;
-            BtnGrdTemizle.Text = "Temizle";
-            BtnGrdTemizle.UseVisualStyleBackColor = true;
-            BtnGrdTemizle.Click += BtnGrdTemizle_Click;
             // 
             // FrmVeriEslestirme
             // 

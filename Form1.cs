@@ -642,33 +642,36 @@ namespace DataTransfer
         }
 
 
-        private int? AktifSatirIndex = null;//grdkaynak ve hedeften seçtiğimiz satırın indeksini tutmak için
-        private object? secilenKaynakDeger = null; //secilenkaynaktaki bilgileri tutumak object tğrü yerine farklı bir tür tercih edilmeli
+        private int? AktifSatirIndex = null;//grdkaynak ve hedeften seçtiğimiz satırın indeksini tutmak için bir sonraki adımda hedef kolonun seçeçği yeri gösterir
+        private object? secilenKaynakDeger = null; //secilenkaynaktaki bilgileri tutumak object tğrü yerine farklı bir tür tercih edilmeli "runtimede yük" grdkaynaktaki seçilen hücrenin değerini tutmakn için
 
         // Kaynak hücre seçildiğinde
         private void GrdKaynak_CellClick(object sender, DataGridViewCellEventArgs e) //tıklanıldığında teetiklenen
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0)
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) //boş satır vvya sutun
                 return;
 
-            secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
+            secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value; //tıklanılan hucrenin degeri secilenakaynakdegere atıldı.
+           
 
-            int newRowIndex = GrdEslestirme.Rows.Add();
-            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;
+            int YeniBosSatir = GrdEslestirme.Rows.Add(); //yeni boş satır olusturdum
+            GrdEslestirme.Rows[YeniBosSatir].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;//yenisatırda seçilen kaynaktaki değeri atadım. grdeslestirme deki kaynak sutununa secilenkaynakdegeri atadım.
 
 
-            GrdEslestirme.Rows[newRowIndex].Cells[KaynakSutun.Index].Tag =
-                GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
+            // verinin meta bilgisi saklanıyor "tag"
+            GrdEslestirme.Rows[YeniBosSatir].Cells[KaynakSutun.Index].Tag = GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
+            
 
-            AktifSatirIndex = newRowIndex;
+            AktifSatirIndex = YeniBosSatir; //kaynak seçildi hedef bekleniyor  durmuna geçidi
             LstboxLog.Items.Add($"Eşleme için kaynak seçildi: {secilenKaynakDeger}");
+          
         }
 
         // Hedef hücre seçildiğinde
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
-                return;
+                return; 
 
             if (!AktifSatirIndex.HasValue)
             {
@@ -680,14 +683,13 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(secilenHedefDeger))
                 return;
 
-            var row = GrdEslestirme.Rows[AktifSatirIndex.Value];
-            row.Cells[HedefSutun.Index].Value = secilenHedefDeger;
+            var row = GrdEslestirme.Rows[AktifSatirIndex.Value]; //satırı indeksi aldım
+            row.Cells[HedefSutun.Index].Value = secilenHedefDeger;//satır kolonuna seçilen hedef değeri atadım
 
-            row.Cells[HedefSutun.Index].Tag =
-                GrdHedef.Columns[e.ColumnIndex].Tag ?? GrdHedef.Columns[e.ColumnIndex].Name;
+            row.Cells[HedefSutun.Index].Tag = GrdHedef.Columns[e.ColumnIndex].Tag ?? GrdHedef.Columns[e.ColumnIndex].Name;//grdeslestirmedeki hedefsutun sutununa, grdhedefteki secilen verinin tagın atadım
 
             // Kolon tip kontrolü
-            KontrolEt(row);
+            KontrolEt(row); //satır üzerinde kontrol etme işlemi hem satırt hem kontrol etme işlemi
 
             AktifSatirIndex = null;
             if (row.Cells["Uygunluk"].Value?.ToString() == "Uygun")
@@ -726,7 +728,8 @@ namespace DataTransfer
             if (string.IsNullOrEmpty(kaynakKolonAdi) || string.IsNullOrEmpty(hedefKolonAdi))
                 return;
 
-            if (!KaynakKolonlar.TryGetValue(kaynakKolonAdi, out var KaynakInfo))
+
+            if (!KaynakKolonlar.TryGetValue(kaynakKolonAdi, out var KaynakInfo)) //kaynakkolonadi burada anahtar olarak kulanılıyor. buradki kaynakınfo artık tip uzunluk ve karakter nullabilite bilgilerini tutuyor kaynakınfo tuple görevini almıştır
             {
                 LstboxLog.Items.Add($"UYARI: Kaynak kolon '{kaynakKolonAdi}' Dictionary’de bulunamadı!");
                 row.Cells["Uygunluk"].Value = "Kaynak kolon yok";
@@ -741,6 +744,8 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                 return;
             }
+
+
 
             // Tip kontrolünu 
             if (KaynakInfo.DataType != HedefInfo.DataType)
@@ -801,10 +806,7 @@ namespace DataTransfer
         }
 
 
-        private void GrdEslestirme_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
-        {
-
-        }
+        
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
@@ -819,15 +821,7 @@ namespace DataTransfer
             KontrolEt(row);
         }
 
-        private void TxtSifre_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void TxboxHedefSifre_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
@@ -892,10 +886,7 @@ namespace DataTransfer
             e.DrawFocusRectangle();
         }
 
-        private void GrdEslestirme_CurrentCellDirtyStateChanged(object sender, EventArgs e)
-        {
-
-        }
+      
 
         private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
         {
@@ -903,8 +894,11 @@ namespace DataTransfer
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                if (row.IsNewRow) continue;
-                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
+                if (row.IsNewRow) 
+                    continue;
+
+                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
+                    continue;
 
                 string kaynakKolon = row.Cells[KaynakSutun.Index].Tag?.ToString();
                 string hedefKolon = row.Cells[HedefSutun.Index].Tag?.ToString();
@@ -930,7 +924,7 @@ namespace DataTransfer
                 return null;
             }
 
-            // 🔹 1. Eşleşen kolonları al
+            
             var eslestirmeler = EslestirmeListesi();
             if (eslestirmeler.Count == 0)
             {
@@ -938,14 +932,14 @@ namespace DataTransfer
                 return null;
             }
 
-            var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList();
-            string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));
+            var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList(); //? kaynak kolon adlarını alıyor
+            string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));// kolon adlarını virgülle ayırarak sql sorgusuna uygun hale getiriyor
 
-            // 🔹 2. Kullanıcının GrdKaynak'ta seçtiği veriye göre WHERE oluştur
-            string whereKosulu = "";
+
+            string whereKosulu = ""; // "empty" tüm tablo mu yoksa seçili satır mı çekilecek kontrolü
             if (GrdKaynak.SelectedCells.Count > 0)
             {
-                // İlk seçilen hücre baz alınır (örneğin FaturaNo sütunundan bir hücre)
+               
                 var cell = GrdKaynak.SelectedCells[0];
                 string kolonAdi = GrdKaynak.Columns[cell.ColumnIndex].Name;
                 object deger = cell.Value;
@@ -994,7 +988,7 @@ namespace DataTransfer
 
             try
             {
-                // 1. Giriş Parametrelerini Al
+                
                 string KaynakServer = TxtboxKaynakSunucu.Text.Trim();
                 string KaynakDB = CmbboxKaynakVeritabani.Text.Trim();
                 string KaynakTable = CmbboxKaynaktablo.Text.Trim();
@@ -1007,8 +1001,9 @@ namespace DataTransfer
                 string HedefUser = TxboxHedefKullanici.Text.Trim();
                 string HedefPass = TxboxHedefSifre.Text.Trim();
 
-                // 2. Transfer Edilecek Veriyi Kaynaktan Çek
-                DataTable kaynakVeri = await Task.Run(() => TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass));
+               
+                DataTable kaynakVeri = await Task.Run(() => 
+                TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass)); //veri çekme işlemi
 
                 if (kaynakVeri == null || kaynakVeri.Rows.Count == 0)
                 {
@@ -1016,40 +1011,40 @@ namespace DataTransfer
                     return;
                 }
 
-                // 3. Hedef Bağlantı ve SqlBulkCopy Hazırlığı
+                
                 string hedefConnStr = ConnOrtak(HedefServer, HedefDB, HedefUser, HedefPass);
 
                 using (SqlConnection hedefConn = new SqlConnection(hedefConnStr))
-                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(hedefConn))
+                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(hedefConn)) //toplu veri aktarımı için SqlBulkCopy kullanıyoruz yüksek performans
                 {
                     await hedefConn.OpenAsync();
-                    bulkCopy.DestinationTableName = HedefTable;
+                    bulkCopy.DestinationTableName = HedefTable; //veriin hangi tabloya akrlacağını belirler
 
-                    // 4. Kolon Eşleştirmelerini Tanımla
-                    foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                    // Kolon eşleştirmesi
+                    foreach (DataGridViewRow row in GrdEslestirme.Rows)//eslestirmedeki satırlar kontrol edilir
                     {
                         if (row.IsNewRow || row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
                             continue;
 
-                        // Tag'ler gerçek SQL kolon adlarını tutar
+                       
                         string kaynakAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
                         string hedefAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
 
                         if (!string.IsNullOrEmpty(kaynakAdi) && !string.IsNullOrEmpty(hedefAdi))
                         {
-                            // Kaynak Kolon Adı -> Hedef Kolon Adı Eşleştirmesini Ekle
+                          
                             bulkCopy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(kaynakAdi, hedefAdi));
                             LstboxLog.Items.Add($"Eşleme eklendi: {kaynakAdi} -> {hedefAdi}");
                         }
                     }
 
-                    // Eğer eşleştirme yoksa, bulkCopy başarılı olamaz
+                  
                     if (bulkCopy.ColumnMappings.Count == 0)
                     {
                         throw new InvalidOperationException("Aktarım için geçerli kolon eşleştirmesi bulunamadı.");
                     }
 
-                    // 5. Veriyi Yükle
+                    
                     await bulkCopy.WriteToServerAsync(kaynakVeri);
 
                     LstboxLog.ForeColor = Color.Green;
@@ -1069,7 +1064,7 @@ namespace DataTransfer
                 BtnTransferBaslat.Enabled = true;
                 PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
                 PrgsbarTransfer.Visible = false;
-                LstboxLog.ForeColor = Color.Black; // Log rengini sıfırla
+                
             }
         }
 
