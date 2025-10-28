@@ -73,7 +73,7 @@ namespace DataTransfer
                 return;
             }
 
-            BaglantiTestAsync(); //baglantı testi
+            BaglantiTestAsync();//baglantı testi
             KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
             HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
 
@@ -83,7 +83,7 @@ namespace DataTransfer
         {
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
-
+            
             string KaynakSorgu = $"Server={TxtboxKaynakSunucu.Text}; User Id={TxtKullanıcı.Text}; Password={TxtSifre.Text}; TrustServerCertificate=True;";
             string HedefSorgu = $"Server={TxtboxHedefSunucu.Text}; User Id={TxboxHedefKullanici.Text}; Password={TxboxHedefSifre.Text}; TrustServerCertificate=True;";
 
@@ -752,7 +752,7 @@ namespace DataTransfer
             }
 
             // Nullable ve length kontrolleri
-            if (HedefInfo.IsNullable) // hedef not null ise boş geçilemez
+            if (!HedefInfo.IsNullable) // hedef not null ise boş geçilemez yes
             {
                 row.Cells["Uygunluk"].Value = "boş geçilemez";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
