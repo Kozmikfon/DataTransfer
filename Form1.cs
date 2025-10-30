@@ -756,7 +756,7 @@ namespace DataTransfer
                 return;
             }
 
-            // Nullable ve length kontrolleri
+            // Nullable kontrolleri
             if (HedefInfo.IsNullable) // hedef not null ise boş geçilemez yes
             {
                 row.Cells["Uygunluk"].Value = "boş geçilemez";
@@ -915,17 +915,14 @@ namespace DataTransfer
         private DataTable TransferVerisiGetir(string server, string db, string table, string user, string sifre)
         {
             // 1️⃣ Bağlantı kontrolleri
-            if (string.IsNullOrWhiteSpace(server) ||
-                string.IsNullOrWhiteSpace(db) ||
-                string.IsNullOrWhiteSpace(table) ||
-                string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(sifre))
+            if (string.IsNullOrWhiteSpace(server) || string.IsNullOrWhiteSpace(db) ||
+                string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(sifre))
             {
                 MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return null;
             }
 
-            // 2️⃣ Eşleştirme listesini al
+            // 2️⃣ Eşleştirme listesi
             var eslestirmeler = EslestirmeListesi();
             if (eslestirmeler.Count == 0)
             {
@@ -933,82 +930,116 @@ namespace DataTransfer
                 return null;
             }
 
-            // 3️⃣ Sorguda kullanılacak kolon adlarını oluştur
             var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList();
+            if (kolonAdlari.Count == 0)
+            {
+                LstboxLog.Items.Add("HATA: Eşleşen kaynak kolon bulunamadı.");
+                return null;
+            }
+
             string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));
 
-            // 4️⃣ Filtre koşulu (seçili satırlara göre)
-            string whereKosulu = "";
+            // 3️⃣ Satır bazlı seçim
+            bool seciliSatirVar = GrdKaynak.SelectedRows.Count > 0 || GrdKaynak.SelectedCells.Count > 0;
+            var seciliRowIndexes = new HashSet<int>();
 
-            if (GrdKaynak.SelectedCells.Count > 0)
+            if (seciliSatirVar)
             {
-                // Seçili hücrelerin kolon adını bul (ilk seçili hücrenin kolonuna göre işlem yapar)
-                string kolonAdi = GrdKaynak.Columns[GrdKaynak.SelectedCells[0].ColumnIndex].Name;
-                Type tip = GrdKaynak.Columns[GrdKaynak.SelectedCells[0].ColumnIndex].ValueType;
+                foreach (DataGridViewRow row in GrdKaynak.SelectedRows)
+                    seciliRowIndexes.Add(row.Index);
 
-                // Seçilen tüm hücrelerdeki değerleri topla
-                var secilenDegerler = new HashSet<string>();
                 foreach (DataGridViewCell cell in GrdKaynak.SelectedCells)
+                    seciliRowIndexes.Add(cell.RowIndex);
+
+                // RowCount dışındakileri temizle
+                seciliRowIndexes.RemoveWhere(i => i < 0 || i >= GrdKaynak.Rows.Count);
+            }
+
+            // 4️⃣ Grid kolon eşleştirme (kaynak kolon -> grid index)
+            var gridColumnMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < GrdKaynak.Columns.Count; i++)
+            {
+                var col = GrdKaynak.Columns[i];
+                if (!string.IsNullOrEmpty(col.DataPropertyName) && kolonAdlari.Contains(col.DataPropertyName, StringComparer.OrdinalIgnoreCase))
+                    gridColumnMap[col.DataPropertyName] = i;
+                else if (!string.IsNullOrEmpty(col.Name) && kolonAdlari.Contains(col.Name, StringComparer.OrdinalIgnoreCase))
+                    gridColumnMap[col.Name] = i;
+            }
+
+            if (gridColumnMap.Count == 0)
+            {
+                MessageBox.Show("Kaynak kolonlar Grid'de bulunamadı.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+
+            // 5️⃣ Satır filtreleri (opsiyonel)
+            var satirKosullari = new List<string>();
+            if (seciliSatirVar)
+            {
+                foreach (int rowIndex in seciliRowIndexes)
                 {
-                    if (cell.Value == null || cell.Value == DBNull.Value)
-                        continue;
+                    var gridRow = GrdKaynak.Rows[rowIndex];
+                    if (gridRow.IsNewRow) continue;
 
-                    object deger = cell.Value;
-                    string filtreDeger = "";
+                    var parcaKosullar = new List<string>();
+                    foreach (var kaynakKolon in kolonAdlari)
+                    {
+                        if (!gridColumnMap.TryGetValue(kaynakKolon, out int colIndex))
+                            continue;
 
-                    if (tip == typeof(string) || tip == typeof(char))
-                    {
-                        filtreDeger = $"'{deger.ToString().Replace("'", "''")}'";
-                    }
-                    else if (tip == typeof(DateTime))
-                    {
-                        DateTime dtm = Convert.ToDateTime(deger);
-                        filtreDeger = $"'{dtm:yyyy-MM-dd HH:mm:ss}'";
-                    }
-                    else if (tip == typeof(bool))
-                    {
-                        filtreDeger = (bool)deger ? "1" : "0";
-                    }
-                    else
-                    {
-                        // sayısal tiplerde tırnak yok
-                        filtreDeger = deger.ToString().Replace(",", ".");
+                        object val = gridRow.Cells[colIndex].Value;
+                        if (val == null || val == DBNull.Value)
+                        {
+                            parcaKosullar.Add($"[{kaynakKolon}] IS NULL");
+                            continue;
+                        }
+
+                        Type tip = val.GetType();
+                        string literal;
+                        if (tip == typeof(string) || tip == typeof(char))
+                            literal = $"'{val.ToString().Replace("'", "''")}'";
+                        else if (tip == typeof(DateTime))
+                            literal = $"'{Convert.ToDateTime(val):yyyy-MM-dd HH:mm:ss}'";
+                        else if (tip == typeof(bool))
+                            literal = (bool)val ? "1" : "0";
+                        else
+                            literal = val.ToString().Replace(",", ".");
+
+                        parcaKosullar.Add($"[{kaynakKolon}] = {literal}");
                     }
 
-                    secilenDegerler.Add(filtreDeger);
-                }
-
-                // Eğer birden fazla değer varsa IN (...) şeklinde sorgu oluştur
-                if (secilenDegerler.Count > 0)
-                {
-                    string filtre = string.Join(", ", secilenDegerler);
-                    whereKosulu = $"WHERE [{kolonAdi}] IN ({filtre})";
+                    if (parcaKosullar.Count > 0)
+                        satirKosullari.Add("(" + string.Join(" AND ", parcaKosullar) + ")");
                 }
             }
 
-            // 5️⃣ Sorguyu oluştur
+            // 6️⃣ WHERE cümlesi
+            string whereKosulu = seciliSatirVar && satirKosullari.Count > 0
+                ? "WHERE " + string.Join(" OR ", satirKosullari)
+                : ""; // seçim yoksa tüm tablo
+
+            // 7️⃣ Son SQL
             string sqlSorgu = $"SELECT {kolonListesi} FROM [{table}] {whereKosulu}";
+            LstboxLog.Items.Add($"Çalıştırılan sorgu: {sqlSorgu}");
 
-            // 6️⃣ SQL'den veriyi çek
-            DataTable dt = new DataTable();
-            string connStr = ConnOrtak(server, db, user, sifre);
-
+            // 8️⃣ Data çek
+            var dt = new DataTable();
             try
             {
-                using (SqlConnection conn = new SqlConnection(connStr))
+                using (SqlConnection conn = new SqlConnection(ConnOrtak(server, db, user, sifre)))
                 using (SqlDataAdapter dap = new SqlDataAdapter(sqlSorgu, conn))
                 {
                     conn.Open();
                     dap.Fill(dt);
                 }
 
-                LstboxLog.Items.Add($"Kaynak tablodan {dt.Rows.Count} satır veri çekildi. (Sorgu: {whereKosulu})");
+                LstboxLog.Items.Add($"Kaynak tablodan {dt.Rows.Count} satır veri çekildi.");
                 return dt;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Veri çekme hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LstboxLog.Items.Add($"HATA: {ex.Message}");
+                MessageBox.Show($"Veri çekme hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -1017,9 +1048,15 @@ namespace DataTransfer
 
 
 
+
+
+
+
+
+
+
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-
             BtnTransferBaslat.Enabled = false;
             PrgsbarTransfer.Visible = true;
             PrgsbarTransfer.Style = ProgressBarStyle.Marquee;
@@ -1027,7 +1064,7 @@ namespace DataTransfer
 
             try
             {
-                
+                // 1️⃣ Kaynak ve hedef bilgileri
                 string KaynakServer = TxtboxKaynakSunucu.Text.Trim();
                 string KaynakDB = CmbboxKaynakVeritabani.Text.Trim();
                 string KaynakTable = CmbboxKaynaktablo.Text.Trim();
@@ -1040,61 +1077,116 @@ namespace DataTransfer
                 string HedefUser = TxboxHedefKullanici.Text.Trim();
                 string HedefPass = TxboxHedefSifre.Text.Trim();
 
-               
-                DataTable kaynakVeri = await Task.Run(() => 
-                TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass)); //veri çekme işlemi
+                // 2️⃣ Eşleştirme listesi
+                var eslestirmeler = EslestirmeListesi();
+                if (eslestirmeler == null || eslestirmeler.Count == 0)
+                {
+                    MessageBox.Show("Aktarım için uygun kolon eşleştirmesi bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // 3️⃣ Kaynak veriyi çek
+                DataTable kaynakVeri = await Task.Run(() =>
+                    TransferVerisiGetir(KaynakServer, KaynakDB, KaynakTable, KaynakUser, KaynakPass));
 
                 if (kaynakVeri == null || kaynakVeri.Rows.Count == 0)
                 {
                     LstboxLog.Items.Add("HATA: Transfer edilecek veri bulunamadı veya çekilemedi.");
+                    MessageBox.Show("Transfer edilecek veri bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                
+                // 4️⃣ Önizleme formu
+                using (FrmVeriOnizleme frm = new FrmVeriOnizleme(kaynakVeri, KaynakTable))
+                {
+                    frm.ShowDialog();
+                    if (!frm.Onaylandi)
+                    {
+                        LstboxLog.Items.Add("Kullanıcı transfer işlemini iptal etti.");
+                        MessageBox.Show("Veri transferi iptal edildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                }
+
+                //  Hedef tabloya bağlan
                 string hedefConnStr = ConnOrtak(HedefServer, HedefDB, HedefUser, HedefPass);
+                DataTable hedefVeri = new DataTable();
 
                 using (SqlConnection hedefConn = new SqlConnection(hedefConnStr))
-                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(hedefConn)) //toplu veri aktarımı için SqlBulkCopy kullanıyoruz yüksek performans
                 {
                     await hedefConn.OpenAsync();
-                    bulkCopy.DestinationTableName = HedefTable; //veriin hangi tabloya akrlacağını belirler
 
-                    // Kolon eşleştirmesi
-                    foreach (DataGridViewRow row in GrdEslestirme.Rows)//eslestirmedeki satırlar kontrol edilir
+                    //  Hedef tablo mevcut kayıtları çek (mükerrer kontrolü için)
+                    string hedefKolonListesi = string.Join(", ", eslestirmeler.Select(e => $"[{e.HedefKolon}]"));
+                    string sqlHedef = $"SELECT {hedefKolonListesi} FROM [{HedefTable}]";
+                    using (SqlDataAdapter dap = new SqlDataAdapter(sqlHedef, hedefConn))
                     {
-                        if (row.IsNewRow || row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
-                            continue;
+                        dap.Fill(hedefVeri);
+                    }
+                }
 
-                       
-                        string kaynakAdi = row.Cells[KaynakSutun.Index].Tag?.ToString();
-                        string hedefAdi = row.Cells[HedefSutun.Index].Tag?.ToString();
+                //  Kaynak ile hedefi karşılaştır, sadece yeni kayıtları al mükerrer kayıt kontrolü
+                DataTable yeniKaynakVeri = kaynakVeri.Clone(); // kolon yapısını koru
+                foreach (DataRow kaynakRow in kaynakVeri.Rows)
+                {
+                    bool kayitVarMi = false;
 
-                        if (!string.IsNullOrEmpty(kaynakAdi) && !string.IsNullOrEmpty(hedefAdi))
+                    foreach (DataRow hedefRow in hedefVeri.Rows)
+                    {
+                        bool ayniMi = true;
+                        for (int i = 0; i < eslestirmeler.Count; i++)
                         {
-                          
-                            bulkCopy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(kaynakAdi, hedefAdi));
-                            LstboxLog.Items.Add($"Eşleme eklendi: {kaynakAdi} -> {hedefAdi}");
+                            var kaynakVal = kaynakRow[eslestirmeler[i].KaynakKolon];
+                            var hedefVal = hedefRow[eslestirmeler[i].HedefKolon];
+                            if (!object.Equals(kaynakVal, hedefVal))
+                            {
+                                ayniMi = false;
+                                break;
+                            }
+                        }
+                        if (ayniMi)
+                        {
+                            kayitVarMi = true;
+                            break;
                         }
                     }
 
-                  
-                    if (bulkCopy.ColumnMappings.Count == 0)
+                    if (!kayitVarMi)
+                        yeniKaynakVeri.Rows.Add(kaynakRow.ItemArray);
+                }
+
+                if (yeniKaynakVeri.Rows.Count == 0)
+                {
+                    LstboxLog.Items.Add("Hedef tabloda zaten mevcut tüm kayıtlar atlandı. Transfer yapılmadı.");
+                    MessageBox.Show("Transfer edilecek yeni kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // 8️⃣ BulkCopy ile yeni verileri aktar
+                using (SqlConnection hedefConn = new SqlConnection(hedefConnStr))
+                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(hedefConn))
+                {
+                    await hedefConn.OpenAsync();
+                    bulkCopy.DestinationTableName = HedefTable;
+
+                    bulkCopy.ColumnMappings.Clear();
+                    foreach (var (kaynakKolon, hedefKolon) in eslestirmeler)
                     {
-                        throw new InvalidOperationException("Aktarım için geçerli kolon eşleştirmesi bulunamadı.");
+                        if (!yeniKaynakVeri.Columns.Contains(kaynakKolon)) continue;
+                        bulkCopy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(kaynakKolon, hedefKolon));
                     }
 
-                    
-                    await bulkCopy.WriteToServerAsync(kaynakVeri);
-
-                    LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"BAŞARILI: {kaynakVeri.Rows.Count} satır veri başarıyla '{HedefTable}' tablosuna aktarıldı.");
-                    MessageBox.Show("Veri transferi başarıyla tamamlandı!", "Başarı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    await bulkCopy.WriteToServerAsync(yeniKaynakVeri);
                 }
+
+                LstboxLog.ForeColor = Color.Green;
+                LstboxLog.Items.Add($"BAŞARILI: {yeniKaynakVeri.Rows.Count} satır '{HedefTable}' tablosuna aktarıldı.");
+                MessageBox.Show("Veri transferi başarıyla tamamlandı!", "Başarı", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"KRİTİK HATA: Veri transferi başarısız oldu: {ex.Message}");
+                LstboxLog.Items.Add($"KRİTİK HATA: {ex.Message}");
                 MessageBox.Show($"Veri transferi sırasında bir hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -1102,9 +1194,12 @@ namespace DataTransfer
                 BtnTransferBaslat.Enabled = true;
                 PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
                 PrgsbarTransfer.Visible = false;
-                
+                LstboxLog.ForeColor = Color.Black;
             }
         }
+
+
+
 
         private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
         {
