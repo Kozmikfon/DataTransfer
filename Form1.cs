@@ -672,7 +672,7 @@ namespace DataTransfer
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
                 return; 
-
+             
             if (!AktifSatirIndex.HasValue)
             {
                 MessageBox.Show("Önce kaynak hücreyi seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -757,7 +757,7 @@ namespace DataTransfer
             }
 
             // Nullable ve length kontrolleri
-            if (!HedefInfo.IsNullable) // hedef not null ise boş geçilemez yes
+            if (HedefInfo.IsNullable) // hedef not null ise boş geçilemez yes
             {
                 row.Cells["Uygunluk"].Value = "boş geçilemez";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
@@ -914,6 +914,7 @@ namespace DataTransfer
         //kolon içeriklerini görme
         private DataTable TransferVerisiGetir(string server, string db, string table, string user, string sifre)
         {
+            // 1️⃣ Bağlantı kontrolleri
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
@@ -924,7 +925,7 @@ namespace DataTransfer
                 return null;
             }
 
-            
+            // 2️⃣ Eşleştirme listesini al
             var eslestirmeler = EslestirmeListesi();
             if (eslestirmeler.Count == 0)
             {
@@ -932,27 +933,63 @@ namespace DataTransfer
                 return null;
             }
 
-            var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList(); //? kaynak kolon adlarını alıyor
-            string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));// kolon adlarını virgülle ayırarak sql sorgusuna uygun hale getiriyor
+            // 3️⃣ Sorguda kullanılacak kolon adlarını oluştur
+            var kolonAdlari = eslestirmeler.Select(e => e.KaynakKolon).Distinct().ToList();
+            string kolonListesi = string.Join(", ", kolonAdlari.Select(c => $"[{c}]"));
 
+            // 4️⃣ Filtre koşulu (seçili satırlara göre)
+            string whereKosulu = "";
 
-            string whereKosulu = ""; // "empty" tüm tablo mu yoksa seçili satır mı çekilecek kontrolü
             if (GrdKaynak.SelectedCells.Count > 0)
             {
-               
-                var cell = GrdKaynak.SelectedCells[0];
-                string kolonAdi = GrdKaynak.Columns[cell.ColumnIndex].Name;
-                object deger = cell.Value;
+                // Seçili hücrelerin kolon adını bul (ilk seçili hücrenin kolonuna göre işlem yapar)
+                string kolonAdi = GrdKaynak.Columns[GrdKaynak.SelectedCells[0].ColumnIndex].Name;
+                Type tip = GrdKaynak.Columns[GrdKaynak.SelectedCells[0].ColumnIndex].ValueType;
 
-                if (deger != null && deger != DBNull.Value)
+                // Seçilen tüm hücrelerdeki değerleri topla
+                var secilenDegerler = new HashSet<string>();
+                foreach (DataGridViewCell cell in GrdKaynak.SelectedCells)
                 {
-                    string filtreDeger = deger.ToString().Replace("'", "''");
-                    whereKosulu = $"WHERE [{kolonAdi}] = '{filtreDeger}'";
+                    if (cell.Value == null || cell.Value == DBNull.Value)
+                        continue;
+
+                    object deger = cell.Value;
+                    string filtreDeger = "";
+
+                    if (tip == typeof(string) || tip == typeof(char))
+                    {
+                        filtreDeger = $"'{deger.ToString().Replace("'", "''")}'";
+                    }
+                    else if (tip == typeof(DateTime))
+                    {
+                        DateTime dtm = Convert.ToDateTime(deger);
+                        filtreDeger = $"'{dtm:yyyy-MM-dd HH:mm:ss}'";
+                    }
+                    else if (tip == typeof(bool))
+                    {
+                        filtreDeger = (bool)deger ? "1" : "0";
+                    }
+                    else
+                    {
+                        // sayısal tiplerde tırnak yok
+                        filtreDeger = deger.ToString().Replace(",", ".");
+                    }
+
+                    secilenDegerler.Add(filtreDeger);
+                }
+
+                // Eğer birden fazla değer varsa IN (...) şeklinde sorgu oluştur
+                if (secilenDegerler.Count > 0)
+                {
+                    string filtre = string.Join(", ", secilenDegerler);
+                    whereKosulu = $"WHERE [{kolonAdi}] IN ({filtre})";
                 }
             }
 
+            // 5️⃣ Sorguyu oluştur
             string sqlSorgu = $"SELECT {kolonListesi} FROM [{table}] {whereKosulu}";
 
+            // 6️⃣ SQL'den veriyi çek
             DataTable dt = new DataTable();
             string connStr = ConnOrtak(server, db, user, sifre);
 
@@ -965,15 +1002,17 @@ namespace DataTransfer
                     dap.Fill(dt);
                 }
 
-                LstboxLog.Items.Add($"Kaynak tablodan {dt.Rows.Count} satır veri çekildi.");
+                LstboxLog.Items.Add($"Kaynak tablodan {dt.Rows.Count} satır veri çekildi. (Sorgu: {whereKosulu})");
                 return dt;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Veri çekme hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LstboxLog.Items.Add($"HATA: {ex.Message}");
                 return null;
             }
         }
+
 
 
 
@@ -1060,7 +1099,6 @@ namespace DataTransfer
             }
             finally
             {
-
                 BtnTransferBaslat.Enabled = true;
                 PrgsbarTransfer.Style = ProgressBarStyle.Blocks;
                 PrgsbarTransfer.Visible = false;

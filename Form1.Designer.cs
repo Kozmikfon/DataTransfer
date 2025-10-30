@@ -283,7 +283,6 @@
             TxtSifre.PasswordChar = '*';
             TxtSifre.Size = new Size(128, 23);
             TxtSifre.TabIndex = 23;
-           
             // 
             // label3
             // 
@@ -396,7 +395,6 @@
             TxboxHedefSifre.PasswordChar = '*';
             TxboxHedefSifre.Size = new Size(130, 23);
             TxboxHedefSifre.TabIndex = 19;
-           
             // 
             // label4
             // 
@@ -471,7 +469,6 @@
             LstboxLog.FormattingEnabled = true;
             LstboxLog.ItemHeight = 15;
             LstboxLog.Location = new Point(19, 65);
-            LstboxLog.MultiColumn = true;
             LstboxLog.Name = "LstboxLog";
             LstboxLog.Size = new Size(533, 154);
             LstboxLog.TabIndex = 0;
@@ -518,9 +515,7 @@
             GrdEslestirme.TabIndex = 16;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
-            
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
-            
             // 
             // KaynakSutun
             // 
