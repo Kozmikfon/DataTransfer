@@ -54,7 +54,7 @@ namespace DataTransfer
                     Sifre = TxboxHedefSifre.Text.Trim()
                 };
 
-               
+
 
                 kaynakTestBasarili = await BaglantiTestAsync(KaynakBaglanti);
                 hedefTestBasarili = await BaglantiTestAsync(HedefBaglanti);
@@ -179,18 +179,19 @@ namespace DataTransfer
             {
                 CmbboxKaynakVeritabani.Items.Clear();
 
-                string mesaj = ex.Number switch
+                string mesaj = ex is SqlException sqlEx ? sqlEx.Number switch
                 {
                     18456 => "SQL kullanıcı adı veya şifre hatalı.",
                     4060 => "Bu kullanıcı seçilen veritabanına erişemez.",
                     229 => "Veritabanı erişim izniniz yok.",
-                    _ => ex.Message
-                };
+                    _ => sqlEx.Message
+                } : ex.Message;
 
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
 
                 MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
         }
@@ -231,18 +232,19 @@ namespace DataTransfer
                 CmbboxHedefVeriTabani.Items.Clear();
 
 
-                string mesaj = ex.Number switch
+                string mesaj = ex is SqlException sqlEx ? sqlEx.Number switch
                 {
                     18456 => "SQL kullanıcı adı veya şifre hatalı.",
                     4060 => "Bu kullanıcı seçilen veritabanına erişemez.",
                     229 => "Veritabanı erişim izniniz yok.",
-                    _ => ex.Message
-                };
+                    _ => sqlEx.Message
+                } : ex.Message;
 
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
 
                 MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
         }
 
@@ -278,43 +280,70 @@ namespace DataTransfer
         // FrmBaglantiAc.cs
         private async void BtnDevam_Click(object sender, EventArgs e)
         {
-            // Bağlantı test edilmeden ilerleme
-            if (!kaynakTestBasarili || !hedefTestBasarili)
+            try
             {
-                MessageBox.Show("Lütfen önce bağlantı testini başarıyla tamamlayın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                // Bağlantı test edilmeden ilerleme
+                if (!kaynakTestBasarili || !hedefTestBasarili)
+                {
+                    MessageBox.Show("Lütfen önce bağlantı testini başarıyla tamamlayın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Veritabanı seçimi zorunlu
+                if (string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
+                    string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
+                {
+                    MessageBox.Show("Lütfen her iki bağlantı için de veritabanı seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Bağlantı bilgilerini oluştur
+                BaglantiBilgileri kaynak = new BaglantiBilgileri
+                {
+                    Sunucu = TxtboxKaynakSunucu.Text.Trim(),
+                    Kullanici = TxtKullanıcı.Text.Trim(),
+                    Sifre = TxtSifre.Text.Trim(),
+                    Veritabani = CmbboxKaynakVeritabani.Text.Trim()
+                };
+
+                BaglantiBilgileri hedef = new BaglantiBilgileri
+                {
+                    Sunucu = TxtboxHedefSunucu.Text.Trim(),
+                    Kullanici = TxboxHedefKullanici.Text.Trim(),
+                    Sifre = TxboxHedefSifre.Text.Trim(),
+                    Veritabani = CmbboxHedefVeriTabani.Text.Trim()
+                };
+
+                // Yeni formu güvenli şekilde aç
+                FrmVeriEslestirme frm = null;
+
+                try
+                {
+                    frm = new FrmVeriEslestirme(kaynak, hedef, this);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"FrmVeriEslestirme oluşturulurken hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                try
+                {
+                    this.Hide();
+                    frm.Show();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Yeni form açılırken hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Show(); // Eğer hata olursa geri getir
+                }
             }
-
-            // Veritabanı seçimi zorunlu
-            if (string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
-                string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
+            catch (Exception ex)
             {
-                MessageBox.Show("Lütfen her iki bağlantı için de veritabanı seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                MessageBox.Show($"İşlem sırasında beklenmeyen bir hata oluştu:\n{ex.Message}", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            // 2. BaglantiBilgilerini oluştur
-            BaglantiBilgileri kaynak = new BaglantiBilgileri
-            {
-                Sunucu = TxtboxKaynakSunucu.Text.Trim(),
-                Kullanici = TxtKullanıcı.Text.Trim(),
-                Sifre = TxtSifre.Text.Trim(),
-                Veritabani = CmbboxKaynakVeritabani.Text.Trim()
-            };
-
-            BaglantiBilgileri hedef = new BaglantiBilgileri
-            {
-                Sunucu = TxtboxHedefSunucu.Text.Trim(),
-                Kullanici = TxboxHedefKullanici.Text.Trim(),
-                Sifre = TxboxHedefSifre.Text.Trim(),
-                Veritabani = CmbboxHedefVeriTabani.Text.Trim()
-            };
-
-            // 4. FrmVeriEslestirme'yi aç ve bilgileri aktar
-            FrmVeriEslestirme frm = new FrmVeriEslestirme(kaynak, hedef,this);
-            
-            this.Hide();
-            frm.Show();
         }
+
 
         private void FrmBaglantiAc_Load(object sender, EventArgs e)
         {
@@ -322,6 +351,97 @@ namespace DataTransfer
             BtnDevam.Enabled = false;
             CmbboxKaynakVeritabani.Enabled = false;
             CmbboxHedefVeriTabani.Enabled = false;
+        }
+
+        private async void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedDb = CmbboxKaynakVeritabani.Text;
+            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+
+            try
+            {
+                // Kullanıcının seçtiği veritabanına erişimi var mı kontrol et
+                string connStr = $"Server={TxtboxKaynakSunucu.Text.Trim()};Database={selectedDb};User Id={TxtKullanıcı.Text.Trim()};Password={TxtSifre.Text.Trim()};Connect Timeout=5;TrustServerCertificate=True;";
+
+                using (var conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Basit bir test sorgusu çalıştıralım
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    {
+                        await cmd.ExecuteScalarAsync();
+                    }
+
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                }
+            }
+            catch (SqlException ex)
+            {
+                string mesaj = ex.Number switch
+                {
+                    4060 => "Bu veritabanına erişim izniniz yok.",
+                    18456 => "Kullanıcı adı veya şifre hatalı.",
+                    229 => "Veritabanı nesnelerine erişim yetkiniz yok.",
+                    _ => $"SQL Hatası ({ex.Number}): {ex.Message}"
+                };
+
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Hatalı seçim durumunda geri al
+                CmbboxKaynakVeritabani.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Beklenmeyen hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxKaynakVeritabani.SelectedIndex = -1;
+            }
+        }
+
+        private async void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedDb = CmbboxHedefVeriTabani.Text;
+            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+
+            try
+            {
+                string connStr = $"Server={TxtboxHedefSunucu.Text.Trim()};Database={selectedDb};User Id={TxboxHedefKullanici.Text.Trim()};Password={TxboxHedefSifre.Text.Trim()};Connect Timeout=5;TrustServerCertificate=True;";
+                using (var conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    {
+                        await cmd.ExecuteScalarAsync();
+                    }
+
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                }
+            }
+            catch (SqlException ex)
+            {
+                string mesaj = ex.Number switch
+                {
+                    4060 => "Bu veritabanına erişim izniniz yok.",
+                    18456 => "Kullanıcı adı veya şifre hatalı.",
+                    229 => "Veritabanı nesnelerine erişim yetkiniz yok.",
+                    _ => $"SQL Hatası ({ex.Number}): {ex.Message}"
+                };
+
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                CmbboxHedefVeriTabani.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Beklenmeyen hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxHedefVeriTabani.SelectedIndex = -1;
+            }
         }
     }
 }

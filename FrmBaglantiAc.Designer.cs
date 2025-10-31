@@ -82,6 +82,7 @@
             CmbboxKaynakVeritabani.Name = "CmbboxKaynakVeritabani";
             CmbboxKaynakVeritabani.Size = new Size(205, 23);
             CmbboxKaynakVeritabani.TabIndex = 25;
+            CmbboxKaynakVeritabani.SelectedIndexChanged += CmbboxKaynakVeritabani_SelectedIndexChanged;
             // 
             // lblKynkVeri
             // 
@@ -194,6 +195,7 @@
             CmbboxHedefVeriTabani.Name = "CmbboxHedefVeriTabani";
             CmbboxHedefVeriTabani.Size = new Size(202, 23);
             CmbboxHedefVeriTabani.TabIndex = 24;
+            CmbboxHedefVeriTabani.SelectedIndexChanged += CmbboxHedefVeriTabani_SelectedIndexChanged;
             // 
             // ChkboxHedefSifre
             // 
