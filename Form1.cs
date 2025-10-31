@@ -9,6 +9,7 @@ namespace DataTransfer
     {
         private BaglantiBilgileri KaynakBilgileri { get; set; }
         private BaglantiBilgileri HedefBilgileri { get; set; }
+
         private FrmBaglantiAc _oncekiForm;
 
 
@@ -331,10 +332,56 @@ namespace DataTransfer
 
 
 
-        private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
+        private async void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
 
             KaynakTabloDoldur(KaynakBilgileri);
+            string selectedDb = CmbboxKaynakVeritabani.Text;
+            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+
+            try
+            {
+                // Kullanıcının seçtiği veritabanına erişimi var mı kontrol et
+                string connStr = $"Server={KaynakBilgileri.Sunucu};Database={selectedDb};User Id={KaynakBilgileri.Kullanici};Password={KaynakBilgileri.Sifre};Connect Timeout=5;TrustServerCertificate=True;";
+
+                using (var conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Basit bir test sorgusu çalıştıralım
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    {
+                        await cmd.ExecuteScalarAsync();
+                    }
+
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                }
+            }
+            catch (SqlException ex)
+            {
+                string mesaj = ex.Number switch
+                {
+                    4060 => "Bu veritabanına erişim izniniz yok.",
+                    18456 => "Kullanıcı adı veya şifre hatalı.",
+                    229 => "Veritabanı nesnelerine erişim yetkiniz yok.",
+                    _ => $"SQL Hatası ({ex.Number}): {ex.Message}"
+                };
+
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Hatalı seçim durumunda geri al
+                CmbboxKaynakVeritabani.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Beklenmeyen hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxKaynakVeritabani.SelectedIndex = -1;
+            }
+
+
         }
 
 
@@ -635,9 +682,48 @@ namespace DataTransfer
             HedefSutunDoldur(HedefBilgileri);
         }
 
-        private void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
+        private async void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
         {
             HedefTabloDoldur(HedefBilgileri);
+            string selectedDb = CmbboxHedefVeriTabani.Text;
+            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+
+            try
+            {
+                string connStr = $"Server={HedefBilgileri.Sunucu};Database={selectedDb};User Id={HedefBilgileri.Kullanici};Password={HedefBilgileri.Sifre};Connect Timeout=5;TrustServerCertificate=True;";
+                using (var conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    {
+                        await cmd.ExecuteScalarAsync();
+                    }
+
+                    LstboxLog.ForeColor = Color.Green;
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                }
+            }
+            catch (SqlException ex)
+            {
+                string mesaj = ex.Number switch
+                {
+                    4060 => "Bu veritabanına erişim izniniz yok.",
+                    18456 => "Kullanıcı adı veya şifre hatalı.",
+                    229 => "Veritabanı nesnelerine erişim yetkiniz yok.",
+                    _ => $"SQL Hatası ({ex.Number}): {ex.Message}"
+                };
+
+                LstboxLog.ForeColor = Color.Red;
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                CmbboxHedefVeriTabani.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Beklenmeyen hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxHedefVeriTabani.SelectedIndex = -1;
+            }
         }
 
 
