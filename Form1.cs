@@ -1,12 +1,17 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Threading.Tasks;
 
 
 namespace DataTransfer
 {
     public partial class FrmVeriEslestirme : Form
     {
-        public FrmVeriEslestirme()
+        private BaglantiBilgileri KaynakBilgileri { get; set; }
+        private BaglantiBilgileri HedefBilgileri { get; set; }
+
+
+        public FrmVeriEslestirme(BaglantiBilgileri kaynak, BaglantiBilgileri hedef)
         {
 
             InitializeComponent();
@@ -33,9 +38,12 @@ namespace DataTransfer
             CmbboxHedefTablo.DrawMode = DrawMode.OwnerDrawFixed;
             CmbboxHedefTablo.ItemHeight = 22;
             CmbboxHedefTablo.DrawItem += CmbboxHedefTablo_DrawItem;
+            KaynakBilgileri = kaynak;
+            HedefBilgileri = hedef;
+            this.Load += Form1_Load;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object sender, EventArgs e)
         {
             Control.CheckForIllegalCrossThreadCalls = false;
             BtnEslesmeDogrula.Enabled = false;
@@ -44,6 +52,14 @@ namespace DataTransfer
             BtnHedefKolonYukle.Enabled = false;
             GrdEslestirme.Enabled = false;
             PrgsbarTransfer.Visible = false;
+
+            await KaynakVeriTabanıCombobox(KaynakBilgileri);
+            await HedefVeriTabaniCombobox(HedefBilgileri);
+
+            CmbboxKaynakVeritabani.Text = KaynakBilgileri.Veritabani;
+            CmbboxHedefVeriTabani.Text = HedefBilgileri.Veritabani;
+
+           
 
         }
 
@@ -56,98 +72,27 @@ namespace DataTransfer
         Image dbIcon;
         Image dbIcontable;
 
-        private void BtnBaglantiTest_Click(object sender, EventArgs e)
-        {
-            GrdEslestirme.Rows.Clear();
-
-            LstboxLog.Items.Clear();
-            if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
-                string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
-                string.IsNullOrWhiteSpace(TxboxHedefSifre.Text) ||
-                string.IsNullOrWhiteSpace(TxtKullanıcı.Text) ||
-                string.IsNullOrWhiteSpace(TxtSifre.Text) ||
-                string.IsNullOrWhiteSpace(TxtboxHedefSunucu.Text))
-
-            {
-                MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            BaglantiTestAsync();//baglantı testi
-            KaynakVeriTabanıCombobox();//veritabanı combobox doldurma
-            HedefVeriTabaniCombobox();//hedef veritabanı combobox doldurma
-
-
-        }
-        private async Task<bool> BaglantiTestAsync()
-        {
-            BtnBaglantiTest.Enabled = false;
-            BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
-            
-            string KaynakSorgu = $"Server={TxtboxKaynakSunucu.Text}; User Id={TxtKullanıcı.Text}; Password={TxtSifre.Text}; TrustServerCertificate=True;";
-            string HedefSorgu = $"Server={TxtboxHedefSunucu.Text}; User Id={TxboxHedefKullanici.Text}; Password={TxboxHedefSifre.Text}; TrustServerCertificate=True;";
-
-            try
-            {
-                using (var KaynakBaglanti = new SqlConnection(KaynakSorgu))
-                using (var HedefBaglanti = new SqlConnection(HedefSorgu))
-                {
-                    await KaynakBaglanti.OpenAsync();
-                    await HedefBaglanti.OpenAsync();
-
-
-                    LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"Kaynak ve hedef bağlantıları başarıyla açıldı.");
-                }
-
-
-                BtnEslesmeDogrula.Enabled = true;
-                BtnKynkKolonYukle.Enabled = true;
-                BtnHedefKolonYukle.Enabled = true;
-                GrdEslestirme.Enabled = true;
-
-                MessageBox.Show("Bağlantı Oluşturuldu!");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Bağlantı başarısız: {ex.Message}");
-                MessageBox.Show($"Bağlantı başarısız:\n{ex.Message}");
-                return false;
-            }
-            finally
-            {
-                BtnBaglantiTest.Enabled = true;
-                BtnBaglantiTest.Text = "Bağlantıyı Test Et";
-            }
-        }
-
-
-
         private void BtnKynkKolonYukle_Click(object sender, EventArgs e)
         {
-            KaynakKolonYukle();
+            KaynakKolonYukle(KaynakBilgileri);
 
         }
 
-        private bool KaynakKolonYukle()
+        private async Task<bool> KaynakKolonYukle(BaglantiBilgileri baglantiBilgileri)
         {
             try
             {
-                string server = TxtboxKaynakSunucu.Text.Trim();
-                string db = CmbboxKaynakVeritabani.Text.Trim();
+                string server = baglantiBilgileri.Sunucu;
+                string db = baglantiBilgileri.Veritabani;
                 string table = CmbboxKaynaktablo.Text.Trim();
-                string user = TxtKullanıcı.Text.Trim();
-                string pass = TxtSifre.Text.Trim();
-                string sutun = CmboxKaynakSutun.Text.Trim();
 
+
+                string sutun = CmboxKaynakSutun.Text;
 
                 if (string.IsNullOrWhiteSpace(server) ||
                     string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(table) ||
-                    string.IsNullOrWhiteSpace(user) ||
-                    string.IsNullOrWhiteSpace(pass) ||
+
                     string.IsNullOrWhiteSpace(sutun))
                 {
                     MessageBox.Show("Lütfen tablo, sütun ve bağlantı bilgilerini eksiksiz girin.",
@@ -155,33 +100,36 @@ namespace DataTransfer
                     return false;
                 }
 
+                // Kolon bilgilerini asenkron olarak çekiyoruz
+                KaynakKolonlar = await KolonBilgileriniGetirAsync(KaynakBilgileri, table);
 
-                KaynakKolonlar = KolonBilgileriniGetir(server, db, table, user, pass); // kaynakkolonları kolonbilgilerini ile dolduruyorum
-
-                if (!KaynakKolonlar.ContainsKey(sutun))//surun kontrolü yapıyorm
+                if (KaynakKolonlar == null || !KaynakKolonlar.ContainsKey(sutun))
                 {
                     MessageBox.Show($"Seçilen sütun '{sutun}' kaynak tabloda bulunamadı.",
                                     "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
-                // DataTable oluştur ve Grid'e bağla
-                DataTable dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
+                // DataTable oluştur ve Grid'e bağla (asenkron şekilde)
+                DataTable dt = await TabloVerileriGetirAsync(KaynakBilgileri, table, sutun); //baglantı tablo sutun
+
+                if (dt == null)
+                {
+                    MessageBox.Show("Tablo verileri alınamadı.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+
+                // Grid'i doldur
                 GrdKaynak.Columns.Clear();
                 GrdKaynak.DataSource = dt;
 
-
                 foreach (DataGridViewColumn col in GrdKaynak.Columns)
-                {
                     col.Tag = col.DataPropertyName;
-                }
 
-
+                // Log kaydı
                 LstboxLog.Items.Add($"Kaynak Tablosu '{table}' yüklendi. Kolonlar:");
                 foreach (var kol in KaynakKolonlar.Keys)
-                {
                     LstboxLog.Items.Add(kol);
-                }
 
                 return true;
             }
@@ -195,92 +143,140 @@ namespace DataTransfer
                 MessageBox.Show($"Beklenmeyen Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-
-
         }
 
         // kolon bilgilerini getiriyor
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KolonBilgileriniGetir(string server, string db, string table, string user, string sifre)
+        private async Task<Dictionary<string, (string DataType, int? Length, bool IsNullable)>> KolonBilgileriniGetirAsync(BaglantiBilgileri baglanti, string tabloAdi)
         {
-            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(); //boş bir sozluk olusturdum.
-            string connstr = ConnOrtak(server, db, user, sifre); //5 adet sorgu iiçn
+            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
 
-
-            using (conn = new SqlConnection(connstr))
+            if (baglanti == null ||
+                string.IsNullOrWhiteSpace(baglanti.Sunucu) ||
+                string.IsNullOrWhiteSpace(baglanti.Veritabani) ||
+                string.IsNullOrWhiteSpace(baglanti.Kullanici) ||
+                string.IsNullOrWhiteSpace(baglanti.Sifre) ||
+                string.IsNullOrWhiteSpace(tabloAdi))
             {
-                conn.Open();
-                string sql = @"SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=@TableName ORDER BY ORDINAL_POSITION";
+                MessageBox.Show("Kolon bilgilerini almak için gerekli bilgiler eksik.",
+                                "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return kolonlar;
+            }
 
-                using (cmd = new SqlCommand(sql, conn))// sorguyu çalıştırdım
+            string connStr = $"Server={baglanti.Sunucu};Database={baglanti.Veritabani};User Id={baglanti.Kullanici};Password={baglanti.Sifre};TrustServerCertificate=True;";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.AddWithValue("@TableName", table);
-                    using (reader = cmd.ExecuteReader()) //veriyi okudum
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = @TableName
+                ORDER BY ORDINAL_POSITION";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        while (reader.Read())
+                        cmd.Parameters.AddWithValue("@TableName", tabloAdi);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                         {
-                            string colName = reader["COLUMN_NAME"].ToString();
-                            string dataType = reader["DATA_TYPE"].ToString();
-                            int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);//sadece string deger okur int datetimeda null gelir
-                            bool isNullable = reader["IS_NULLABLE"].ToString() == "YES"; // eger yes ise true döner no ise false döner
-                            kolonlar[colName] = (dataType, length, isNullable);
+                            while (await reader.ReadAsync())
+                            {
+                                string colName = reader["COLUMN_NAME"].ToString();
+                                string dataType = reader["DATA_TYPE"].ToString();
+
+                                int? length = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value
+                                    ? null
+                                    : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
+
+                                bool isNullable = reader["IS_NULLABLE"].ToString().Equals("YES", StringComparison.OrdinalIgnoreCase);
+
+                                kolonlar[colName] = (dataType, length, isNullable);
+                            }
                         }
                     }
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"SQL Hatası (KolonBilgileriniGetirAsync): {sqlEx.Message}",
+                                "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Beklenmeyen hata (KolonBilgileriniGetirAsync): {ex.Message}",
+                                "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             return kolonlar;
         }
 
+
         //kolon içeriklerini görme su an kolonları görüntülüyor.
-        private DataTable TabloVerileriGetir(string server, string db, string table, string sutun, string user, string sifre)
+        private async Task<DataTable> TabloVerileriGetirAsync(BaglantiBilgileri baglanti, string tabloAdi, string sutunAdi)
         {
-            if (string.IsNullOrWhiteSpace(server) ||
-                string.IsNullOrWhiteSpace(db) ||
-                string.IsNullOrWhiteSpace(table) ||
-                string.IsNullOrWhiteSpace(sutun) ||
-                string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(sifre))
+            if (baglanti == null ||
+                string.IsNullOrWhiteSpace(baglanti.Sunucu) ||
+                string.IsNullOrWhiteSpace(baglanti.Veritabani) ||
+                string.IsNullOrWhiteSpace(baglanti.Kullanici) ||
+                string.IsNullOrWhiteSpace(baglanti.Sifre) ||
+                string.IsNullOrWhiteSpace(tabloAdi) ||
+                string.IsNullOrWhiteSpace(sutunAdi))
             {
-                MessageBox.Show("Lütfen tüm bağlantı bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Lütfen tüm bağlantı ve tablo bilgilerini doldurun.",
+                                "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return null;
             }
 
-            dt = new DataTable();//bellek içerisinde tablo oluşturuyoruz sanal
-            string connStr = ConnOrtak(server, db, user, sifre);
+            DataTable dt = new DataTable();
 
+            string connStr = $"Server={baglanti.Sunucu};Database={baglanti.Veritabani};User Id={baglanti.Kullanici};Password={baglanti.Sifre};TrustServerCertificate=True;";
 
-            using (conn = new SqlConnection(connStr))
+            try
             {
-                conn.Open();
-                string sqlsorgu = $@"SELECT {sutun}  FROM {table}"; //select sutun from tablo seçtiğimşz tablo ve sutuna göre veriiler geliyor.
-                dap = new SqlDataAdapter(sqlsorgu, conn);
-                dap.Fill(dt);
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Parametreli sorgu ile SQL Injection riski yok
+                    string sqlSorgu = $@"SELECT [{sutunAdi}] FROM [{tabloAdi}]";
+
+                    using (SqlCommand cmd = new SqlCommand(sqlSorgu, conn))
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Veri alınırken hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             return dt;
         }
 
 
 
+
         private void BtnHedefKolonYukle_Click(object sender, EventArgs e)
         {
-            HedefKolonYükle();
+            HedefKolonYükle(HedefBilgileri);
         }
 
-        private bool HedefKolonYükle()
+        private async Task<bool> HedefKolonYükle(BaglantiBilgileri hedefBaglanti)
         {
             try
             {
-                string server = TxtboxHedefSunucu.Text.Trim();
-                string db = CmbboxHedefVeriTabani.Text.Trim();
+                string db = hedefBaglanti.Veritabani;
                 string table = CmbboxHedefTablo.Text.Trim();
-                string user = TxboxHedefKullanici.Text.Trim();
-                string pass = TxboxHedefSifre.Text.Trim();
                 string sutun = CmboxHedefSutun.Text.Trim();
 
                 // Boş alan kontrolü
-                if (string.IsNullOrWhiteSpace(server) ||
-                    string.IsNullOrWhiteSpace(db) ||
+                if (string.IsNullOrWhiteSpace(db) ||
                     string.IsNullOrWhiteSpace(table) ||
-                    string.IsNullOrWhiteSpace(user) ||
-                    string.IsNullOrWhiteSpace(pass) ||
                     string.IsNullOrWhiteSpace(sutun))
                 {
                     MessageBox.Show("Lütfen tablo, sütun ve bağlantı bilgilerini eksiksiz girin.",
@@ -288,8 +284,8 @@ namespace DataTransfer
                     return false;
                 }
 
-                // Kolon bilgilerini dictionary'e al
-                HedefKolonlar = KolonBilgileriniGetir(server, db, table, user, pass);
+                // Kolon bilgilerini dictionary olarak al
+                HedefKolonlar = await KolonBilgileriniGetirAsync(hedefBaglanti, table);
 
                 if (!HedefKolonlar.ContainsKey(sutun))
                 {
@@ -298,8 +294,9 @@ namespace DataTransfer
                     return false;
                 }
 
-                // DataTable oluştur ve Grid'e bağla
-                DataTable dt = TabloVerileriGetir(server, db, table, sutun, user, pass);
+                // DataTable oluştur ve grid'e bağla
+                DataTable dt = await TabloVerileriGetirAsync(hedefBaglanti, table, sutun);
+
                 GrdHedef.Columns.Clear();
                 GrdHedef.DataSource = dt;
 
@@ -310,10 +307,10 @@ namespace DataTransfer
                 }
 
                 // Log ekle
-                LstboxLog.Items.Add($"Hedef Tablosu '{table}' yüklendi. Kolonlar:");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Hedef Tablo '{table}' yüklendi. Kolonlar:");
                 foreach (var kol in HedefKolonlar.Keys)
                 {
-                    LstboxLog.Items.Add(kol);
+                    LstboxLog.Items.Add($"  - {kol}");
                 }
 
                 return true;
@@ -331,19 +328,20 @@ namespace DataTransfer
         }
 
 
+
         private void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            KaynakTabloDoldur();
+            KaynakTabloDoldur(KaynakBilgileri);
         }
 
 
         //veritabanı combobox doldurma
-        private void KaynakVeriTabanıCombobox()
+        private async Task KaynakVeriTabanıCombobox(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxKaynakSunucu.Text;
-            string user = TxtKullanıcı.Text;
-            string pass = TxtSifre.Text;
+            string server = baglantiBilgileri.Sunucu;
+            string user = baglantiBilgileri.Kullanici;
+            string pass = baglantiBilgileri.Sifre;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(user) ||
                 string.IsNullOrWhiteSpace(pass))
@@ -389,23 +387,17 @@ namespace DataTransfer
             }
 
         }
-        private void HedefVeriTabaniCombobox()
+        private async Task HedefVeriTabaniCombobox(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxHedefSunucu.Text;
-            string user = TxboxHedefKullanici.Text;
-            string pass = TxboxHedefSifre.Text;
-            if (string.IsNullOrWhiteSpace(server) ||
-                string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(pass))
-            {
-                MessageBox.Show("Lütfen sunucu, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            string server = baglantiBilgileri.Sunucu;
+            string user = baglantiBilgileri.Kullanici;
+            string sifre = baglantiBilgileri.Sifre;
+            
             string connStr =
                 $"Server={server};" +
                 $"Database=master;" +
                 $"User Id={user};" +
-                $"Password={pass};" +
+                $"Password={sifre};" +
                 $"TrustServerCertificate=True;";
             try
             {
@@ -434,27 +426,29 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        private void KaynakTabloDoldur()
+        private void KaynakTabloDoldur(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxKaynakSunucu.Text;
-            string db = CmbboxKaynakVeritabani.Text;
-            string user = TxtKullanıcı.Text;
-            string sifre = TxtSifre.Text;
-            if (string.IsNullOrWhiteSpace(server) ||
-                string.IsNullOrWhiteSpace(db) ||
-                string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(sifre))
+            string server = baglantiBilgileri.Sunucu;
+            string db = baglantiBilgileri.Veritabani;
+            string user = baglantiBilgileri.Kullanici;
+            string sifre = baglantiBilgileri.Sifre;
+            //string sifre = TxtSifre.Text;
+            if (
+                string.IsNullOrWhiteSpace(db))
+
+
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server, db, user, sifre);
+
             try
             {
-                using (conn = new SqlConnection(connStr))
+                using (var conn = new SqlConnection(
+                    $"Server={baglantiBilgileri.Sunucu};Database={baglantiBilgileri.Veritabani};User Id={baglantiBilgileri.Kullanici};Password={baglantiBilgileri.Sifre};TrustServerCertificate=True;"))
                 {
                     conn.Open();
-                    string sql = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_NAME";
+                    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxKaynaktablo.Items.Clear();
@@ -479,27 +473,29 @@ namespace DataTransfer
             }
 
         }
-        private void HedefTabloDoldur()
+        private void HedefTabloDoldur(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxHedefSunucu.Text;
-            string db = CmbboxHedefVeriTabani.Text;
-            string user = TxboxHedefKullanici.Text;
-            string sifre = TxboxHedefSifre.Text;
-            if (string.IsNullOrWhiteSpace(server) ||
-                string.IsNullOrWhiteSpace(db) ||
-                string.IsNullOrWhiteSpace(user) ||
-                string.IsNullOrWhiteSpace(sifre))
+            string server = baglantiBilgileri.Sunucu;
+            string db = baglantiBilgileri.Veritabani;
+            string user = baglantiBilgileri.Kullanici;
+            string sifre = baglantiBilgileri.Sifre;
+            //string db = CmbboxHedefVeriTabani.Text;
+
+            if (
+                string.IsNullOrWhiteSpace(db))
+
             {
                 MessageBox.Show("Lütfen sunucu, veritabanı, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string connStr = ConnOrtak(server, db, user, sifre);
+
             try
             {
-                using (conn = new SqlConnection(connStr))
+                using (var conn = new SqlConnection(
+                    $"Server={baglantiBilgileri.Sunucu};Database={baglantiBilgileri.Veritabani};User Id={baglantiBilgileri.Kullanici};Password={baglantiBilgileri.Sifre};TrustServerCertificate=True;"))
                 {
                     conn.Open();
-                    string sql = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_NAME";
+                    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME";
                     cmd = new SqlCommand(sql, conn);
                     reader = cmd.ExecuteReader();
                     CmbboxHedefTablo.Items.Clear();
@@ -520,13 +516,13 @@ namespace DataTransfer
                 conn.Close();
             }
         }
-        private void KaynakSutunDoldur()
+        private void KaynakSutunDoldur(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxKaynakSunucu.Text;
-            string db = CmbboxKaynakVeritabani.Text;
+            string server = baglantiBilgileri.Sunucu;
+            string db = baglantiBilgileri.Veritabani;
             string table = CmbboxKaynaktablo.Text;
-            string user = TxtKullanıcı.Text;
-            string sifre = TxtSifre.Text;
+            string user = baglantiBilgileri.Kullanici;
+            string sifre = baglantiBilgileri.Sifre;
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
                 string.IsNullOrWhiteSpace(table) ||
@@ -579,13 +575,13 @@ namespace DataTransfer
             string connstr = $"Server={server};Database={db};User Id={user};Password={sifre};TrustServerCertificate=True;";
             return connstr;
         }
-        private void HedefSutunDoldur()
+        private void HedefSutunDoldur(BaglantiBilgileri baglantiBilgileri)
         {
-            string server = TxtboxHedefSunucu.Text;
-            string db = CmbboxHedefVeriTabani.Text;
+            string server = baglantiBilgileri.Sunucu;
+            string db = baglantiBilgileri.Veritabani;
             string table = CmbboxHedefTablo.Text;
-            string user = TxboxHedefKullanici.Text;
-            string sifre = TxboxHedefSifre.Text;
+            string user = baglantiBilgileri.Kullanici;
+            string sifre = baglantiBilgileri.Sifre;
 
             if (string.IsNullOrWhiteSpace(server) ||
                 string.IsNullOrWhiteSpace(db) ||
@@ -596,6 +592,7 @@ namespace DataTransfer
                 MessageBox.Show("Lütfen sunucu, veritabanı, tablo, kullanıcı adı ve şifre bilgilerini doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            //server,db,user,sifre
             string connStr = ConnOrtak(server, db, user, sifre);
             try
             {
@@ -628,17 +625,17 @@ namespace DataTransfer
 
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            KaynakSutunDoldur();
+            KaynakSutunDoldur(HedefBilgileri);
         }
 
         private void CmbboxHedefTablo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            HedefSutunDoldur();
+            HedefSutunDoldur(HedefBilgileri);
         }
 
         private void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
         {
-            HedefTabloDoldur();
+            HedefTabloDoldur(HedefBilgileri);
         }
 
 
@@ -652,7 +649,7 @@ namespace DataTransfer
                 return;
 
             secilenKaynakDeger = GrdKaynak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value; //tıklanılan hucrenin degeri secilenakaynakdegere atıldı.
-           
+
 
             int YeniBosSatir = GrdEslestirme.Rows.Add(); //yeni boş satır olusturdum
             GrdEslestirme.Rows[YeniBosSatir].Cells[KaynakSutun.Index].Value = secilenKaynakDeger;//yenisatırda seçilen kaynaktaki değeri atadım. grdeslestirme deki kaynak sutununa secilenkaynakdegeri atadım.
@@ -660,19 +657,19 @@ namespace DataTransfer
 
             // verinin meta bilgisi saklanıyor "tag"
             GrdEslestirme.Rows[YeniBosSatir].Cells[KaynakSutun.Index].Tag = GrdKaynak.Columns[e.ColumnIndex].Tag ?? GrdKaynak.Columns[e.ColumnIndex].Name;
-            
+
 
             AktifSatirIndex = YeniBosSatir; //kaynak seçildi hedef bekleniyor  durmuna geçidi
             LstboxLog.Items.Add($"Eşleme için kaynak seçildi: {secilenKaynakDeger}");
-          
+
         }
 
         // Hedef hücre seçildiğinde
         private void GrdHedef_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0)
-                return; 
-             
+                return;
+
             if (!AktifSatirIndex.HasValue)
             {
                 MessageBox.Show("Önce kaynak hücreyi seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -806,7 +803,7 @@ namespace DataTransfer
         }
 
 
-        
+
 
         private void BtnEslesmeDogrula_Click(object sender, EventArgs e)
         {
@@ -821,7 +818,7 @@ namespace DataTransfer
             KontrolEt(row);
         }
 
-        
+
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
@@ -886,7 +883,7 @@ namespace DataTransfer
             e.DrawFocusRectangle();
         }
 
-      
+
 
         private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
         {
@@ -894,7 +891,7 @@ namespace DataTransfer
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                if (row.IsNewRow) 
+                if (row.IsNewRow)
                     continue;
 
                 if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
@@ -955,7 +952,7 @@ namespace DataTransfer
                 seciliRowIndexes.RemoveWhere(i => i < 0 || i >= GrdKaynak.Rows.Count);
             }
 
-            // 4️⃣ Grid kolon eşleştirme (kaynak kolon -> grid index)
+            // Grid kolon eşleştirme (kaynak kolon -> grid index)
             var gridColumnMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < GrdKaynak.Columns.Count; i++)
             {
@@ -972,7 +969,7 @@ namespace DataTransfer
                 return null;
             }
 
-            // 5️⃣ Satır filtreleri (opsiyonel)
+            // Satır filtreleri (opsiyonel)
             var satirKosullari = new List<string>();
             if (seciliSatirVar)
             {
@@ -1065,17 +1062,17 @@ namespace DataTransfer
             try
             {
                 // 1️⃣ Kaynak ve hedef bilgileri
-                string KaynakServer = TxtboxKaynakSunucu.Text.Trim();
+                string KaynakServer = KaynakBilgileri.Sunucu;
                 string KaynakDB = CmbboxKaynakVeritabani.Text.Trim();
                 string KaynakTable = CmbboxKaynaktablo.Text.Trim();
-                string KaynakUser = TxtKullanıcı.Text.Trim();
-                string KaynakPass = TxtSifre.Text.Trim();
+                string KaynakUser =KaynakBilgileri.Kullanici;
+                string KaynakPass = KaynakBilgileri.Sifre;
 
-                string HedefServer = TxtboxHedefSunucu.Text.Trim();
+                string HedefServer = HedefBilgileri.Sunucu;
                 string HedefDB = CmbboxHedefVeriTabani.Text.Trim();
                 string HedefTable = CmbboxHedefTablo.Text.Trim();
-                string HedefUser = TxboxHedefKullanici.Text.Trim();
-                string HedefPass = TxboxHedefSifre.Text.Trim();
+                string HedefUser = HedefBilgileri.Kullanici;
+                string HedefPass = HedefBilgileri.Sifre;
 
                 // 2️⃣ Eşleştirme listesi
                 var eslestirmeler = EslestirmeListesi();
@@ -1096,7 +1093,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // 4️⃣ Önizleme formu
+                //  Önizleme formu
                 using (FrmVeriOnizleme frm = new FrmVeriOnizleme(kaynakVeri, KaynakTable))
                 {
                     frm.ShowDialog();
@@ -1201,37 +1198,35 @@ namespace DataTransfer
 
 
 
-        private void CkboxSifreGoster_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CkboxSifreGoster.CheckState == CheckState.Checked)
-            {
-                TxtSifre.UseSystemPasswordChar = true;
-                CkboxSifreGoster.Text = "Şifre Gizle";
-            }
-            else if (CkboxSifreGoster.CheckState == CheckState.Unchecked)
-            {
-                TxtSifre.UseSystemPasswordChar = false;
-                CkboxSifreGoster.Text = "Şifre Göster";
-            }
-        }
+  
 
-        private void ChkboxSifre_CheckedChanged(object sender, EventArgs e)
-        {
-            if (ChkboxHedefSifre.CheckState == CheckState.Checked)
-            {
-                TxboxHedefSifre.UseSystemPasswordChar = true;
-                ChkboxHedefSifre.Text = "Şifre Gizle";
-            }
-            else if (ChkboxHedefSifre.CheckState == CheckState.Unchecked)
-            {
-                TxboxHedefSifre.UseSystemPasswordChar = false;
-                ChkboxHedefSifre.Text = "Şifre Göster";
-            }
-        }
+      
 
         private void BtnGrdTemizle_Click(object sender, EventArgs e)
         {
             GrdEslestirme.Rows.Clear();
+        }
+
+        private void BtnGeriBaglanti_Click(object sender, EventArgs e)
+        {
+            FrmBaglantiAc frm = new FrmBaglantiAc();
+            frm.Show();
+            this.Hide();
+        }
+
+        private void GrbboxButon_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void FrmVeriEslestirme_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void GrbboxKaynak_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }
