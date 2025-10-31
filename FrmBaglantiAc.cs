@@ -102,18 +102,48 @@ namespace DataTransfer
                 using (var conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
+                    using (var cmd = new SqlCommand("SELECT name FROM sys.databases;", conn))
+                    {
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            // sadece test amaçlı okuma
+                            while (await reader.ReadAsync()) { }
+                        }
+                    }
+
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Bağlantı başarılı: {info.Sunucu}");
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantısı başarılı.");
                 }
+
                 return true;
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
+                string mesaj;
+
+                switch (ex.Number)
+                {
+                    case 18456:
+                        mesaj = "SQL kimlik doğrulaması başarısız. Kullanıcı adı veya şifre hatalı.";
+                        break;
+                    case 4060:
+                        mesaj = "Bağlanılmak istenen veritabanına erişim izniniz yok.";
+                        break;
+                    case 229:
+                        mesaj = "Bu kullanıcı, veritabanı nesnelerine erişim yetkisine sahip değil.";
+                        break;
+                    default:
+                        mesaj = ex.Message;
+                        break;
+                }
+
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Bağlantı başarısız: {info.Sunucu} -> {ex.Message}");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantı hatası: {mesaj}");
+                MessageBox.Show(mesaj, "Bağlantı Hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
         }
+
 
         private async Task KaynakVeritabaniComboboxDoldur(BaglantiBilgileri info)
         {
@@ -125,7 +155,7 @@ namespace DataTransfer
                 return;
             }
 
-            string connStr = $"Server={info.Sunucu};Database=master;User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
+            string connStr = $"Server={info.Sunucu};Database=master;User Id={info.Kullanici};Password={info.Sifre};Connect Timeout=10;TrustServerCertificate=True;";
 
             try
             {
@@ -133,7 +163,7 @@ namespace DataTransfer
                 {
                     await conn.OpenAsync();
 
-                    string sql = "SELECT NAME FROM sys.databases ORDER BY name";
+                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name";
                     using (var cmd = new SqlCommand(sql, conn))
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -145,12 +175,24 @@ namespace DataTransfer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-                MessageBox.Show($"Kaynak veritabanları yüklenemedi: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxKaynakVeritabani.Items.Clear();
+
+                string mesaj = ex.Number switch
+                {
+                    18456 => "SQL kullanıcı adı veya şifre hatalı.",
+                    4060 => "Bu kullanıcı seçilen veritabanına erişemez.",
+                    229 => "Veritabanı erişim izniniz yok.",
+                    _ => ex.Message
+                };
+
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Kaynak veritabanı yüklenemedi.");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
+
+                MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
         }
 
 
@@ -164,7 +206,7 @@ namespace DataTransfer
                 return;
             }
 
-            string connStr = $"Server={info.Sunucu};Database=master;User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
+            string connStr = $"Server={info.Sunucu};Database=master;User Id={info.Kullanici};Password={info.Sifre};Connect Timeout=10;TrustServerCertificate=True;";
 
             try
             {
@@ -172,7 +214,7 @@ namespace DataTransfer
                 {
                     await conn.OpenAsync();
 
-                    string sql = "SELECT NAME FROM sys.databases ORDER BY name";
+                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name";
                     using (var cmd = new SqlCommand(sql, conn))
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -184,11 +226,23 @@ namespace DataTransfer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-                MessageBox.Show($"Hedef veritabanları yüklenemedi: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CmbboxHedefVeriTabani.Items.Clear();
+
+
+                string mesaj = ex.Number switch
+                {
+                    18456 => "SQL kullanıcı adı veya şifre hatalı.",
+                    4060 => "Bu kullanıcı seçilen veritabanına erişemez.",
+                    229 => "Veritabanı erişim izniniz yok.",
+                    _ => ex.Message
+                };
+
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add("Hedef veritabanı yüklenemedi.");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
+
+                MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
