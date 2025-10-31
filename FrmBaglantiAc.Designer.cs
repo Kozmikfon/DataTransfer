@@ -302,7 +302,7 @@
             Controls.Add(GrbboxHedef);
             Controls.Add(GrbboxKaynak);
             Name = "FrmBaglantiAc";
-            Text = "FrmBaglantiAc";
+            Text = "Bağlan";
             Load += FrmBaglantiAc_Load;
             GrbboxKaynak.ResumeLayout(false);
             GrbboxKaynak.PerformLayout();

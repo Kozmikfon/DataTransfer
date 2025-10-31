@@ -51,8 +51,8 @@ namespace DataTransfer
             Control.CheckForIllegalCrossThreadCalls = false;
             BtnEslesmeDogrula.Enabled = false;
             BtnTransferBaslat.Enabled = false;
-            BtnKynkKolonYukle.Enabled = false;
-            BtnHedefKolonYukle.Enabled = false;
+            //BtnKynkKolonYukle.Enabled = false;
+            //BtnHedefKolonYukle.Enabled = false;
             GrdEslestirme.Enabled = false;
             PrgsbarTransfer.Visible = false;
 
@@ -674,7 +674,7 @@ namespace DataTransfer
 
         private void CmbboxKaynaktablo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            KaynakSutunDoldur(HedefBilgileri);
+            KaynakSutunDoldur(KaynakBilgileri);
         }
 
         private void CmbboxHedefTablo_SelectedIndexChanged(object sender, EventArgs e)
