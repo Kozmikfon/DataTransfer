@@ -256,9 +256,10 @@ namespace DataTransfer
             };
 
             // 4. FrmVeriEslestirme'yi aç ve bilgileri aktar
-            FrmVeriEslestirme frm = new FrmVeriEslestirme(kaynak, hedef);
-            frm.Show();
+            FrmVeriEslestirme frm = new FrmVeriEslestirme(kaynak, hedef,this);
+            
             this.Hide();
+            frm.Show();
         }
 
         private void FrmBaglantiAc_Load(object sender, EventArgs e)

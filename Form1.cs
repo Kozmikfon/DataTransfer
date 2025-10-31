@@ -9,9 +9,10 @@ namespace DataTransfer
     {
         private BaglantiBilgileri KaynakBilgileri { get; set; }
         private BaglantiBilgileri HedefBilgileri { get; set; }
+        private FrmBaglantiAc _oncekiForm;
 
 
-        public FrmVeriEslestirme(BaglantiBilgileri kaynak, BaglantiBilgileri hedef)
+        public FrmVeriEslestirme(BaglantiBilgileri kaynak, BaglantiBilgileri hedef,FrmBaglantiAc oncekiForm)
         {
 
             InitializeComponent();
@@ -40,6 +41,7 @@ namespace DataTransfer
             CmbboxHedefTablo.DrawItem += CmbboxHedefTablo_DrawItem;
             KaynakBilgileri = kaynak;
             HedefBilgileri = hedef;
+            _oncekiForm = oncekiForm;
             this.Load += Form1_Load;
         }
 
@@ -1195,11 +1197,6 @@ namespace DataTransfer
             }
         }
 
-
-
-
-  
-
       
 
         private void BtnGrdTemizle_Click(object sender, EventArgs e)
@@ -1209,9 +1206,8 @@ namespace DataTransfer
 
         private void BtnGeriBaglanti_Click(object sender, EventArgs e)
         {
-            FrmBaglantiAc frm = new FrmBaglantiAc();
-            frm.Show();
-            this.Hide();
+            _oncekiForm.Show();
+            this.Close();
         }
 
         private void GrbboxButon_Enter(object sender, EventArgs e)
