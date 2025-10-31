@@ -12,6 +12,9 @@ namespace DataTransfer
         public BaglantiBilgileri KaynakBaglanti { get; private set; }
         public BaglantiBilgileri HedefBaglanti { get; private set; }
 
+        private bool kaynakTestBasarili = false;
+        private bool hedefTestBasarili = false;
+
         public FrmBaglantiAc()
         {
             InitializeComponent();
@@ -51,10 +54,12 @@ namespace DataTransfer
                     Sifre = TxboxHedefSifre.Text.Trim()
                 };
 
-                bool kaynakDurum = await BaglantiTestAsync(KaynakBaglanti);
-                bool hedefDurum = await BaglantiTestAsync(HedefBaglanti);
+               
 
-                if (kaynakDurum && hedefDurum)
+                kaynakTestBasarili = await BaglantiTestAsync(KaynakBaglanti);
+                hedefTestBasarili = await BaglantiTestAsync(HedefBaglanti);
+
+                if (kaynakTestBasarili && kaynakTestBasarili)
                 {
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Kaynak ve Hedef bağlantıları başarıyla açıldı.");
@@ -66,10 +71,14 @@ namespace DataTransfer
                     // Veritabanı comboboxlarını doldur
                     await KaynakVeritabaniComboboxDoldur(KaynakBaglanti);
                     await HedefVeritabaniComboboxDoldur(HedefBaglanti);
+                    CmbboxKaynakVeritabani.Enabled = true;
+                    CmbboxHedefVeriTabani.Enabled = true;
+                    BtnDevam.Enabled = true;
                 }
                 else
                 {
                     MessageBox.Show("Bağlantılardan biri veya her ikisi başarısız.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    BtnDevam.Enabled = false;
                 }
             }
             catch (Exception ex)
@@ -215,20 +224,20 @@ namespace DataTransfer
         // FrmBaglantiAc.cs
         private async void BtnDevam_Click(object sender, EventArgs e)
         {
-            // 1. Alanların dolu olduğunu kontrol et
-            if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
-                string.IsNullOrWhiteSpace(TxtKullanıcı.Text) ||
-                string.IsNullOrWhiteSpace(TxtSifre.Text) ||
-                string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
-                string.IsNullOrWhiteSpace(TxtboxHedefSunucu.Text) ||
-                string.IsNullOrWhiteSpace(TxboxHedefKullanici.Text) ||
-                string.IsNullOrWhiteSpace(TxboxHedefSifre.Text) ||
-                string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
+            // Bağlantı test edilmeden ilerleme
+            if (!kaynakTestBasarili || !hedefTestBasarili)
             {
-                MessageBox.Show("Lütfen tüm alanları doldurun.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Lütfen önce bağlantı testini başarıyla tamamlayın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
+            // Veritabanı seçimi zorunlu
+            if (string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
+                string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
+            {
+                MessageBox.Show("Lütfen her iki bağlantı için de veritabanı seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             // 2. BaglantiBilgilerini oluştur
             BaglantiBilgileri kaynak = new BaglantiBilgileri
             {
@@ -246,19 +255,6 @@ namespace DataTransfer
                 Veritabani = CmbboxHedefVeriTabani.Text.Trim()
             };
 
-            // 3. Bağlantıları test et
-            bool kaynakBasarili = await BaglantiTestAsync(kaynak);
-            bool hedefBasarili = await BaglantiTestAsync(hedef);
-
-            if (!kaynakBasarili || !hedefBasarili)
-            {
-                MessageBox.Show("Bağlantılardan biri veya her ikisi başarısız.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            await KaynakVeritabaniComboboxDoldur(kaynak);
-            await HedefVeritabaniComboboxDoldur(hedef);
-
             // 4. FrmVeriEslestirme'yi aç ve bilgileri aktar
             FrmVeriEslestirme frm = new FrmVeriEslestirme(kaynak, hedef);
             frm.Show();
@@ -267,7 +263,10 @@ namespace DataTransfer
 
         private void FrmBaglantiAc_Load(object sender, EventArgs e)
         {
-
+            // Başlangıçta devre dışı
+            BtnDevam.Enabled = false;
+            CmbboxKaynakVeritabani.Enabled = false;
+            CmbboxHedefVeriTabani.Enabled = false;
         }
     }
 }
