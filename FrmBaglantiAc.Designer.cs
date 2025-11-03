@@ -51,13 +51,14 @@
             BtnBaglantiTest = new Button();
             LstboxLog = new ListBox();
             BtnDevam = new Button();
+            PrgsbarBaglanti = new ProgressBar();
             GrbboxKaynak.SuspendLayout();
             GrbboxHedef.SuspendLayout();
             SuspendLayout();
             // 
             // GrbboxKaynak
             // 
-            GrbboxKaynak.BackColor = SystemColors.GradientInactiveCaption;
+            GrbboxKaynak.BackColor = SystemColors.ButtonFace;
             GrbboxKaynak.Controls.Add(CmbboxKaynakVeritabani);
             GrbboxKaynak.Controls.Add(lblKynkVeri);
             GrbboxKaynak.Controls.Add(CkboxSifreGoster);
@@ -161,7 +162,7 @@
             // GrbboxHedef
             // 
             GrbboxHedef.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            GrbboxHedef.BackColor = SystemColors.GradientInactiveCaption;
+            GrbboxHedef.BackColor = SystemColors.ButtonFace;
             GrbboxHedef.Controls.Add(LblHdfVeri);
             GrbboxHedef.Controls.Add(CmbboxHedefVeriTabani);
             GrbboxHedef.Controls.Add(ChkboxHedefSifre);
@@ -266,7 +267,7 @@
             BtnBaglantiTest.BackColor = Color.White;
             BtnBaglantiTest.Location = new Point(414, 260);
             BtnBaglantiTest.Name = "BtnBaglantiTest";
-            BtnBaglantiTest.Size = new Size(146, 42);
+            BtnBaglantiTest.Size = new Size(106, 52);
             BtnBaglantiTest.TabIndex = 19;
             BtnBaglantiTest.Text = "Bağlantı Test Et";
             BtnBaglantiTest.UseVisualStyleBackColor = false;
@@ -283,19 +284,29 @@
             // 
             // BtnDevam
             // 
-            BtnDevam.Location = new Point(634, 259);
+            BtnDevam.Location = new Point(685, 260);
             BtnDevam.Name = "BtnDevam";
-            BtnDevam.Size = new Size(146, 43);
+            BtnDevam.Size = new Size(95, 52);
             BtnDevam.TabIndex = 21;
             BtnDevam.Text = "İlerle";
             BtnDevam.UseVisualStyleBackColor = true;
             BtnDevam.Click += BtnDevam_Click;
+            // 
+            // PrgsbarBaglanti
+            // 
+            PrgsbarBaglanti.Location = new Point(538, 260);
+            PrgsbarBaglanti.Name = "PrgsbarBaglanti";
+            PrgsbarBaglanti.Size = new Size(131, 52);
+            PrgsbarBaglanti.Style = ProgressBarStyle.Continuous;
+            PrgsbarBaglanti.TabIndex = 22;
+            PrgsbarBaglanti.Visible = false;
             // 
             // FrmBaglantiAc
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(792, 430);
+            Controls.Add(PrgsbarBaglanti);
             Controls.Add(BtnDevam);
             Controls.Add(LstboxLog);
             Controls.Add(BtnBaglantiTest);
@@ -336,5 +347,6 @@
         private ComboBox CmbboxHedefVeriTabani;
         private ListBox LstboxLog;
         private Button BtnDevam;
+        private ProgressBar PrgsbarBaglanti;
     }
 }

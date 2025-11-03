@@ -36,9 +36,11 @@ namespace DataTransfer
             BtnBaglantiTest.Enabled = false;
             BtnBaglantiTest.Text = "Bağlantı Testi Yapılıyor...";
 
+            ProgresBarBaslat();
+
             try
             {
-                // Kaynak bağlantı bilgileri
+                ProgresBarGuncelle(10);
                 KaynakBaglanti = new BaglantiBilgileri
                 {
                     Sunucu = TxtboxKaynakSunucu.Text.Trim(),
@@ -46,7 +48,6 @@ namespace DataTransfer
                     Sifre = TxtSifre.Text.Trim()
                 };
 
-                // Hedef bağlantı bilgileri
                 HedefBaglanti = new BaglantiBilgileri
                 {
                     Sunucu = TxtboxHedefSunucu.Text.Trim(),
@@ -54,35 +55,45 @@ namespace DataTransfer
                     Sifre = TxboxHedefSifre.Text.Trim()
                 };
 
-
+                ProgresBarGuncelle(50);
 
                 kaynakTestBasarili = await BaglantiTestAsync(KaynakBaglanti);
-                hedefTestBasarili = await BaglantiTestAsync(HedefBaglanti);
+                ProgresBarGuncelle(55);
 
-                if (kaynakTestBasarili && kaynakTestBasarili)
+                hedefTestBasarili = await BaglantiTestAsync(HedefBaglanti);
+                ProgresBarGuncelle(75);
+
+                if (kaynakTestBasarili && hedefTestBasarili)
                 {
+                    ProgresBarGuncelle(85);
+
+                    await KaynakVeritabaniComboboxDoldur(KaynakBaglanti);
+                    ProgresBarGuncelle(92);
+
+                    await HedefVeritabaniComboboxDoldur(HedefBaglanti);
+                    ProgresBarGuncelle(100);
+
+                    ProgresBarBitir(true);
+
                     LstboxLog.ForeColor = Color.Green;
                     LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Kaynak ve Hedef bağlantıları başarıyla açıldı.");
 
-
-
                     MessageBox.Show("Bağlantılar başarılı!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Veritabanı comboboxlarını doldur
-                    await KaynakVeritabaniComboboxDoldur(KaynakBaglanti);
-                    await HedefVeritabaniComboboxDoldur(HedefBaglanti);
                     CmbboxKaynakVeritabani.Enabled = true;
                     CmbboxHedefVeriTabani.Enabled = true;
                     BtnDevam.Enabled = true;
                 }
                 else
                 {
+                    ProgresBarBitir(false);
                     MessageBox.Show("Bağlantılardan biri veya her ikisi başarısız.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     BtnDevam.Enabled = false;
                 }
             }
             catch (Exception ex)
             {
+                ProgresBarBitir(false);
                 LstboxLog.ForeColor = Color.Red;
                 LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Hata: {ex.Message}");
                 MessageBox.Show($"Bağlantı sırasında hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -93,6 +104,7 @@ namespace DataTransfer
                 BtnBaglantiTest.Text = "Bağlantıyı Test Et";
             }
         }
+
 
         private async Task<bool> BaglantiTestAsync(BaglantiBilgileri info)
         {
@@ -442,6 +454,34 @@ namespace DataTransfer
                 MessageBox.Show($"Beklenmeyen hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CmbboxHedefVeriTabani.SelectedIndex = -1;
             }
+        }
+        private void ProgresBarBaslat()
+        {
+            PrgsbarBaglanti.Visible = true;
+            PrgsbarBaglanti.Value = 0;
+            PrgsbarBaglanti.ForeColor = Color.DodgerBlue;
+            PrgsbarBaglanti.Refresh();
+        }
+        private void ProgresBarGuncelle(int value)
+        {
+            if (value < 0)
+                value = 0;
+
+            if (value > 100)
+                value = 100;
+
+            PrgsbarBaglanti.Value = value;
+            PrgsbarBaglanti.Refresh();
+
+        }
+        private void ProgresBarBitir(bool basarili)
+        {
+            PrgsbarBaglanti.Value = 100;
+            PrgsbarBaglanti.ForeColor = Color.Green;
+
+            PrgsbarBaglanti.Refresh();
+            Task.Delay(500).Wait();
+            PrgsbarBaglanti.Visible = false;
         }
     }
 }
