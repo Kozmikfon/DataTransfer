@@ -144,9 +144,9 @@
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
-            BtnTransferBaslat.Text = "transferi başlat";
+            BtnTransferBaslat.Text = "Transferi Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
-            BtnTransferBaslat.Click += BtnTransferBaslat_Click_1;
+            BtnTransferBaslat.Click += BtnTransferBaslat_Click;
             // 
             // prgTransfer
             // 
