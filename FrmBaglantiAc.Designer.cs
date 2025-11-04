@@ -279,7 +279,7 @@
             LstboxLog.ItemHeight = 15;
             LstboxLog.Location = new Point(12, 260);
             LstboxLog.Name = "LstboxLog";
-            LstboxLog.Size = new Size(345, 139);
+            LstboxLog.Size = new Size(354, 139);
             LstboxLog.TabIndex = 20;
             // 
             // BtnDevam

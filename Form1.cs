@@ -373,7 +373,7 @@ namespace DataTransfer
             string tablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
             if (RdoBtnTumSatır.Checked)
             {
-                MessageBox.Show("All rows seçili => filtre testi gerekmiyor.");
+                MessageBox.Show("Tüm satırlar seçili filtre testi için gerekmiyor");
                 return;
             }
 
