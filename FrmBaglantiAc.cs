@@ -76,7 +76,7 @@ namespace DataTransfer
                     ProgresBarBitir(true);
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Kaynak ve Hedef bağlantıları başarıyla açıldı.");
+                    LogEkle($"[{DateTime.Now:HH:mm:ss}] Kaynak ve Hedef bağlantıları başarıyla açıldı.");
 
                     MessageBox.Show("Bağlantılar başarılı!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -95,7 +95,7 @@ namespace DataTransfer
             {
                 ProgresBarBitir(false);
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] Hata: {ex.Message}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] Hata: {ex.Message}");
                 MessageBox.Show($"Bağlantı sırasında hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -124,7 +124,7 @@ namespace DataTransfer
                     }
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantısı başarılı.");
+                    LogEkle($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantısı başarılı.");
                 }
 
                 return true;
@@ -150,7 +150,7 @@ namespace DataTransfer
                 }
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantı hatası: {mesaj}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] {info.Sunucu} bağlantı hatası: {mesaj}");
                 MessageBox.Show(mesaj, "Bağlantı Hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
@@ -200,7 +200,7 @@ namespace DataTransfer
                 } : ex.Message;
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
 
                 MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -253,7 +253,7 @@ namespace DataTransfer
                 } : ex.Message;
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] ({info.Sunucu}) Hata: {mesaj}");
 
                 MessageBox.Show(mesaj, "Veritabanı Erişim Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -386,7 +386,7 @@ namespace DataTransfer
                     }
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                    LogEkle($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
                 }
             }
             catch (SqlException ex)
@@ -400,7 +400,7 @@ namespace DataTransfer
                 };
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
                 MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // Hatalı seçim durumunda geri al
@@ -430,7 +430,7 @@ namespace DataTransfer
                     }
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                    LogEkle($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
                 }
             }
             catch (SqlException ex)
@@ -444,7 +444,7 @@ namespace DataTransfer
                 };
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                LogEkle($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
                 MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 CmbboxHedefVeriTabani.SelectedIndex = -1;
@@ -482,6 +482,18 @@ namespace DataTransfer
             PrgsbarBaglanti.Refresh();
             Task.Delay(500).Wait();
             PrgsbarBaglanti.Visible = false;
+        }
+
+        private void LogEkle(string mesaj)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string>(LogEkle), mesaj);
+                return;
+            }
+
+            LogEkle($"[{DateTime.Now:HH:mm:ss}] {mesaj}");
+            LstboxLog.TopIndex = LstboxLog.Items.Count - 1; //scroll otomatik alta
         }
     }
 }

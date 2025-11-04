@@ -41,9 +41,6 @@ namespace DataTransfer
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
 
 
-
-
-
             this.Load += FrmVeriEslestirme_Load;
         }
 
@@ -313,9 +310,6 @@ namespace DataTransfer
         }
 
 
-
-
-
         private void BtnSutunYkle_Click(object sender, EventArgs e)
         {
 
@@ -410,7 +404,7 @@ namespace DataTransfer
                     await conn.OpenAsync();
                     var cnt = await cmd.ExecuteScalarAsync();
                     MessageBox.Show($"Filtre testi başarılı: {cnt} satır döndü.");
-                    lstLog.Items.Add($"Filtre testi başarılı: {cnt} rows for WHERE {where}");
+                    LogEkle($"Filtre testi başarılı: {cnt} rows for WHERE {where}");
                 }
             }
             catch (Exception ex)
@@ -591,8 +585,8 @@ namespace DataTransfer
                 return;
             }
 
-            lstLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {mesaj}");
-            lstLog.TopIndex = lstLog.Items.Count - 1;
+            LogEkle($"[{DateTime.Now:HH:mm:ss}] {mesaj}");
+            lstLog.TopIndex = lstLog.Items.Count - 1; //scroll otomatik alta
         }
 
 
@@ -605,9 +599,9 @@ namespace DataTransfer
 
         private async void FrmVeriEslestirme_Load(object sender, EventArgs e)
         {
-            lstLog.Items.Add("Tablolar yükleniyor");
+            LogEkle("Tablolar yükleniyor");
             await TablolarıAgacaYukleAsync();
-            lstLog.Items.Add("Tablolar yüklendi");
+            LogEkle("Tablolar yüklendi");
             RdoBtnTumSatır.Checked = true;
         }
     }
