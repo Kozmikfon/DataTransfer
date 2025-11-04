@@ -23,6 +23,7 @@ namespace DataTransfer
 
             kaynak = kaynakBilgi;
             hedef = hedefBilgi;
+
             _oncekiForm = oncekiForm;
 
             GridBaslat();
@@ -33,17 +34,20 @@ namespace DataTransfer
             BtnSutunYkle.Click += BtnSutunYkle_Click;
             BtnOtomatikEsle.Click += BtnOtomatikEsle_Click;
             BtnStrEkle.Click += BtnStrEkle_Click;
-            BtnStrSil.Click += BtnStrEkle_Click;
+            BtnStrSil.Click += BtnStrSil_Click;
             BtnFiltreTest.Click += BtnFiltreTest_Click;
             BtnTransferBaslat.Click += BtnTransferBaslat_Click_1;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
 
 
+
+
+
             this.Load += FrmVeriEslestirme_Load;
         }
 
-        private void GridBaslat() // ikitablo arası eşlestiremyi gösteriri
+        private void GridBaslat() // iki tablo arası eşlestiremyi gösteriri
         {
             GrdEslestirme.AutoGenerateColumns = false; //otomaitk kolon oluşturmaaz
             GrdEslestirme.Columns.Clear();
@@ -59,14 +63,7 @@ namespace DataTransfer
             GrdEslestirme.AllowUserToAddRows = false; // kullanıcı bofş satır ekleyemez
         }
 
-        private async void FrmVeriEslestirme_Load(object sender, EventArgs e)
-        {
 
-            lstLog.Items.Add("Tablolar yükleniyor");
-            await TablolarıAgacaYukleAsync();
-            lstLog.Items.Add("Tablolar yüklendi");
-            RdoBtnTumSatır.Checked = true;
-        }
 
 
         private async Task TablolarıAgacaYukleAsync()
@@ -133,9 +130,12 @@ namespace DataTransfer
 
         private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e)//seçilen tabloya göre hedef kolonları yükle 
         {
-            if (e.Node == null) return;
+
+            if (e.Node == null)
+                return;
             string tablo = e.Node.Tag?.ToString();
-            if (string.IsNullOrWhiteSpace(tablo)) return;
+            if (string.IsNullOrWhiteSpace(tablo))
+                return;
 
             lstLog.Items.Add($"HEdef tablolar: {tablo}");
             HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, tablo);
@@ -222,12 +222,7 @@ namespace DataTransfer
                 KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
         }
 
-        private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0)
-                return;
-            KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
-        }
+
 
         private void KontrolEt(DataGridViewRow row)
         {
@@ -289,13 +284,14 @@ namespace DataTransfer
             }
         }
 
-       
+
 
         private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
         {
             var liste = new List<(string KaynakKolon, string HedefKolon)>();
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
+                KontrolEt(row);
                 if (row.IsNewRow) continue;
                 if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
 
@@ -309,16 +305,6 @@ namespace DataTransfer
             return liste;
         }
 
-        
-
-        private void FrmVeriEslestirme_Load_1(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-
 
         private void BtnGeri_Click(object sender, EventArgs e)
         {
@@ -326,20 +312,7 @@ namespace DataTransfer
             this.Close();
         }
 
-        private void BtnSutunYukle_Click(object sender, EventArgs e)
-        {
-            // reload both if selected nodes exist
-            if (TrwKaynakTablolar.SelectedNode != null)
-            {
-                var n = TrwKaynakTablolar.SelectedNode.Tag?.ToString();
-                if (!string.IsNullOrWhiteSpace(n)) TrwKaynakTablolar_AfterSelect(this, new TreeViewEventArgs(TrwKaynakTablolar.SelectedNode));
-            }
-            if (TrwHedefTablolar.SelectedNode != null)
-            {
-                var n = TrwHedefTablolar.SelectedNode.Tag?.ToString();
-                if (!string.IsNullOrWhiteSpace(n)) TrwHedefTablolar_AfterSelect(this, new TreeViewEventArgs(TrwHedefTablolar.SelectedNode));
-            }
-        }
+
 
 
 
@@ -449,7 +422,6 @@ namespace DataTransfer
 
         private async void BtnTransferBaslat_Click_1(object sender, EventArgs e)
         {
-           
             if (TrwKaynakTablolar.SelectedNode == null || TrwHedefTablolar.SelectedNode == null)
             {
                 MessageBox.Show("Kaynak ve hedef tablo seçin.");
@@ -466,120 +438,177 @@ namespace DataTransfer
             string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
             string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
 
-            // kolon listesi
-            var kaynakKolonList = eslesmeler.Select(e2 => e2.KaynakKolon).ToList();
-
-            prgTransfer.Style = ProgressBarStyle.Marquee;
             BtnTransferBaslat.Enabled = false;
-            lstLog.Items.Add("Transfer başlıyor...");
+            prgTransfer.Value = 0;
+            prgTransfer.Style = ProgressBarStyle.Continuous;
+            LogEkle("Transfer başlıyor...");
 
             try
             {
-                //  Kaynak veriyi çekme
+                var kaynakKolonList = eslesmeler.Select(e2 => e2.KaynakKolon).ToList();
+                string kaynakConnStr = ConnectionString(kaynak);
+                string hedefConnStr = ConnectionString(hedef);
+
+                // 1️⃣ Kaynak veriyi çek
                 DataTable kaynakVeri = await Task.Run(() =>
-                {
-                    string conn = $"Server={kaynak.Sunucu};Database={kaynak.Veritabani};User Id={kaynak.Kullanici};Password={kaynak.Sifre};TrustServerCertificate=True;";
-                    string kolList = string.Join(", ", kaynakKolonList.Select(c => $"[{c}]"));
-                    string where = "";
-                    if (RdoBtnFiltre.Checked && !string.IsNullOrWhiteSpace(TxtFiltreleme.Text))
-                        where = " WHERE " + TxtFiltreleme.Text;
-                    string sql = $"SELECT {kolList} FROM [{kaynakTablo}]{where}";
-                    var dt = new DataTable();
-                    using (var c = new SqlConnection(conn))
-                    using (var da = new SqlDataAdapter(sql, c))
-                    {
-                        da.Fill(dt);
-                    }
-                    return dt;
-                });
+                    GetDataTable(kaynakConnStr, kaynakTablo, kaynakKolonList, TxtFiltreleme.Text)
+                );
 
                 if (kaynakVeri == null || kaynakVeri.Rows.Count == 0)
                 {
+                    LogEkle("Kaynakta veri yok - transfer iptal.");
                     MessageBox.Show("Kaynakta veri yok.");
-                    lstLog.Items.Add("Kaynakta veri yok - transfer iptal.");
                     return;
                 }
 
-                // 2) Hedefte mevcutları çek (mükerrer kontrolü)
-                DataTable hedefVeri = new DataTable();
-                string hedefConnStr = $"Server={hedef.Sunucu};Database={hedef.Veritabani};User Id={hedef.Kullanici};Password={hedef.Sifre};TrustServerCertificate=True;";
-                using (var conn = new SqlConnection(hedefConnStr))
-                {
-                    await conn.OpenAsync();
-                    string hedefKolList = string.Join(", ", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
-                    string sqlHedef = $"SELECT {hedefKolList} FROM [{hedefTablo}]";
-                    using (var da = new SqlDataAdapter(sqlHedef, conn))
-                    {
-                        da.Fill(hedefVeri);
-                    }
-                }
+                // 2️⃣ Hedef veriyi çek
+                var hedefKolonList = eslesmeler.Select(x => x.HedefKolon).ToList();
+                DataTable hedefVeri = await Task.Run(() =>
+                    GetDataTable(hedefConnStr, hedefTablo, hedefKolonList)
+                );
 
-                // 3) Yeni kayıtları filtrele
+                // 3️⃣ Yeni kayıtları bul
                 var yeniDt = kaynakVeri.Clone();
+                var hedefSet = new HashSet<string>(
+                    hedefVeri.AsEnumerable().Select(r => string.Join("|", hedefKolonList.Select(c => r[c]?.ToString() ?? "")))
+                );
+
+                int total = kaynakVeri.Rows.Count;
+                int processed = 0;
+
                 foreach (DataRow kr in kaynakVeri.Rows)
                 {
-                    bool exists = false;
-                    foreach (DataRow hr in hedefVeri.Rows)
+                    string key = string.Join("|", kaynakKolonList.Select(c => kr[c]?.ToString() ?? ""));
+                    if (!hedefSet.Contains(key))
+                        yeniDt.ImportRow(kr);
+
+                    processed++;
+
+                    if (processed % 100 == 0 || processed == total)
                     {
-                        bool allEq = true;
-                        for (int i = 0; i < eslesmeler.Count; i++)
-                        {
-                            var kcol = eslesmeler[i].KaynakKolon;
-                            var hcol = eslesmeler[i].HedefKolon;
-
-                            var kval = kr[kcol];
-                            var hval = hr[hcol];
-
-                            if (!object.Equals(kval, hval))
-                            {
-                                allEq = false;
-                                break;
-                            }
-                        }
-                        if (allEq) { exists = true; break; }
+                        int progress = (int)((processed / (double)total) * 100);
+                        ProgresGuncelle(progress);
                     }
-
-                    if (!exists) yeniDt.Rows.Add(kr.ItemArray);
                 }
 
                 if (yeniDt.Rows.Count == 0)
                 {
+                    LogEkle("Yeni kayıt yok.");
                     MessageBox.Show("Yeni aktarılacak kayıt yok.");
-                    lstLog.Items.Add("Yeni kayıt yok.");
                     return;
                 }
 
-                // 4) BulkCopy
-                using (var conn = new SqlConnection(hedefConnStr))
-                using (var bulk = new SqlBulkCopy(conn))
-                {
-                    await conn.OpenAsync();
-                    bulk.DestinationTableName = hedefTablo;
-                    bulk.BatchSize = 1000;
+               
+                await ProgresBar(hedefConnStr, hedefTablo, yeniDt, eslesmeler);
 
-                    bulk.ColumnMappings.Clear();
-                    foreach (var (kcol, hcol) in eslesmeler)
-                    {
-                        if (!yeniDt.Columns.Contains(kcol)) continue;
-                        bulk.ColumnMappings.Add(kcol, hcol);
-                    }
-
-                    await bulk.WriteToServerAsync(yeniDt);
-                }
-
+                LogEkle($"Transfer başarılı: {yeniDt.Rows.Count} satır aktarıldı.");
                 MessageBox.Show($"Transfer tamamlandı. {yeniDt.Rows.Count} satır aktarıldı.");
-                lstLog.Items.Add($"Transfer başarılı: {yeniDt.Rows.Count} rows.");
+               
             }
             catch (Exception ex)
             {
+                LogEkle($"Transfer hatası: {ex.Message}");
                 MessageBox.Show($"Transfer hatası: {ex.Message}");
-                lstLog.Items.Add($"Transfer error: {ex.Message}");
             }
             finally
             {
-                prgTransfer.Style = ProgressBarStyle.Blocks;
+                prgTransfer.Value = 100;
                 BtnTransferBaslat.Enabled = true;
+
+                await Task.Delay(500);
+                prgTransfer.Value = 0;
+
             }
+        }
+
+        
+        private string ConnectionString(BaglantiBilgileri b) =>
+
+            $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
+
+      
+        private DataTable GetDataTable(string connStr, string tablo, List<string> kolonlar, string where = "")
+        {
+            string kolList = string.Join(", ", kolonlar.Select(c => $"[{c}]"));
+            string sql = $"SELECT {kolList} FROM [{tablo}]";
+            if (!string.IsNullOrWhiteSpace(where))
+                sql += " WHERE " + where;
+
+            var dt = new DataTable();
+            using (var conn = new SqlConnection(connStr))
+            using (var da = new SqlDataAdapter(sql, conn))
+            {
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+      
+        private async Task ProgresBar(string connStr, string hedefTablo, DataTable dt, List<(string KaynakKolon, string HedefKolon)> eslesmeler)
+        {
+            using (var conn = new SqlConnection(connStr))
+            using (var bulk = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, null))
+            {
+                await conn.OpenAsync();
+                bulk.DestinationTableName = hedefTablo;
+                bulk.BatchSize = 1000;
+
+                foreach (var (kcol, hcol) in eslesmeler)
+                {
+                    if (dt.Columns.Contains(kcol))
+                        bulk.ColumnMappings.Add(kcol, hcol);
+                }
+
+                // İlerleme eventi
+                bulk.SqlRowsCopied += (s, e) =>
+                {
+                    int progress = (int)((e.RowsCopied / (double)dt.Rows.Count) * 100);
+                    ProgresGuncelle(progress);
+                };
+                bulk.NotifyAfter = 500;
+
+                await bulk.WriteToServerAsync(dt);
+            }
+        }
+
+        private void ProgresGuncelle(int degisim)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<int>(ProgresGuncelle), degisim);
+                return;
+            }
+
+            prgTransfer.Value = Math.Min(degisim, 100);
+            LogEkle($"%{degisim} tamamlandı...");
+        }
+
+        private void LogEkle(string mesaj)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string>(LogEkle), mesaj);
+                return;
+            }
+
+            lstLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {mesaj}");
+            lstLog.TopIndex = lstLog.Items.Count - 1;
+        }
+
+
+        private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var row = GrdEslestirme.Rows[e.RowIndex];
+            KontrolEt(row);
+        }
+
+        private async void FrmVeriEslestirme_Load(object sender, EventArgs e)
+        {
+            lstLog.Items.Add("Tablolar yükleniyor");
+            await TablolarıAgacaYukleAsync();
+            lstLog.Items.Add("Tablolar yüklendi");
+            RdoBtnTumSatır.Checked = true;
         }
     }
 }

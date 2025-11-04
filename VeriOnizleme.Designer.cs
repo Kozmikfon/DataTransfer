@@ -42,6 +42,7 @@
             GrdOnizleme.Name = "GrdOnizleme";
             GrdOnizleme.Size = new Size(563, 290);
             GrdOnizleme.TabIndex = 0;
+            GrdOnizleme.CellContentClick += GrdOnizleme_CellContentClick;
             // 
             // BtnOnayla
             // 

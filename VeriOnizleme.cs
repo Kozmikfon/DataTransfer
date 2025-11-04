@@ -46,5 +46,10 @@ namespace DataTransfer
             Onaylandi = false;
             this.Close();
         }
+
+        private void GrdOnizleme_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
     }
 }

@@ -98,9 +98,9 @@
             // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(342, 125);
+            BtnOtomatikEsle.Location = new Point(323, 125);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(93, 72);
+            BtnOtomatikEsle.Size = new Size(112, 72);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -130,18 +130,19 @@
             // 
             GrdEslestirme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdEslestirme.Location = new Point(12, 206);
+            GrdEslestirme.Location = new Point(12, 215);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(976, 260);
+            GrdEslestirme.Size = new Size(976, 251);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
+            GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             // 
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            BtnTransferBaslat.Location = new Point(832, 472);
+            BtnTransferBaslat.Location = new Point(832, 479);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
-            BtnTransferBaslat.Size = new Size(156, 80);
+            BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
             BtnTransferBaslat.Text = "transferi başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
@@ -150,9 +151,9 @@
             // prgTransfer
             // 
             prgTransfer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            prgTransfer.Location = new Point(618, 472);
+            prgTransfer.Location = new Point(618, 479);
             prgTransfer.Name = "prgTransfer";
-            prgTransfer.Size = new Size(200, 80);
+            prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
             // 
             // lstLog
@@ -162,7 +163,7 @@
             lstLog.ItemHeight = 15;
             lstLog.Location = new Point(12, 560);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(976, 109);
+            lstLog.Size = new Size(976, 94);
             lstLog.TabIndex = 9;
             // 
             // BtnGeri
@@ -232,6 +233,8 @@
             // 
             // FrmVeriEslestirme
             // 
+            AutoScaleMode = AutoScaleMode.Inherit;
+            BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1000, 705);
             Controls.Add(BtnGeri);
             Controls.Add(lstLog);
@@ -240,9 +243,10 @@
             Controls.Add(GrbBoxFiltreleme);
             Controls.Add(GrdEslestirme);
             Controls.Add(splitContainerMain);
+            FormBorderStyle = FormBorderStyle.FixedToolWindow;
             Name = "FrmVeriEslestirme";
             Text = "Veri Transferi";
-            Load += FrmVeriEslestirme_Load_1;
+            Load += FrmVeriEslestirme_Load;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).EndInit();
