@@ -108,7 +108,7 @@
             // 
             // TxtSifre
             // 
-            TxtSifre.Location = new Point(129, 103);
+            TxtSifre.Location = new Point(128, 103);
             TxtSifre.Multiline = true;
             TxtSifre.Name = "TxtSifre";
             TxtSifre.PasswordChar = '*';
@@ -294,9 +294,9 @@
             // 
             // PrgsbarBaglanti
             // 
-            PrgsbarBaglanti.Location = new Point(538, 260);
+            PrgsbarBaglanti.Location = new Point(526, 307);
             PrgsbarBaglanti.Name = "PrgsbarBaglanti";
-            PrgsbarBaglanti.Size = new Size(131, 52);
+            PrgsbarBaglanti.Size = new Size(150, 29);
             PrgsbarBaglanti.Style = ProgressBarStyle.Continuous;
             PrgsbarBaglanti.TabIndex = 22;
             PrgsbarBaglanti.Visible = false;

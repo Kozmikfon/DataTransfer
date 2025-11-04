@@ -151,7 +151,7 @@
             // prgTransfer
             // 
             prgTransfer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            prgTransfer.Location = new Point(618, 479);
+            prgTransfer.Location = new Point(626, 479);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;

@@ -13,9 +13,11 @@ namespace DataTransfer
         private FrmBaglantiAc _oncekiForm;
 
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar = 
+            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgileri tutulmak için sözlük olustutkdu.
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar = 
+            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
 
         public FrmVeriEslestirme(BaglantiBilgileri kaynakBilgi, BaglantiBilgileri hedefBilgi, FrmBaglantiAc oncekiForm)
         {
@@ -23,11 +25,9 @@ namespace DataTransfer
 
             kaynak = kaynakBilgi;
             hedef = hedefBilgi;
-
             _oncekiForm = oncekiForm;
 
             GridBaslat();
-
             this.Load += FrmVeriEslestirme_Load;
         }
 
@@ -60,7 +60,7 @@ namespace DataTransfer
                 foreach (var t in KaynakTablo.OrderBy(x => x))
                     TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t });//treewiew kontrolüne ekleme işlemi
 
-                // hedef tablolar
+                
                 var HedefTablo = await TabloGetirAsync(hedef);
                 TrwHedefTablolar.Nodes.Clear();
                 foreach (var t in HedefTablo.OrderBy(x => x))
@@ -102,14 +102,18 @@ namespace DataTransfer
 
         private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçilince kolonları yükle
         {
-            if (e.Node == null) return;
+            if (e.Node == null) 
+                return;
+
             string tablo = e.Node.Tag?.ToString();
-            if (string.IsNullOrWhiteSpace(tablo)) return;
+
+            if (string.IsNullOrWhiteSpace(tablo)) 
+                return;
 
             lstLog.Items.Add($"Kaynak Tablolar: {tablo}");
-            // yükle kolonları
-            KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, tablo);
-            KaynakSutunuGetir(KaynakKolonlar);
+            
+            KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, tablo); //treeview kolon yüklenince kaynak kolonlar sözlüğüne atılıyor
+            KaynakSutunBilgileriGetir(KaynakKolonlar);
         }
 
         private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e)//seçilen tabloya göre hedef kolonları yükle 
@@ -117,11 +121,13 @@ namespace DataTransfer
 
             if (e.Node == null)
                 return;
+
             string tablo = e.Node.Tag?.ToString();
+
             if (string.IsNullOrWhiteSpace(tablo))
                 return;
 
-            lstLog.Items.Add($"HEdef tablolar: {tablo}");
+            lstLog.Items.Add($"Hedef tablolar: {tablo}");
             HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, tablo);
 
             HedefGuncelle(HedefKolonlar.Keys.ToList());//
@@ -129,17 +135,18 @@ namespace DataTransfer
 
 
 
-        private void KaynakSutunuGetir(Dictionary<string, (string DataType, int? Length, bool IsNullable)> kaynakCols)//dictionayden gelen kolon bilgilerini gride yükleme
+        private void KaynakSutunBilgileriGetir(Dictionary<string, (string DataType, int? Length, bool IsNullable)> kaynakKolon)//dictionayden gelen kolon bilgilerini gride yükleme kaynak kolonları ama
         {
             GrdEslestirme.Rows.Clear();
-            foreach (var kv in kaynakCols)
+            foreach (var kaynak in kaynakKolon)
             {
-                int idx = GrdEslestirme.Rows.Add();
-                var row = GrdEslestirme.Rows[idx];
-                row.Cells["KaynakKolon"].Value = kv.Key;
-                row.Cells["Tip"].Value = kv.Value.DataType;
-                row.Cells["Uzunluk"].Value = kv.Value.Length?.ToString() ?? "";
-                row.Cells["Nullable"].Value = kv.Value.IsNullable ? "YES" : "NO";
+                int satır = GrdEslestirme.Rows.Add();
+                var row = GrdEslestirme.Rows[satır];
+
+                row.Cells["KaynakKolon"].Value = kaynak.Key;
+                row.Cells["Tip"].Value = kaynak.Value.DataType;
+                row.Cells["Uzunluk"].Value = kaynak.Value.Length?.ToString() ?? "";
+                row.Cells["Nullable"].Value = kaynak.Value.IsNullable ? "YES" : "NO";
                 row.Cells["Uygunluk"].Value = "";
             }
         }
@@ -315,13 +322,15 @@ namespace DataTransfer
             }
         }
 
-        private void BtnOtomatikEsle_Click(object sender, EventArgs e)
+        private void BtnOtomatikEsle_Click(object sender, EventArgs e)// isim bazlı
         {
             var hedefList = HedefKolonlar.Keys.ToList();
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
                 var source = row.Cells["KaynakKolon"].Value?.ToString();
-                if (string.IsNullOrWhiteSpace(source)) continue;
+
+                if (string.IsNullOrWhiteSpace(source)) 
+                    continue;
 
                 var match = hedefList.FirstOrDefault(h => h.Equals(source, StringComparison.OrdinalIgnoreCase));
                 if (match != null)
@@ -387,6 +396,7 @@ namespace DataTransfer
             try
             {
                 string connStr = $"Server={kaynak.Sunucu};Database={kaynak.Veritabani};User Id={kaynak.Kullanici};Password={kaynak.Sifre};TrustServerCertificate=True;";
+
                 string sql = $"SELECT COUNT(1) FROM [{tablo}] WHERE {where}";
                 using (var conn = new SqlConnection(connStr))
                 using (var cmd = new SqlCommand(sql, conn))
