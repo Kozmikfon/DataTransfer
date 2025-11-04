@@ -111,7 +111,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Tablo Yukleme hatası ({info.Sunucu}): {ex.Message}");
+                LogEkle($"Tablo Yukleme hatası ({info.Sunucu}): {ex.Message}");
             }
             return list;
         }
@@ -122,7 +122,7 @@ namespace DataTransfer
             string tablo = e.Node.Tag?.ToString();
             if (string.IsNullOrWhiteSpace(tablo)) return;
 
-            lstLog.Items.Add($"Kaynak Tablolar: {tablo}");
+            LogEkle($"Kaynak Tablolar: {tablo}");
             // yükle kolonları
             KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, tablo);
             KaynakSutunuGetir(KaynakKolonlar);
@@ -137,7 +137,7 @@ namespace DataTransfer
             if (string.IsNullOrWhiteSpace(tablo))
                 return;
 
-            lstLog.Items.Add($"HEdef tablolar: {tablo}");
+            LogEkle($"HEdef tablolar: {tablo}");
             HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, tablo);
 
             HedefGuncelle(HedefKolonlar.Keys.ToList());//
@@ -206,7 +206,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Kolon alinamadi: {ex.Message}");
+                LogEkle($"Kolon alinamadi: {ex.Message}");
                 MessageBox.Show($"Kolon bilgisi alınamadı: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
@@ -280,7 +280,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Kontrol hata: {ex.Message}");
+                LogEkle($"Kontrol hata: {ex.Message}");
             }
         }
 
@@ -352,7 +352,7 @@ namespace DataTransfer
                 }
                 KontrolEt(row);
             }
-            lstLog.Items.Add("Eşleme tamamlandı.");
+           LogEkle("Eşleme tamamlandı.");
         }
 
         private void BtnStrEkle_Click(object sender, EventArgs e)
@@ -416,7 +416,7 @@ namespace DataTransfer
             catch (Exception ex)
             {
                 MessageBox.Show($"Test hatası: {ex.Message}");
-                lstLog.Items.Add($"Filtre hatası: {ex.Message}");
+               LogEkle($"Filtre hatası: {ex.Message}");
             }
         }
 
