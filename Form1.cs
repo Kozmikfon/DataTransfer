@@ -246,7 +246,7 @@ namespace DataTransfer
                 if (!hInfo.IsNullable && kInfo.IsNullable)
                 {
                     // kaynak nullable ama hedef not null
-                    row.Cells["Uygunluk"].Value = "Hedef NOT NULL";
+                    row.Cells["Uygunluk"].Value = "Hedef Null olamaz";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
                     return;
                 }
@@ -254,7 +254,7 @@ namespace DataTransfer
                 // length kontrol (varsa)
                 if (kInfo.Length.HasValue && hInfo.Length.HasValue && kInfo.Length > hInfo.Length)
                 {
-                    row.Cells["Uygunluk"].Value = "Length exceeds";
+                    row.Cells["Uygunluk"].Value = "Uzunluk Aşıyor";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
                     return;
                 }
