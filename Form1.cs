@@ -13,10 +13,10 @@ namespace DataTransfer
         private FrmBaglantiAc _oncekiForm;
 
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar = 
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar =
             new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgileri tutulmak için sözlük olustutkdu.
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar = 
+        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar =
             new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
 
         public FrmVeriEslestirme(BaglantiBilgileri kaynakBilgi, BaglantiBilgileri hedefBilgi, FrmBaglantiAc oncekiForm)
@@ -58,9 +58,9 @@ namespace DataTransfer
                 var KaynakTablo = await TabloGetirAsync(kaynak);
                 TrwKaynakTablolar.Nodes.Clear();
                 foreach (var t in KaynakTablo.OrderBy(x => x))
-                    TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t });//treewiew kontrolüne ekleme işlemi
+                    TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t }); //treewiew nesnesine kontrolüne ekleme işlemi
 
-                
+
                 var HedefTablo = await TabloGetirAsync(hedef);
                 TrwHedefTablolar.Nodes.Clear();
                 foreach (var t in HedefTablo.OrderBy(x => x))
@@ -102,16 +102,16 @@ namespace DataTransfer
 
         private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçilince kolonları yükle
         {
-            if (e.Node == null) 
+            if (e.Node == null)
                 return;
 
             string tablo = e.Node.Tag?.ToString();
 
-            if (string.IsNullOrWhiteSpace(tablo)) 
+            if (string.IsNullOrWhiteSpace(tablo))
                 return;
 
             lstLog.Items.Add($"Kaynak Tablolar: {tablo}");
-            
+
             KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, tablo); //treeview kolon yüklenince kaynak kolonlar sözlüğüne atılıyor
             KaynakSutunBilgileriGetir(KaynakKolonlar);
         }
@@ -133,7 +133,27 @@ namespace DataTransfer
             HedefGuncelle(HedefKolonlar.Keys.ToList());//
         }
 
+        private void HedefKolonSecildi(object? sender, EventArgs e)
+        {
+            if (sender is ComboBox combo && GrdEslestirme.CurrentCell != null)
+            {
+                var secilen = combo.SelectedItem?.ToString();
+                if (string.IsNullOrWhiteSpace(secilen)) return;
 
+                var row = GrdEslestirme.CurrentRow;
+                if (row == null) return;
+
+                if (HedefKolonlar.TryGetValue(secilen, out var bilgi))
+                {
+                    row.Cells["Tip"].Value = bilgi.DataType;
+                    row.Cells["Uzunluk"].Value = bilgi.Length?.ToString() ?? "";
+                    row.Cells["Nullable"].Value = bilgi.IsNullable ? "YES" : "NO";
+                }
+
+                // Uygunluk kontrolünü güncelle
+                KontrolEt(row);
+            }
+        }
 
         private void KaynakSutunBilgileriGetir(Dictionary<string, (string DataType, int? Length, bool IsNullable)> kaynakKolon)//dictionayden gelen kolon bilgilerini gride yükleme kaynak kolonları ama
         {
@@ -144,9 +164,9 @@ namespace DataTransfer
                 var row = GrdEslestirme.Rows[satır];
 
                 row.Cells["KaynakKolon"].Value = kaynak.Key;
-                row.Cells["Tip"].Value = kaynak.Value.DataType;
-                row.Cells["Uzunluk"].Value = kaynak.Value.Length?.ToString() ?? "";
-                row.Cells["Nullable"].Value = kaynak.Value.IsNullable ? "YES" : "NO";
+                //row.Cells["Tip"].Value = kaynak.Value.DataType;
+                //row.Cells["Uzunluk"].Value = kaynak.Value.Length?.ToString() ?? "";
+                //row.Cells["Nullable"].Value = kaynak.Value.IsNullable ? "YES" : "NO"; //kaynak tablo bilgileri
                 row.Cells["Uygunluk"].Value = "";
             }
         }
@@ -329,7 +349,7 @@ namespace DataTransfer
             {
                 var source = row.Cells["KaynakKolon"].Value?.ToString();
 
-                if (string.IsNullOrWhiteSpace(source)) 
+                if (string.IsNullOrWhiteSpace(source))
                     continue;
 
                 var match = hedefList.FirstOrDefault(h => h.Equals(source, StringComparison.OrdinalIgnoreCase));
@@ -493,7 +513,8 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0)
+                return;
             var row = GrdEslestirme.Rows[e.RowIndex];
             KontrolEt(row);
         }
@@ -505,6 +526,7 @@ namespace DataTransfer
             lstLog.Items.Add("Tablolar yüklendi");
             RdoBtnTumSatır.Checked = true;
         }
+
 
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
@@ -604,6 +626,18 @@ namespace DataTransfer
                 await Task.Delay(500);
                 prgTransfer.Value = 0;
 
+            }
+        }
+
+        private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
+            {
+                if (e.Control is ComboBox combo)
+                {
+                    combo.SelectedIndexChanged -= HedefKolonSecildi;
+                    combo.SelectedIndexChanged += HedefKolonSecildi;
+                }
             }
         }
     }

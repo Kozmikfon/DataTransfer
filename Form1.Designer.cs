@@ -136,6 +136,7 @@
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
+            GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 
             // BtnTransferBaslat
             // 
