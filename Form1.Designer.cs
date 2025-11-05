@@ -26,6 +26,7 @@
             TrwKaynakTablolar = new TreeView();
             BtnSutunYkle = new Button();
             splitContainerMain = new SplitContainer();
+            BtnHedefSutunYkle = new Button();
             BtnOtomatikEsle = new Button();
             BtnStrSil = new Button();
             BtnStrEkle = new Button();
@@ -88,19 +89,27 @@
             // 
             // splitContainerMain.Panel2
             // 
-            splitContainerMain.Panel2.Controls.Add(BtnOtomatikEsle);
-            splitContainerMain.Panel2.Controls.Add(BtnStrSil);
-            splitContainerMain.Panel2.Controls.Add(BtnStrEkle);
+            splitContainerMain.Panel2.Controls.Add(BtnHedefSutunYkle);
             splitContainerMain.Panel2.Controls.Add(TrwHedefTablolar);
             splitContainerMain.Size = new Size(1000, 200);
             splitContainerMain.SplitterDistance = 478;
             splitContainerMain.TabIndex = 0;
             // 
+            // BtnHedefSutunYkle
+            // 
+            BtnHedefSutunYkle.Location = new Point(412, 166);
+            BtnHedefSutunYkle.Name = "BtnHedefSutunYkle";
+            BtnHedefSutunYkle.Size = new Size(103, 29);
+            BtnHedefSutunYkle.TabIndex = 12;
+            BtnHedefSutunYkle.Text = "Sutun Yükle";
+            BtnHedefSutunYkle.UseVisualStyleBackColor = true;
+            BtnHedefSutunYkle.Click += BtnHedefSutunYkle_Click;
+            // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(323, 125);
+            BtnOtomatikEsle.Location = new Point(832, 215);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(112, 72);
+            BtnOtomatikEsle.Size = new Size(156, 48);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -108,9 +117,9 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(445, 164);
+            BtnStrSil.Location = new Point(832, 313);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(70, 33);
+            BtnStrSil.Size = new Size(156, 40);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -118,9 +127,9 @@
             // 
             // BtnStrEkle
             // 
-            BtnStrEkle.Location = new Point(441, 125);
+            BtnStrEkle.Location = new Point(832, 269);
             BtnStrEkle.Name = "BtnStrEkle";
-            BtnStrEkle.Size = new Size(74, 33);
+            BtnStrEkle.Size = new Size(156, 38);
             BtnStrEkle.TabIndex = 1;
             BtnStrEkle.Text = "Satır ekle";
             BtnStrEkle.UseVisualStyleBackColor = true;
@@ -132,7 +141,7 @@
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Location = new Point(12, 215);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(976, 251);
+            GrdEslestirme.Size = new Size(814, 251);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
@@ -238,6 +247,9 @@
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1000, 705);
             Controls.Add(BtnGeri);
+            Controls.Add(BtnStrSil);
+            Controls.Add(BtnOtomatikEsle);
+            Controls.Add(BtnStrEkle);
             Controls.Add(lstLog);
             Controls.Add(prgTransfer);
             Controls.Add(BtnTransferBaslat);
@@ -274,6 +286,7 @@
         private RadioButton RdoBtnFiltre;
         private RadioButton RdoBtnTumSatır;
         private GroupBox GrbBoxFiltreleme;
+        private Button BtnHedefSutunYkle;
     }
 
 }

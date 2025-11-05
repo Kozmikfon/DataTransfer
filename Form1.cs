@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Threading.Tasks;
+using static Azure.Core.HttpHeader;
 
 
 namespace DataTransfer
@@ -46,6 +47,7 @@ namespace DataTransfer
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak, kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
             GrdEslestirme.AllowUserToAddRows = false; // kullanıcı bofş satır ekleyemez
         }
+
 
 
 
@@ -102,38 +104,18 @@ namespace DataTransfer
 
         private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçilince kolonları yükle
         {
-            if (e.Node == null)
-                return;
-
-            string tablo = e.Node.Tag?.ToString();
-
-            if (string.IsNullOrWhiteSpace(tablo))
-                return;
-
-            lstLog.Items.Add($"Kaynak Tablolar: {tablo}");
-
-            KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, tablo); //treeview kolon yüklenince kaynak kolonlar sözlüğüne atılıyor
-            KaynakSutunBilgileriGetir(KaynakKolonlar);
+            if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo))
+                lstLog.Items.Add($"Kaynak tablo seçildi: {tablo}");
         }
 
         private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e)//seçilen tabloya göre hedef kolonları yükle 
         {
 
-            if (e.Node == null)
-                return;
-
-            string tablo = e.Node.Tag?.ToString();
-
-            if (string.IsNullOrWhiteSpace(tablo))
-                return;
-
-            lstLog.Items.Add($"Hedef tablolar: {tablo}");
-            HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, tablo);
-
-            HedefGuncelle(HedefKolonlar.Keys.ToList());//
+            if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo))
+                lstLog.Items.Add($"Hedef tablo seçildi: {tablo}");
         }
 
-        private void HedefKolonSecildi(object? sender, EventArgs e)
+        private void HedefKolonSecildi(object? sender, EventArgs e) //gridde hedef kolon seçilince diğer bilgileri doldurmak için
         {
             if (sender is ComboBox combo && GrdEslestirme.CurrentCell != null)
             {
@@ -247,30 +229,30 @@ namespace DataTransfer
                     return;
                 }
 
-                if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var kInfo))
+                if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi))
                 {
                     row.Cells["Uygunluk"].Value = "Kaynak yok";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     return;
                 }
 
-                if (!HedefKolonlar.TryGetValue(hedefKolon, out var hInfo))
+                if (!HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
                 {
                     row.Cells["Uygunluk"].Value = "Hedef yok";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     return;
                 }
 
-                // data type kontrol (basit eşitlik)
-                if (!string.Equals(kInfo.DataType, hInfo.DataType, StringComparison.OrdinalIgnoreCase))
+                // data type kontrol
+                if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
                 {
-                    row.Cells["Uygunluk"].Value = $"Uyumsuz tip ({kInfo.DataType}->{hInfo.DataType})";
+                    row.Cells["Uygunluk"].Value = $"Uyumsuz tip ({KaynakBilgi.DataType}->{HedefBilgi.DataType})";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     return;
                 }
 
                 // nullable hedef NOT NULL ise hata
-                if (!hInfo.IsNullable && kInfo.IsNullable)
+                if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable) //hedef no nullable=false ve kaynak yes ise
                 {
                     // kaynak nullable ama hedef not null
                     row.Cells["Uygunluk"].Value = "Hedef Null olamaz";
@@ -278,8 +260,8 @@ namespace DataTransfer
                     return;
                 }
 
-                // length kontrol (varsa)
-                if (kInfo.Length.HasValue && hInfo.Length.HasValue && kInfo.Length > hInfo.Length)
+                // length kontrol
+                if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue && KaynakBilgi.Length > HedefBilgi.Length) // nvarchar varchar nchar
                 {
                     row.Cells["Uygunluk"].Value = "Uzunluk Aşıyor";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
@@ -325,20 +307,27 @@ namespace DataTransfer
 
 
 
-
-
-        private void BtnSutunYkle_Click(object sender, EventArgs e)
+        private async void BtnSutunYkle_Click(object sender, EventArgs e)
         {
-
-            if (TrwKaynakTablolar.SelectedNode != null)
+            try
             {
-                var n = TrwKaynakTablolar.SelectedNode.Tag?.ToString();
-                if (!string.IsNullOrWhiteSpace(n)) TrwKaynakTablolar_AfterSelect(this, new TreeViewEventArgs(TrwKaynakTablolar.SelectedNode));
+                // --- Kaynak tablo seçiliyse ---
+                if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
+                {
+                    lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
+                    KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, kaynakTablo);
+                    KaynakSutunBilgileriGetir(KaynakKolonlar);
+                    lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
+                }
+                else
+                {
+                    lstLog.Items.Add("Kaynak tablo seçilmedi.");
+                }
             }
-            if (TrwHedefTablolar.SelectedNode != null)
+            catch (Exception ex)
             {
-                var n = TrwHedefTablolar.SelectedNode.Tag?.ToString();
-                if (!string.IsNullOrWhiteSpace(n)) TrwHedefTablolar_AfterSelect(this, new TreeViewEventArgs(TrwHedefTablolar.SelectedNode));
+                lstLog.Items.Add($"Kaynak kolon yükleme hatası: {ex.Message}");
+
             }
         }
 
@@ -353,19 +342,31 @@ namespace DataTransfer
                     continue;
 
                 var match = hedefList.FirstOrDefault(h => h.Equals(source, StringComparison.OrdinalIgnoreCase));
+
                 if (match != null)
                 {
                     var cell = row.Cells["HedefKolon"] as DataGridViewComboBoxCell;
                     if (cell != null)
                     {
+
                         if (!cell.Items.Contains(match))
                             cell.Items.Add(match);
                         cell.Value = match;
                     }
                 }
                 KontrolEt(row);
+
+                if (!string.IsNullOrEmpty(match) && HedefKolonlar.TryGetValue(match, out var hInfo))
+                {
+                    row.Cells["Tip"].Value = hInfo.DataType;
+                    row.Cells["Uzunluk"].Value = hInfo.Length?.ToString() ?? "";
+                    row.Cells["Nullable"].Value = hInfo.IsNullable ? "YES" : "NO";
+                }
+
             }
             lstLog.Items.Add("Eşleme tamamlandı.");
+
+
         }
 
         private void BtnStrEkle_Click(object sender, EventArgs e)
@@ -639,6 +640,30 @@ namespace DataTransfer
                     combo.SelectedIndexChanged += HedefKolonSecildi;
                 }
             }
+        }
+
+        private async void BtnHedefSutunYkle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
+                {
+                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
+                    HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
+                    HedefGuncelle(HedefKolonlar.Keys.ToList());
+                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
+                }
+                else
+                {
+                    lstLog.Items.Add("Hedef tablo seçilmedi.");
+                }
+            }
+            catch (Exception ex)
+            {
+                lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
+
+            }
+           
         }
     }
 }
