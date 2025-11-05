@@ -41,7 +41,7 @@ namespace DataTransfer
             var kolonHedef = new DataGridViewComboBoxColumn { Name = "HedefKolon", HeaderText = "Hedef kolonlar", FlatStyle = FlatStyle.Flat }; //hedef kolonları comboboxla seçiyorum
             var kolonTip = new DataGridViewTextBoxColumn { Name = "Tip", HeaderText = "Data Tipi", ReadOnly = true };
             var kolonUzunlugu = new DataGridViewTextBoxColumn { Name = "Uzunluk", HeaderText = "Uzunluk", ReadOnly = true };
-            var kolonNullable = new DataGridViewTextBoxColumn { Name = "Nullable", HeaderText = "Boş Geçilemez", ReadOnly = true };
+            var kolonNullable = new DataGridViewTextBoxColumn { Name = "Nullable", HeaderText = "Boş Geçilebilir", ReadOnly = true };
             var kolonUygunluk = new DataGridViewTextBoxColumn { Name = "Uygunluk", HeaderText = "Uygunluk", ReadOnly = true };
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak, kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
@@ -168,6 +168,7 @@ namespace DataTransfer
         private async Task<Dictionary<string, (string DataType, int? Length, bool IsNullable)>> KolonBilgileriniGetirAsync(BaglantiBilgileri info, string tabloAdi)
         {
             var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+
             if (info == null || string.IsNullOrWhiteSpace(info.Sunucu) || string.IsNullOrWhiteSpace(tabloAdi))
                 return kolonlar;
 
@@ -416,7 +417,7 @@ namespace DataTransfer
 
             try
             {
-                string connStr = $"Server={kaynak.Sunucu};Database={kaynak.Veritabani};User Id={kaynak.Kullanici};Password={kaynak.Sifre};TrustServerCertificate=True;";
+                string connStr = $"Server={kaynak.Sunucu};Database={kaynak.Veritabani}; User Id={kaynak.Kullanici};Password={kaynak.Sifre};TrustServerCertificate=True;";
 
                 string sql = $"SELECT COUNT(1) FROM [{tablo}] WHERE {where}";
                 using (var conn = new SqlConnection(connStr))
@@ -463,7 +464,7 @@ namespace DataTransfer
         private async Task ProgresBar(string connStr, string hedefTablo, DataTable dt, List<(string KaynakKolon, string HedefKolon)> eslesmeler)
         {
             using (var conn = new SqlConnection(connStr))
-            using (var bulk = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, null))
+            using (var bulk = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, null))//rollback yapılacak
             {
                 await conn.OpenAsync();
                 bulk.DestinationTableName = hedefTablo;
