@@ -39,9 +39,9 @@ namespace DataTransfer
 
             var kolonKaynak = new DataGridViewTextBoxColumn { Name = "KaynakKolon", HeaderText = "Kaynak kolonlar", ReadOnly = true };
             var kolonHedef = new DataGridViewComboBoxColumn { Name = "HedefKolon", HeaderText = "Hedef kolonlar", FlatStyle = FlatStyle.Flat }; //hedef kolonları comboboxla seçiyorum
-            var kolonTip = new DataGridViewTextBoxColumn { Name = "Tip", HeaderText = "DataType", ReadOnly = true };
-            var kolonUzunlugu = new DataGridViewTextBoxColumn { Name = "Uzunluk", HeaderText = "Length", ReadOnly = true };
-            var kolonNullable = new DataGridViewTextBoxColumn { Name = "Nullable", HeaderText = "Nullable", ReadOnly = true };
+            var kolonTip = new DataGridViewTextBoxColumn { Name = "Tip", HeaderText = "Data Tipi", ReadOnly = true };
+            var kolonUzunlugu = new DataGridViewTextBoxColumn { Name = "Uzunluk", HeaderText = "Uzunluk", ReadOnly = true };
+            var kolonNullable = new DataGridViewTextBoxColumn { Name = "Nullable", HeaderText = "Boş Geçilemez", ReadOnly = true };
             var kolonUygunluk = new DataGridViewTextBoxColumn { Name = "Uygunluk", HeaderText = "Uygunluk", ReadOnly = true };
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak, kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
@@ -97,7 +97,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Tablo Yukleme hatası ({info.Sunucu}): {ex.Message}");
+                lstLog.Items.Add($"Tablo Yükleme hatası ({info.Sunucu}): {ex.Message}");
             }
             return list;
         }
@@ -570,13 +570,13 @@ namespace DataTransfer
                     return;
                 }
 
-                // 2️⃣ Hedef veriyi çek
+                // Hedef veriyi çek
                 var hedefKolonList = eslesmeler.Select(x => x.HedefKolon).ToList();
                 DataTable hedefVeri = await Task.Run(() =>
                     GetDataTable(hedefConnStr, hedefTablo, hedefKolonList)
                 );
 
-                // 3️⃣ Yeni kayıtları bul
+                //  Yeni kayıtları bul
                 var yeniDt = kaynakVeri.Clone();
                 var hedefSet = new HashSet<string>(
                     hedefVeri.AsEnumerable().Select(r => string.Join("|", hedefKolonList.Select(c => r[c]?.ToString() ?? "")))
