@@ -12,39 +12,31 @@ namespace DataTransfer
 {
     public partial class FrmVeriOnizleme : Form
     {
-        public bool Onaylandi { get; set; } = false;
-        public FrmVeriOnizleme(DataTable veri, string tabloAdi)
+        private  DataTable _veri;
+
+        public bool Onaylandi { get; private set; } = false;
+        public FrmVeriOnizleme(DataTable veri)
         {
             InitializeComponent();
-            this.Text = $"Önizleme - {tabloAdi}";
-
-            // Bilgi etiketi
-            LblBilgi.Text = $"Toplam {veri.Rows.Count} satır, {veri.Columns.Count} kolon bulunuyor.";
-
-            // Sadece ilk 50 satırı gösterelim
-            DataTable gosterim = veri.Clone();
-            int max = Math.Min(50, veri.Rows.Count);
-            for (int i = 0; i < max; i++)
-                gosterim.ImportRow(veri.Rows[i]);
-
-            GrdOnizleme.DataSource = gosterim;
+            _veri = veri;
         }
 
         private void FrmVeriOnizleme_Load(object sender, EventArgs e)
         {
-
+            GrdOnizleme.DataSource = _veri;
+            LblBilgi.Text = $"Toplam {_veri.Rows.Count} kayıt görüntüleniyor.";
         }
 
         private void BtnOnayla_Click(object sender, EventArgs e)
         {
-            Onaylandi = true;
-            this.Close();
+           Onaylandi = true;
+            Close();
         }
 
         private void BtnIptal_Click(object sender, EventArgs e)
         {
             Onaylandi = false;
-            this.Close();
+            Close();
         }
 
         private void GrdOnizleme_CellContentClick(object sender, DataGridViewCellEventArgs e)

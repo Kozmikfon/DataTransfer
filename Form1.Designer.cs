@@ -53,22 +53,23 @@
             TrwHedefTablolar.Dock = DockStyle.Fill;
             TrwHedefTablolar.Location = new Point(0, 0);
             TrwHedefTablolar.Name = "TrwHedefTablolar";
-            TrwHedefTablolar.Size = new Size(518, 200);
+            TrwHedefTablolar.Size = new Size(589, 256);
             TrwHedefTablolar.TabIndex = 0;
             TrwHedefTablolar.AfterSelect += TrwHedefTablolar_AfterSelect;
             // 
             // TrwKaynakTablolar
             // 
             TrwKaynakTablolar.Dock = DockStyle.Fill;
+            TrwKaynakTablolar.ItemHeight = 18;
             TrwKaynakTablolar.Location = new Point(0, 0);
             TrwKaynakTablolar.Name = "TrwKaynakTablolar";
-            TrwKaynakTablolar.Size = new Size(478, 200);
+            TrwKaynakTablolar.Size = new Size(591, 256);
             TrwKaynakTablolar.TabIndex = 0;
             TrwKaynakTablolar.AfterSelect += TrwKaynakTablolar_AfterSelect;
             // 
             // BtnSutunYkle
             // 
-            BtnSutunYkle.Location = new Point(373, 166);
+            BtnSutunYkle.Location = new Point(486, 224);
             BtnSutunYkle.Name = "BtnSutunYkle";
             BtnSutunYkle.Size = new Size(102, 29);
             BtnSutunYkle.TabIndex = 12;
@@ -91,13 +92,13 @@
             // 
             splitContainerMain.Panel2.Controls.Add(BtnHedefSutunYkle);
             splitContainerMain.Panel2.Controls.Add(TrwHedefTablolar);
-            splitContainerMain.Size = new Size(1000, 200);
-            splitContainerMain.SplitterDistance = 478;
+            splitContainerMain.Size = new Size(1184, 256);
+            splitContainerMain.SplitterDistance = 591;
             splitContainerMain.TabIndex = 0;
             // 
             // BtnHedefSutunYkle
             // 
-            BtnHedefSutunYkle.Location = new Point(412, 166);
+            BtnHedefSutunYkle.Location = new Point(483, 224);
             BtnHedefSutunYkle.Name = "BtnHedefSutunYkle";
             BtnHedefSutunYkle.Size = new Size(103, 29);
             BtnHedefSutunYkle.TabIndex = 12;
@@ -107,7 +108,7 @@
             // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(832, 215);
+            BtnOtomatikEsle.Location = new Point(985, 284);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(156, 48);
             BtnOtomatikEsle.TabIndex = 3;
@@ -117,7 +118,7 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(832, 313);
+            BtnStrSil.Location = new Point(985, 425);
             BtnStrSil.Name = "BtnStrSil";
             BtnStrSil.Size = new Size(156, 40);
             BtnStrSil.TabIndex = 2;
@@ -127,7 +128,7 @@
             // 
             // BtnStrEkle
             // 
-            BtnStrEkle.Location = new Point(832, 269);
+            BtnStrEkle.Location = new Point(985, 360);
             BtnStrEkle.Name = "BtnStrEkle";
             BtnStrEkle.Size = new Size(156, 38);
             BtnStrEkle.TabIndex = 1;
@@ -139,9 +140,9 @@
             // 
             GrdEslestirme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdEslestirme.Location = new Point(12, 215);
+            GrdEslestirme.Location = new Point(12, 272);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(814, 251);
+            GrdEslestirme.Size = new Size(913, 272);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
@@ -150,7 +151,7 @@
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            BtnTransferBaslat.Location = new Point(832, 479);
+            BtnTransferBaslat.Location = new Point(985, 582);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
@@ -161,7 +162,7 @@
             // prgTransfer
             // 
             prgTransfer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            prgTransfer.Location = new Point(626, 479);
+            prgTransfer.Location = new Point(620, 582);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -171,14 +172,14 @@
             lstLog.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lstLog.FormattingEnabled = true;
             lstLog.ItemHeight = 15;
-            lstLog.Location = new Point(12, 560);
+            lstLog.Location = new Point(12, 670);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(976, 94);
+            lstLog.Size = new Size(1129, 154);
             lstLog.TabIndex = 9;
             // 
             // BtnGeri
             // 
-            BtnGeri.Location = new Point(12, 675);
+            BtnGeri.Location = new Point(12, 830);
             BtnGeri.Name = "BtnGeri";
             BtnGeri.Size = new Size(75, 23);
             BtnGeri.TabIndex = 11;
@@ -189,9 +190,9 @@
             // BtnFiltreTest
             // 
             BtnFiltreTest.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            BtnFiltreTest.Location = new Point(506, 47);
+            BtnFiltreTest.Location = new Point(474, 45);
             BtnFiltreTest.Name = "BtnFiltreTest";
-            BtnFiltreTest.Size = new Size(88, 27);
+            BtnFiltreTest.Size = new Size(99, 37);
             BtnFiltreTest.TabIndex = 3;
             BtnFiltreTest.Text = "test et";
             BtnFiltreTest.UseVisualStyleBackColor = true;
@@ -200,15 +201,15 @@
             // TxtFiltreleme
             // 
             TxtFiltreleme.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            TxtFiltreleme.Location = new Point(16, 50);
+            TxtFiltreleme.Location = new Point(16, 58);
             TxtFiltreleme.Name = "TxtFiltreleme";
-            TxtFiltreleme.Size = new Size(470, 23);
+            TxtFiltreleme.Size = new Size(428, 23);
             TxtFiltreleme.TabIndex = 2;
             // 
             // RdoBtnFiltre
             // 
             RdoBtnFiltre.AutoSize = true;
-            RdoBtnFiltre.Location = new Point(111, 28);
+            RdoBtnFiltre.Location = new Point(126, 33);
             RdoBtnFiltre.Name = "RdoBtnFiltre";
             RdoBtnFiltre.Size = new Size(91, 19);
             RdoBtnFiltre.TabIndex = 1;
@@ -219,7 +220,7 @@
             // RdoBtnTumSatır
             // 
             RdoBtnTumSatır.AutoSize = true;
-            RdoBtnTumSatır.Location = new Point(16, 28);
+            RdoBtnTumSatır.Location = new Point(16, 33);
             RdoBtnTumSatır.Name = "RdoBtnTumSatır";
             RdoBtnTumSatır.Size = new Size(89, 19);
             RdoBtnTumSatır.TabIndex = 0;
@@ -234,9 +235,9 @@
             GrbBoxFiltreleme.Controls.Add(RdoBtnFiltre);
             GrbBoxFiltreleme.Controls.Add(TxtFiltreleme);
             GrbBoxFiltreleme.Controls.Add(BtnFiltreTest);
-            GrbBoxFiltreleme.Location = new Point(12, 472);
+            GrbBoxFiltreleme.Location = new Point(12, 559);
             GrbBoxFiltreleme.Name = "GrbBoxFiltreleme";
-            GrbBoxFiltreleme.Size = new Size(600, 80);
+            GrbBoxFiltreleme.Size = new Size(579, 96);
             GrbBoxFiltreleme.TabIndex = 2;
             GrbBoxFiltreleme.TabStop = false;
             GrbBoxFiltreleme.Text = "Filtreleme";
@@ -245,7 +246,7 @@
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
-            ClientSize = new Size(1000, 705);
+            ClientSize = new Size(1184, 861);
             Controls.Add(BtnGeri);
             Controls.Add(BtnStrSil);
             Controls.Add(BtnOtomatikEsle);

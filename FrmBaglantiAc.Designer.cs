@@ -305,7 +305,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(792, 430);
+            ClientSize = new Size(795, 430);
             Controls.Add(PrgsbarBaglanti);
             Controls.Add(BtnDevam);
             Controls.Add(LstboxLog);

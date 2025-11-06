@@ -567,7 +567,17 @@ namespace DataTransfer
                     MessageBox.Show("Kaynakta veri yok.");
                     return;
                 }
+                using (var onizlemeForm = new FrmVeriOnizleme(kaynakVeri))
+                {
+                    onizlemeForm.ShowDialog();
 
+                    if (!onizlemeForm.Onaylandi)
+                    {
+                        LogEkle("Kullanıcı aktarımı iptal etti.");
+                        MessageBox.Show("Aktarım iptal edildi.");
+                        return;
+                    }
+                }
                 // Hedef veriyi çek
                 var hedefKolonList = eslesmeler.Select(x => x.HedefKolon).ToList();
                 DataTable hedefVeri = await Task.Run(() =>

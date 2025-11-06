@@ -38,15 +38,15 @@
             // GrdOnizleme
             // 
             GrdOnizleme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdOnizleme.Location = new Point(88, 62);
+            GrdOnizleme.Location = new Point(53, 69);
             GrdOnizleme.Name = "GrdOnizleme";
-            GrdOnizleme.Size = new Size(563, 290);
+            GrdOnizleme.Size = new Size(1217, 541);
             GrdOnizleme.TabIndex = 0;
             GrdOnizleme.CellContentClick += GrdOnizleme_CellContentClick;
             // 
             // BtnOnayla
             // 
-            BtnOnayla.Location = new Point(194, 380);
+            BtnOnayla.Location = new Point(132, 660);
             BtnOnayla.Name = "BtnOnayla";
             BtnOnayla.Size = new Size(88, 39);
             BtnOnayla.TabIndex = 1;
@@ -56,7 +56,7 @@
             // 
             // BtnIptal
             // 
-            BtnIptal.Location = new Point(394, 380);
+            BtnIptal.Location = new Point(226, 660);
             BtnIptal.Name = "BtnIptal";
             BtnIptal.Size = new Size(88, 39);
             BtnIptal.TabIndex = 2;
@@ -67,7 +67,7 @@
             // LblBilgi
             // 
             LblBilgi.AutoSize = true;
-            LblBilgi.Location = new Point(312, 21);
+            LblBilgi.Location = new Point(53, 30);
             LblBilgi.Name = "LblBilgi";
             LblBilgi.Size = new Size(38, 15);
             LblBilgi.TabIndex = 3;
@@ -77,7 +77,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1338, 732);
             Controls.Add(LblBilgi);
             Controls.Add(BtnIptal);
             Controls.Add(BtnOnayla);
