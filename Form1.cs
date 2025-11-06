@@ -49,9 +49,6 @@ namespace DataTransfer
         }
 
 
-
-
-
         private async Task TablolarıAgacaYukleAsync()
         {
             try
@@ -79,7 +76,7 @@ namespace DataTransfer
             var list = new List<string>();
             string connStr = $"Server={info.Sunucu};Database={info.Veritabani ?? "master"};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
 
-            string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME";
+            string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
             try
             {
                 using (var conn = new SqlConnection(connStr))
