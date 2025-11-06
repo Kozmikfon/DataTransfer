@@ -30,7 +30,7 @@ namespace DataTransfer
         private void BtnOnayla_Click(object sender, EventArgs e)
         {
            Onaylandi = true;
-            Close();
+           Close();
         }
 
         private void BtnIptal_Click(object sender, EventArgs e)

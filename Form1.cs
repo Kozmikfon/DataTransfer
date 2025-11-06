@@ -531,14 +531,14 @@ namespace DataTransfer
         {
             if (TrwKaynakTablolar.SelectedNode == null || TrwHedefTablolar.SelectedNode == null)
             {
-                MessageBox.Show("Kaynak ve hedef tablo seçin.");
+                MessageBox.Show("Kaynak ve hedef tablo seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var eslesmeler = EslestirmeListesi();
             if (eslesmeler.Count == 0)
             {
-                MessageBox.Show("Uygun eşleşme yok.");
+                MessageBox.Show("Uygun kolon eşleşmesi bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -548,95 +548,117 @@ namespace DataTransfer
             BtnTransferBaslat.Enabled = false;
             prgTransfer.Value = 0;
             prgTransfer.Style = ProgressBarStyle.Continuous;
-            LogEkle("Transfer başlıyor...");
+            LogEkle("Transfer işlemi başlatılıyor...");
 
             try
             {
-                var kaynakKolonList = eslesmeler.Select(e2 => e2.KaynakKolon).ToList();
                 string kaynakConnStr = ConnectionString(kaynak);
                 string hedefConnStr = ConnectionString(hedef);
+                var kolonlar = eslesmeler.Select(x => x.KaynakKolon).ToList();
 
-                // 1️⃣ Kaynak veriyi çek
+                // Kaynak veriyi al
                 DataTable kaynakVeri = await Task.Run(() =>
-                    GetDataTable(kaynakConnStr, kaynakTablo, kaynakKolonList, TxtFiltreleme.Text)
+                    GetDataTable(kaynakConnStr, kaynakTablo, kolonlar, TxtFiltreleme.Text)
                 );
 
-                if (kaynakVeri == null || kaynakVeri.Rows.Count == 0)
+                if (kaynakVeri.Rows.Count == 0)
                 {
-                    LogEkle("Kaynakta veri yok - transfer iptal.");
-                    MessageBox.Show("Kaynakta veri yok.");
+                    LogEkle("Kaynakta aktarılacak veri bulunamadı.");
+                    MessageBox.Show("Kaynakta veri bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
+
+                // Önizleme formu aç
                 using (var onizlemeForm = new FrmVeriOnizleme(kaynakVeri))
                 {
                     onizlemeForm.ShowDialog();
-
                     if (!onizlemeForm.Onaylandi)
                     {
                         LogEkle("Kullanıcı aktarımı iptal etti.");
-                        MessageBox.Show("Aktarım iptal edildi.");
                         return;
                     }
                 }
-                // Hedef veriyi çek
-                var hedefKolonList = eslesmeler.Select(x => x.HedefKolon).ToList();
-                DataTable hedefVeri = await Task.Run(() =>
-                    GetDataTable(hedefConnStr, hedefTablo, hedefKolonList)
-                );
 
-                //  Yeni kayıtları bul
-                var yeniDt = kaynakVeri.Clone();
-                var hedefSet = new HashSet<string>(
-                    hedefVeri.AsEnumerable().Select(r => string.Join("|", hedefKolonList.Select(c => r[c]?.ToString() ?? "")))
-                );
-
-                int total = kaynakVeri.Rows.Count;
-                int processed = 0;
-
-                foreach (DataRow kr in kaynakVeri.Rows)
-                {
-                    string key = string.Join("|", kaynakKolonList.Select(c => kr[c]?.ToString() ?? ""));
-                    if (!hedefSet.Contains(key))
-                        yeniDt.ImportRow(kr);
-
-                    processed++;
-
-                    if (processed % 100 == 0 || processed == total)
-                    {
-                        int progress = (int)((processed / (double)total) * 100);
-                        ProgresGuncelle(progress);
-                    }
-                }
-
-                if (yeniDt.Rows.Count == 0)
-                {
-                    LogEkle("Yeni kayıt yok.");
-                    MessageBox.Show("Yeni aktarılacak kayıt yok.");
-                    return;
-                }
-
-
-                await ProgresBar(hedefConnStr, hedefTablo, yeniDt, eslesmeler);
-
-                LogEkle($"Transfer başarılı: {yeniDt.Rows.Count} satır aktarıldı.");
-                MessageBox.Show($"Transfer tamamlandı. {yeniDt.Rows.Count} satır aktarıldı.");
-
+                await TransferSatiriKontrolu(kaynak, hedef, kaynakTablo, hedefTablo, eslesmeler, kaynakVeri);
             }
             catch (Exception ex)
             {
                 LogEkle($"Transfer hatası: {ex.Message}");
-                MessageBox.Show($"Transfer hatası: {ex.Message}");
+                MessageBox.Show($"Transfer hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                prgTransfer.Value = 100;
                 BtnTransferBaslat.Enabled = true;
-
-                await Task.Delay(500);
+                prgTransfer.Value = 100;
+                await Task.Delay(300);
                 prgTransfer.Value = 0;
-
             }
         }
+
+
+        private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
+            List<(string KaynakKolon, string HedefKolon)> eslesmeler,
+             DataTable kaynakVeri)
+        {
+            string hedefConnStr = ConnectionString(hedef);
+
+            using (var conn = new SqlConnection(hedefConnStr))
+            {
+                await conn.OpenAsync();
+
+                int toplam = kaynakVeri.Rows.Count;
+                int aktarılan = 0;
+                int atlanan = 0;
+
+                foreach (DataRow row in kaynakVeri.Rows)
+                {
+                    //  Eşleşme kolonlarına göre hedefte var mı kontrol et
+                    var whereConditions = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));
+                    string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {whereConditions}";
+
+                    using (var checkCmd = new SqlCommand(kontrolSql, conn))
+                    {
+                        foreach (var (k, h) in eslesmeler)
+                        {
+                            checkCmd.Parameters.AddWithValue($"@{h}", row[k] ?? DBNull.Value);
+                        }
+
+                        int exists = (int)await checkCmd.ExecuteScalarAsync();
+                        if (exists > 0)
+                        {
+                            atlanan++;
+                            continue; // zaten varsa geç
+                        }
+                    }
+
+                    //  Insert komutu oluştur
+                    string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
+                    string paramList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));
+                    string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({paramList})";
+
+                    using (var insertCmd = new SqlCommand(insertSql, conn))
+                    {
+                        foreach (var (k, h) in eslesmeler)
+                        {
+                            insertCmd.Parameters.AddWithValue($"@{h}", row[k] ?? DBNull.Value);
+                        }
+                        await insertCmd.ExecuteNonQueryAsync();
+                    }
+
+                    aktarılan++;
+
+                    int progress = (int)((aktarılan / (double)toplam) * 100);
+                    ProgresGuncelle(progress);
+                }
+
+                LogEkle($"Transfer tamamlandı: {aktarılan} yeni kayıt eklendi, {atlanan} kayıt zaten mevcuttu.");
+                MessageBox.Show(
+                    $"Transfer tamamlandı.\nYeni kayıt: {aktarılan}\nZaten mevcut: {atlanan}",
+                    "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information
+                );
+            }
+        }
+
 
         private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {

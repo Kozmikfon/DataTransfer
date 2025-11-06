@@ -162,7 +162,7 @@
             // prgTransfer
             // 
             prgTransfer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            prgTransfer.Location = new Point(620, 582);
+            prgTransfer.Location = new Point(624, 582);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -257,7 +257,9 @@
             Controls.Add(GrbBoxFiltreleme);
             Controls.Add(GrdEslestirme);
             Controls.Add(splitContainerMain);
-            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "FrmVeriEslestirme";
             Text = "Veri Transferi";
             Load += FrmVeriEslestirme_Load;
