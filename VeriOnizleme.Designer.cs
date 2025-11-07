@@ -46,7 +46,7 @@
             // 
             // BtnOnayla
             // 
-            BtnOnayla.Location = new Point(132, 660);
+            BtnOnayla.Location = new Point(122, 660);
             BtnOnayla.Name = "BtnOnayla";
             BtnOnayla.Size = new Size(88, 39);
             BtnOnayla.TabIndex = 1;
