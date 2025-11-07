@@ -331,6 +331,16 @@ namespace DataTransfer
 
         private void BtnOtomatikEsle_Click(object sender, EventArgs e)// isim bazlı
         {
+
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell comboCell)
+                {
+                    comboCell.Items.Clear();
+                    comboCell.Items.AddRange(HedefKolonlar.Keys.ToArray());
+                }
+            }
+
             var hedefList = HedefKolonlar.Keys.ToList();
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
@@ -349,6 +359,7 @@ namespace DataTransfer
 
                         if (!cell.Items.Contains(match))
                             cell.Items.Add(match);
+
                         cell.Value = match;
                     }
                 }
@@ -676,24 +687,46 @@ namespace DataTransfer
         {
             try
             {
-                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
-                {
-                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
-                    HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
-                    HedefGuncelle(HedefKolonlar.Keys.ToList());
-                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
-                }
-                else
+                if (TrwHedefTablolar.SelectedNode?.Tag is not string hedefTablo || string.IsNullOrWhiteSpace(hedefTablo))
                 {
                     lstLog.Items.Add("Hedef tablo seçilmedi.");
+                    return;
                 }
+
+                lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
+
+                // Eski combobox değerlerini temizle (önce Value'yu null yap)
+                foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                {
+                    if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell combo)
+                    {
+                        combo.Value = null;
+                        combo.Items.Clear();
+                    }
+                }
+
+                // Yeni kolonları al
+                HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
+
+                //Hedef kolon listesini güncelle
+                HedefGuncelle(HedefKolonlar.Keys.ToList());
+
+                // DataGridView’in combobox hücrelerindeki validasyonları yeniden bağla
+                foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                {
+                    if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell combo)
+                    {
+                        combo.Items.AddRange(HedefKolonlar.Keys.ToArray());
+                    }
+                }
+
+                lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
             }
             catch (Exception ex)
             {
                 lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
-
             }
-           
         }
+
     }
 }

@@ -67,7 +67,7 @@
             // LblBilgi
             // 
             LblBilgi.AutoSize = true;
-            LblBilgi.Location = new Point(53, 30);
+            LblBilgi.Location = new Point(1042, 624);
             LblBilgi.Name = "LblBilgi";
             LblBilgi.Size = new Size(38, 15);
             LblBilgi.TabIndex = 3;
