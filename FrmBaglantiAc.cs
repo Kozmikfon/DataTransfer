@@ -9,8 +9,8 @@ namespace DataTransfer
 {
     public partial class FrmBaglantiAc : Form
     {
-        public BaglantiBilgileri KaynakBaglanti { get; private set; }
-        public BaglantiBilgileri HedefBaglanti { get; private set; }
+        public BaglantiBilgileri KaynakBaglanti { get; private set; } // okunabilir ve sadece buradan değiştirilebilir
+        public BaglantiBilgileri HedefBaglanti { get; private set; } //dışarıya oku ama değiştirmesine izin verme
 
         private bool kaynakTestBasarili = false;
         private bool hedefTestBasarili = false;
@@ -64,7 +64,7 @@ namespace DataTransfer
                 hedefTestBasarili = await BaglantiTestAsync(HedefBaglanti);
                 ProgresBarGuncelle(75);
 
-                if (kaynakTestBasarili && hedefTestBasarili)
+                if (kaynakTestBasarili && hedefTestBasarili) 
                 {
                     ProgresBarGuncelle(85);
 
@@ -119,7 +119,7 @@ namespace DataTransfer
                     {
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
-                            // sadece test amaçlı okuma
+                            
                             while (await reader.ReadAsync()) { }
                         }
                     }
@@ -139,12 +139,15 @@ namespace DataTransfer
                     case 18456:
                         mesaj = "SQL kimlik doğrulaması başarısız. Kullanıcı adı veya şifre hatalı.";
                         break;
+
                     case 4060:
                         mesaj = "Bağlanılmak istenen veritabanına erişim izniniz yok.";
                         break;
+
                     case 229:
                         mesaj = "Bu kullanıcı, veritabanı nesnelerine erişim yetkisine sahip değil.";
                         break;
+
                     default:
                         mesaj = ex.Message;
                         break;
@@ -176,7 +179,7 @@ namespace DataTransfer
                 {
                     await conn.OpenAsync();
 
-                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name";
+                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name"; //online ve kullanılabilir veritabanları state=0
                     using (var cmd = new SqlCommand(sql, conn))
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -184,7 +187,7 @@ namespace DataTransfer
                         while (await reader.ReadAsync())
                         {
 
-                            string dbName = reader["name"].ToString();  // ← Veritabanı adı burada
+                            string dbName = reader["name"].ToString(); 
                             CmbboxKaynakVeritabani.Items.Add(dbName);
                         }
                     }
@@ -238,7 +241,7 @@ namespace DataTransfer
                         while (await reader.ReadAsync())
                         {
 
-                            string dbName = reader["name"].ToString();  // ← Veritabanı adı burada
+                            string dbName = reader["name"].ToString(); 
                             CmbboxHedefVeriTabani.Items.Add(dbName);
                         }
                     }
