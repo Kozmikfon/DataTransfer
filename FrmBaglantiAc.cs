@@ -41,6 +41,7 @@ namespace DataTransfer
             try
             {
                 ProgresBarGuncelle(10);
+
                 KaynakBaglanti = new BaglantiBilgileri
                 {
                     Sunucu = TxtboxKaynakSunucu.Text.Trim(),
@@ -108,7 +109,7 @@ namespace DataTransfer
 
         private async Task<bool> BaglantiTestAsync(BaglantiBilgileri info)
         {
-            string connStr = $"Server={info.Sunucu}; User Id={info.Kullanici}; Password={info.Sifre}; TrustServerCertificate=True;";
+            string connStr = $"Server={info.Sunucu}; User Id={info.Kullanici}; Password={info.Sifre}; TrustServerCertificate=True;"; //server kullanici şifre
             try
             {
                 using (var conn = new SqlConnection(connStr))
@@ -182,7 +183,9 @@ namespace DataTransfer
                         CmbboxKaynakVeritabani.Items.Clear();
                         while (await reader.ReadAsync())
                         {
-                            CmbboxKaynakVeritabani.Items.Add(reader["name"].ToString());
+
+                            string dbName = reader["name"].ToString();  // ← Veritabanı adı burada
+                            CmbboxKaynakVeritabani.Items.Add(dbName);
                         }
                     }
                 }
@@ -234,7 +237,9 @@ namespace DataTransfer
                         CmbboxHedefVeriTabani.Items.Clear();
                         while (await reader.ReadAsync())
                         {
-                            CmbboxHedefVeriTabani.Items.Add(reader["name"].ToString());
+
+                            string dbName = reader["name"].ToString();  // ← Veritabanı adı burada
+                            CmbboxHedefVeriTabani.Items.Add(dbName);
                         }
                     }
                 }

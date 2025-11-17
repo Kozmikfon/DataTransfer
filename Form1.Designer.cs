@@ -40,6 +40,8 @@
             RdoBtnFiltre = new RadioButton();
             RdoBtnTumSatır = new RadioButton();
             GrbBoxFiltreleme = new GroupBox();
+            lblTransferSayisi = new Label();
+            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
             splitContainerMain.Panel1.SuspendLayout();
             splitContainerMain.Panel2.SuspendLayout();
@@ -174,7 +176,7 @@
             lstLog.ItemHeight = 15;
             lstLog.Location = new Point(12, 670);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(1129, 154);
+            lstLog.Size = new Size(1110, 124);
             lstLog.TabIndex = 9;
             // 
             // BtnGeri
@@ -242,11 +244,33 @@
             GrbBoxFiltreleme.TabStop = false;
             GrbBoxFiltreleme.Text = "Filtreleme";
             // 
+            // lblTransferSayisi
+            // 
+            lblTransferSayisi.AutoSize = true;
+            lblTransferSayisi.Font = new Font("Segoe UI", 12F);
+            lblTransferSayisi.Location = new Point(455, 815);
+            lblTransferSayisi.Name = "lblTransferSayisi";
+            lblTransferSayisi.Size = new Size(19, 21);
+            lblTransferSayisi.TabIndex = 12;
+            lblTransferSayisi.Text = "0";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 12F);
+            label2.Location = new Point(982, 815);
+            label2.Name = "label2";
+            label2.Size = new Size(140, 21);
+            label2.TabIndex = 13;
+            label2.Text = "Veri transfer edildi.";
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1184, 861);
+            Controls.Add(label2);
+            Controls.Add(lblTransferSayisi);
             Controls.Add(BtnGeri);
             Controls.Add(BtnStrSil);
             Controls.Add(BtnOtomatikEsle);
@@ -271,6 +295,7 @@
             GrbBoxFiltreleme.ResumeLayout(false);
             GrbBoxFiltreleme.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
         private TreeView TrwHedefTablolar;
         private TreeView TrwKaynakTablolar;
@@ -290,6 +315,8 @@
         private RadioButton RdoBtnTumSatır;
         private GroupBox GrbBoxFiltreleme;
         private Button BtnHedefSutunYkle;
+        private Label lblTransferSayisi;
+        private Label label2;
     }
 
 }

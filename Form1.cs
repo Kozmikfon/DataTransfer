@@ -15,7 +15,7 @@ namespace DataTransfer
 
 
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar =
-            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgileri tutulmak için sözlük olustutkdu.
+            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgilerini tutmak için sözlük olustutkdu.
 
         private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar =
             new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
@@ -32,7 +32,7 @@ namespace DataTransfer
             this.Load += FrmVeriEslestirme_Load;
         }
 
-        private void GridBaslat() // iki tablo arası eşlestiremyi gösteriri
+        private void GridBaslat() // iki tablo arası eşlestiremyi gösterir
         {
             GrdEslestirme.AutoGenerateColumns = false; //otomaitk kolon oluşturmaaz
             GrdEslestirme.Columns.Clear();
@@ -48,20 +48,22 @@ namespace DataTransfer
             GrdEslestirme.AllowUserToAddRows = false; // kullanıcı bofş satır ekleyemez
         }
 
-
-        private async Task TablolarıAgacaYukleAsync()
+        
+        private async Task TablolarıAgacaYukleAsync() //secilen veritabanındaki tabloları treeview a yükleme
         {
             try
             {
                 // kaynak tablolar
                 var KaynakTablo = await TabloGetirAsync(kaynak);
-                TrwKaynakTablolar.Nodes.Clear();
+                TrwKaynakTablolar.Nodes.Clear(); //treewievdeki düğümleri siler
+
                 foreach (var t in KaynakTablo.OrderBy(x => x))
-                    TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t }); //treewiew nesnesine kontrolüne ekleme işlemi
+                    TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
 
 
-                var HedefTablo = await TabloGetirAsync(hedef);
+                var HedefTablo = await TabloGetirAsync(hedef);  
                 TrwHedefTablolar.Nodes.Clear();
+
                 foreach (var t in HedefTablo.OrderBy(x => x))
                     TrwHedefTablolar.Nodes.Add(new TreeNode(t) { Tag = t });
             }
@@ -71,6 +73,7 @@ namespace DataTransfer
             }
         }
 
+        #region TabloGetirme
         private async Task<List<string>> TabloGetirAsync(BaglantiBilgileri info)
         {
             var list = new List<string>();
@@ -98,6 +101,8 @@ namespace DataTransfer
             }
             return list;
         }
+        #endregion
+
 
         private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçilince kolonları yükle
         {
@@ -142,10 +147,7 @@ namespace DataTransfer
                 int satır = GrdEslestirme.Rows.Add();
                 var row = GrdEslestirme.Rows[satır];
 
-                row.Cells["KaynakKolon"].Value = kaynak.Key;
-                //row.Cells["Tip"].Value = kaynak.Value.DataType;
-                //row.Cells["Uzunluk"].Value = kaynak.Value.Length?.ToString() ?? "";
-                //row.Cells["Nullable"].Value = kaynak.Value.IsNullable ? "YES" : "NO"; //kaynak tablo bilgileri
+                row.Cells["KaynakKolon"].Value = kaynak.Key;              
                 row.Cells["Uygunluk"].Value = "";
             }
         }
@@ -296,20 +298,20 @@ namespace DataTransfer
             return liste;
         }
 
-
+        #region Geri
         private void BtnGeri_Click(object sender, EventArgs e)
         {
             _oncekiForm.Show();
             this.Close();
         }
-
+        #endregion
 
 
         private async void BtnSutunYkle_Click(object sender, EventArgs e)
         {
             try
             {
-                // --- Kaynak tablo seçiliyse ---
+                // Kaynak tablo seçiliyse
                 if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
                 {
                     lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
@@ -436,6 +438,7 @@ namespace DataTransfer
                     MessageBox.Show($"Filtre testi başarılı: {deger} satır döndü.");
                     lstLog.Items.Add($"Filtre testi başarılı: {deger} satır döndü. {where}");
                 }
+            
             }
             catch (Exception ex)
             {
@@ -469,50 +472,27 @@ namespace DataTransfer
         }
 
 
-        private async Task ProgresBar(string connStr, string hedefTablo, DataTable dt, List<(string KaynakKolon, string HedefKolon)> eslesmeler)
+        private void ProgresGuncelle(int islenen, int toplam, int aktarılan, int atlanan)
         {
-            using (var conn = new SqlConnection(connStr))
-            using (var bulk = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, null))//rollback yapılacak
+            if (prgTransfer.InvokeRequired)
             {
-                await conn.OpenAsync();
-                bulk.DestinationTableName = hedefTablo;
-                bulk.BatchSize = 1000;
-
-                foreach (var (kcol, hcol) in eslesmeler)
-                {
-                    if (dt.Columns.Contains(kcol))
-                        bulk.ColumnMappings.Add(kcol, hcol);
-                }
-
-                // İlerleme eventi
-                bulk.SqlRowsCopied += (s, e) =>
-                {
-                    int progress = (int)((e.RowsCopied / (double)dt.Rows.Count) * 100);
-                    ProgresGuncelle(progress);
-                };
-                bulk.NotifyAfter = 500;
-
-                await bulk.WriteToServerAsync(dt);
-            }
-        }
-
-        private void ProgresGuncelle(int degisim)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action<int>(ProgresGuncelle), degisim);
+                prgTransfer.Invoke(new Action(() => { ProgresGuncelle(islenen, toplam, aktarılan, atlanan); }));//new Action<int, int, int, int>(ProgresGuncelle), islenen, toplam, aktarılan, atlanan
                 return;
             }
 
-            prgTransfer.Value = Math.Min(degisim, 100);
-            LogEkle($"%{degisim} tamamlandı...");
+            int progress = (int)((islenen / (double)toplam) * 100);
+            prgTransfer.Value = Math.Min(progress, 100);
+
+            lblTransferSayisi.Text = $"{progress}%  |  {aktarılan} eklendi  |  {atlanan} atlandı";
         }
+
+
 
         private void LogEkle(string mesaj)
         {
-            if (InvokeRequired)
+            if (lstLog.InvokeRequired)// uı threade böyle bir işim var lstloga ulaşcam senden izin istiyorum demek
             {
-                Invoke(new Action<string>(LogEkle), mesaj);
+                lstLog.Invoke(new Action(() => { LogEkle(mesaj); }));
                 return;
             }
 
@@ -608,67 +588,70 @@ namespace DataTransfer
 
 
         private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
-            List<(string KaynakKolon, string HedefKolon)> eslesmeler,
-             DataTable kaynakVeri)
-        {
+            List<(string KaynakKolon, string HedefKolon)> eslesmeler, DataTable kaynakVeri)
+        { 
+        
             string hedefConnStr = ConnectionString(hedef);
 
-            using (var conn = new SqlConnection(hedefConnStr))
+            using var conn = new SqlConnection(hedefConnStr);
+            await conn.OpenAsync();
+
+            int toplam = kaynakVeri.Rows.Count;
+            int aktarılan = 0;
+            int atlanan = 0;
+            int islenen = 0;
+
+            foreach (DataRow row in kaynakVeri.Rows)
             {
-                await conn.OpenAsync();
+                //  Eşleşme kontrolü
+                string where = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));
+                string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {where}";
 
-                int toplam = kaynakVeri.Rows.Count;
-                int aktarılan = 0;
-                int atlanan = 0;
-
-                foreach (DataRow row in kaynakVeri.Rows)
+                using (var checkCmd = new SqlCommand(kontrolSql, conn))
                 {
-                    //  Eşleşme kolonlarına göre hedefte var mı kontrol et
-                    var whereConditions = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));
-                    string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {whereConditions}";
+                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
+                        checkCmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
 
-                    using (var checkCmd = new SqlCommand(kontrolSql, conn))
+                    int exists = (int)await checkCmd.ExecuteScalarAsync();
+                    if (exists > 0)
                     {
-                        foreach (var (k, h) in eslesmeler)
-                        {
-                            checkCmd.Parameters.AddWithValue($"@{h}", row[k] ?? DBNull.Value);
-                        }
-
-                        int exists = (int)await checkCmd.ExecuteScalarAsync();
-                        if (exists > 0)
-                        {
-                            atlanan++;
-                            continue; // zaten varsa geç
-                        }
+                        atlanan++;
+                        islenen++;
+                        ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
+                        continue;
                     }
-
-                    //  Insert komutu oluştur
-                    string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
-                    string paramList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));
-                    string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({paramList})";
-
-                    using (var insertCmd = new SqlCommand(insertSql, conn))
-                    {
-                        foreach (var (k, h) in eslesmeler)
-                        {
-                            insertCmd.Parameters.AddWithValue($"@{h}", row[k] ?? DBNull.Value);
-                        }
-                        await insertCmd.ExecuteNonQueryAsync();
-                    }
-
-                    aktarılan++;
-
-                    int progress = (int)((aktarılan / (double)toplam) * 100);
-                    ProgresGuncelle(progress);
                 }
 
-                LogEkle($"Transfer tamamlandı: {aktarılan} yeni kayıt eklendi, {atlanan} kayıt zaten mevcuttu.");
-                MessageBox.Show(
-                    $"Transfer tamamlandı.\nYeni kayıt: {aktarılan}\nZaten mevcut: {atlanan}",
-                    "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information
-                );
+                //  Insert işlemi
+                string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
+                string paramList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));
+                string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({paramList})";
+
+                using (var insertCmd = new SqlCommand(insertSql, conn))
+                {
+                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
+                        insertCmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
+
+                    await insertCmd.ExecuteNonQueryAsync();
+                }
+
+                aktarılan++;
+                islenen++;
+
+                //  Progress her 10 kayıtta bir güncellenir
+                if (islenen % 10 == 0 || islenen == toplam)
+                    ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
             }
+
+            // 
+            ProgresGuncelle(toplam, toplam, aktarılan, atlanan);
+            LogEkle($"Transfer tamamlandı: {aktarılan} yeni kayıt eklendi, {atlanan} kayıt zaten mevcuttu.");
+            MessageBox.Show(
+                $"Transfer tamamlandı.\nYeni kayıt: {aktarılan}\nZaten mevcut: {atlanan}",
+                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information
+            );
         }
+
 
 
         private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
@@ -714,6 +697,11 @@ namespace DataTransfer
 
             }
            
+        }
+
+        private async Task UI_Guncelle()
+        {
+
         }
     }
 }
