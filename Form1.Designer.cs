@@ -248,7 +248,7 @@
             // 
             lblTransferSayisi.AutoSize = true;
             lblTransferSayisi.Font = new Font("Segoe UI", 12F);
-            lblTransferSayisi.Location = new Point(455, 815);
+            lblTransferSayisi.Location = new Point(852, 815);
             lblTransferSayisi.Name = "lblTransferSayisi";
             lblTransferSayisi.Size = new Size(19, 21);
             lblTransferSayisi.TabIndex = 12;
@@ -258,11 +258,11 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(982, 815);
+            label2.Location = new Point(983, 815);
             label2.Name = "label2";
-            label2.Size = new Size(140, 21);
+            label2.Size = new Size(139, 21);
             label2.TabIndex = 13;
-            label2.Text = "Veri transfer edildi.";
+            label2.Text = "veri transfer edildi.";
             // 
             // FrmVeriEslestirme
             // 

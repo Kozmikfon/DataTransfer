@@ -297,19 +297,19 @@ namespace DataTransfer
             }
         }
 
-        // FrmBaglantiAc.cs
+     
         private async void BtnDevam_Click(object sender, EventArgs e)
         {
             try
             {
-                // Bağlantı test edilmeden ilerleme
+                
                 if (!kaynakTestBasarili || !hedefTestBasarili)
                 {
                     MessageBox.Show("Lütfen önce bağlantı testini başarıyla tamamlayın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Veritabanı seçimi zorunlu
+                
                 if (string.IsNullOrWhiteSpace(CmbboxKaynakVeritabani.Text) ||
                     string.IsNullOrWhiteSpace(CmbboxHedefVeriTabani.Text))
                 {
@@ -325,7 +325,7 @@ namespace DataTransfer
                     Sifre = TxtSifre.Text.Trim(),
                     Veritabani = CmbboxKaynakVeritabani.Text.Trim()
                 };
-
+                
                 BaglantiBilgileri hedef = new BaglantiBilgileri
                 {
                     Sunucu = TxtboxHedefSunucu.Text.Trim(),
@@ -334,7 +334,7 @@ namespace DataTransfer
                     Veritabani = CmbboxHedefVeriTabani.Text.Trim()
                 };
 
-                // Yeni formu güvenli şekilde aç
+                
                 FrmVeriEslestirme frm = null;
 
                 try
@@ -343,7 +343,7 @@ namespace DataTransfer
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"FrmVeriEslestirme oluşturulurken hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Forma girerken hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -375,26 +375,28 @@ namespace DataTransfer
 
         private async void CmbboxKaynakVeritabani_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedDb = CmbboxKaynakVeritabani.Text;
-            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+            string secilenDb = CmbboxKaynakVeritabani.Text;
+
+            if (string.IsNullOrWhiteSpace(secilenDb))
+                return;
 
             try
             {
-                // Kullanıcının seçtiği veritabanına erişimi var mı kontrol et
-                string connStr = $"Server={TxtboxKaynakSunucu.Text.Trim()};Database={selectedDb};User Id={TxtKullanıcı.Text.Trim()};Password={TxtSifre.Text.Trim()};Connect Timeout=5;TrustServerCertificate=True;";
+                
+                string connStr = $"Server={TxtboxKaynakSunucu.Text.Trim()};Database={secilenDb};User Id={TxtKullanıcı.Text.Trim()};Password={TxtSifre.Text.Trim()};Connect Timeout=5; TrustServerCertificate=True;";
 
                 using (var conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
 
-                    // Basit bir test sorgusu çalıştıralım
-                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))//tabloya erişim testi veritabnına erişim var fakat tabloya yoksa hata verir
                     {
                         await cmd.ExecuteScalarAsync();
                     }
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{secilenDb}' veritabanına erişim doğrulandı.");
                 }
             }
             catch (SqlException ex)
@@ -408,10 +410,10 @@ namespace DataTransfer
                 };
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{secilenDb}' erişim hatası: {mesaj}");
                 MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                // Hatalı seçim durumunda geri al
+                
                 CmbboxKaynakVeritabani.SelectedIndex = -1;
             }
             catch (Exception ex)
@@ -423,22 +425,22 @@ namespace DataTransfer
 
         private async void CmbboxHedefVeriTabani_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedDb = CmbboxHedefVeriTabani.Text;
-            if (string.IsNullOrWhiteSpace(selectedDb)) return;
+            string secilenDb = CmbboxHedefVeriTabani.Text;
+            if (string.IsNullOrWhiteSpace(secilenDb)) return;
 
             try
             {
-                string connStr = $"Server={TxtboxHedefSunucu.Text.Trim()};Database={selectedDb};User Id={TxboxHedefKullanici.Text.Trim()};Password={TxboxHedefSifre.Text.Trim()};Connect Timeout=5;TrustServerCertificate=True;";
+                string connStr = $"Server={TxtboxHedefSunucu.Text.Trim()};Database={secilenDb};User Id={TxboxHedefKullanici.Text.Trim()};Password={TxboxHedefSifre.Text.Trim()};Connect Timeout=5;TrustServerCertificate=True;";
                 using (var conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
-                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))//erşim testi erişim izni varsa sıkıntı yok izin yoksa hata verir
                     {
                         await cmd.ExecuteScalarAsync();
                     }
 
                     LstboxLog.ForeColor = Color.Green;
-                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' veritabanına erişim doğrulandı.");
+                    LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{secilenDb}' veritabanına erişim doğrulandı.");
                 }
             }
             catch (SqlException ex)
@@ -452,7 +454,7 @@ namespace DataTransfer
                 };
 
                 LstboxLog.ForeColor = Color.Red;
-                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{selectedDb}' erişim hatası: {mesaj}");
+                LstboxLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] '{secilenDb}' erişim hatası: {mesaj}");
                 MessageBox.Show(mesaj, "Erişim Engellendi", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 CmbboxHedefVeriTabani.SelectedIndex = -1;
@@ -484,12 +486,29 @@ namespace DataTransfer
         }
         private void ProgresBarBitir(bool basarili)
         {
-            PrgsbarBaglanti.Value = 100;
-            PrgsbarBaglanti.ForeColor = Color.Green;
+            if (basarili)
+            {
+                
+                PrgsbarBaglanti.Value = 100;
+                PrgsbarBaglanti.ForeColor = Color.Green;
+                PrgsbarBaglanti.Refresh();
 
-            PrgsbarBaglanti.Refresh();
-            Task.Delay(500).Wait();
+                Task.Delay(400).Wait(); 
+            }
+            else
+            {
+                // Başarısız işlem
+                if (PrgsbarBaglanti.Value < 30)
+                    PrgsbarBaglanti.Value = 30; 
+
+                PrgsbarBaglanti.ForeColor = Color.Red;
+                PrgsbarBaglanti.Refresh();
+
+                Task.Delay(300).Wait(); 
+            }
+
             PrgsbarBaglanti.Visible = false;
         }
+
     }
 }

@@ -37,14 +37,64 @@ namespace DataTransfer
             GrdEslestirme.AutoGenerateColumns = false; //otomaitk kolon oluşturmaaz
             GrdEslestirme.Columns.Clear();
 
-            var kolonKaynak = new DataGridViewTextBoxColumn { Name = "KaynakKolon", HeaderText = "Kaynak kolonlar", ReadOnly = true };
-            var kolonHedef = new DataGridViewComboBoxColumn { Name = "HedefKolon", HeaderText = "Hedef kolonlar", FlatStyle = FlatStyle.Flat }; //hedef kolonları comboboxla seçiyorum
-            var kolonTip = new DataGridViewTextBoxColumn { Name = "Tip", HeaderText = "Data Tipi", ReadOnly = true };
-            var kolonUzunlugu = new DataGridViewTextBoxColumn { Name = "Uzunluk", HeaderText = "Uzunluk", ReadOnly = true };
-            var kolonNullable = new DataGridViewTextBoxColumn { Name = "Nullable", HeaderText = "Boş Geçilebilir", ReadOnly = true };
-            var kolonUygunluk = new DataGridViewTextBoxColumn { Name = "Uygunluk", HeaderText = "Uygunluk", ReadOnly = true };
+            var kolonKaynak = new DataGridViewTextBoxColumn 
+            { 
+                Name = "KaynakKolon",
+                HeaderText = "Kaynak kolonlar",
+                ReadOnly = true 
+            };
+            var KaynakkolonTip = new DataGridViewTextBoxColumn
+            {
+                Name = "Tip",
+                HeaderText = "Kaynak Data Tipi",
+                ReadOnly = true
+            };
+            var KaynakkolonUzunlugu = new DataGridViewTextBoxColumn
+            {
+                Name = "Uzunluk",
+                HeaderText = "Kaynak Uzunluk",
+                ReadOnly = true
+            };
+            var KaynakkolonNullable = new DataGridViewTextBoxColumn
+            {
+                Name = "Nullable",
+                HeaderText = "Kaynak Boş Geçilebilir",
+                ReadOnly = true
+            };
 
-            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak, kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
+
+            var kolonHedef = new DataGridViewComboBoxColumn 
+            { 
+                Name = "HedefKolon",
+                HeaderText = "Hedef kolonlar",
+                FlatStyle = FlatStyle.Flat 
+            }; 
+            var kolonTip = new DataGridViewTextBoxColumn 
+            { 
+                Name = "Tip",
+                HeaderText = "Hedef Data Tipi",
+                ReadOnly = true 
+            };
+            var kolonUzunlugu = new DataGridViewTextBoxColumn 
+            {
+                Name = "Uzunluk", 
+                HeaderText = "Hedef Uzunluk",
+                ReadOnly = true
+            };
+            var kolonNullable = new DataGridViewTextBoxColumn
+            { 
+                Name = "Nullable", 
+                HeaderText = "Hedef Boş Geçilebilir",
+                ReadOnly = true 
+            };
+            var kolonUygunluk = new DataGridViewTextBoxColumn 
+            { 
+                Name = "Uygunluk",
+                HeaderText = "Uygunluk",
+                ReadOnly = true 
+            };
+
+            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak,KaynakkolonTip,KaynakkolonUzunlugu,KaynakkolonNullable ,kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
             GrdEslestirme.AllowUserToAddRows = false; // kullanıcı bofş satır ekleyemez
         }
 
@@ -57,8 +107,8 @@ namespace DataTransfer
                 var KaynakTablo = await TabloGetirAsync(kaynak);
                 TrwKaynakTablolar.Nodes.Clear(); //treewievdeki düğümleri siler
 
-                foreach (var t in KaynakTablo.OrderBy(x => x))
-                    TrwKaynakTablolar.Nodes.Add(new TreeNode(t) { Tag = t }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
+                foreach (var tabloAd in KaynakTablo.OrderBy(x => x))
+                    TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
 
 
                 var HedefTablo = await TabloGetirAsync(hedef);  
@@ -77,7 +127,7 @@ namespace DataTransfer
         private async Task<List<string>> TabloGetirAsync(BaglantiBilgileri info)
         {
             var list = new List<string>();
-            string connStr = $"Server={info.Sunucu};Database={info.Veritabani ?? "master"};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
+            string connStr = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
 
             string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
             try
@@ -104,28 +154,30 @@ namespace DataTransfer
         #endregion
 
 
-        private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçilince kolonları yükle
+        private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçme işlemi
         {
             if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo))
                 lstLog.Items.Add($"Kaynak tablo seçildi: {tablo}");
         }
 
-        private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e)//seçilen tabloya göre hedef kolonları yükle 
+        private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e) 
         {
 
-            if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo))
+            if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo)) // node.tag? tablo adı
                 lstLog.Items.Add($"Hedef tablo seçildi: {tablo}");
         }
 
-        private void HedefKolonSecildi(object? sender, EventArgs e) //gridde hedef kolon seçilince diğer bilgileri doldurmak için
+        private void HedefKolonSecildi(object? sender, EventArgs e) //gridde hedef kolon seçilince kolon bilgileri doldurmak için
         {
-            if (sender is ComboBox combo && GrdEslestirme.CurrentCell != null)
+            if (sender is ComboBox combo && GrdEslestirme.CurrentCell != null)//sender combobox
             {
                 var secilen = combo.SelectedItem?.ToString();
-                if (string.IsNullOrWhiteSpace(secilen)) return;
+                if (string.IsNullOrWhiteSpace(secilen)) 
+                    return;
 
                 var row = GrdEslestirme.CurrentRow;
-                if (row == null) return;
+                if (row == null) 
+                    return;
 
                 if (HedefKolonlar.TryGetValue(secilen, out var bilgi))
                 {
@@ -147,6 +199,7 @@ namespace DataTransfer
                 int satır = GrdEslestirme.Rows.Add();
                 var row = GrdEslestirme.Rows[satır];
 
+               
                 row.Cells["KaynakKolon"].Value = kaynak.Key;              
                 row.Cells["Uygunluk"].Value = "";
             }
@@ -172,6 +225,7 @@ namespace DataTransfer
                 return kolonlar;
 
             string connStr = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
+
             string sql = @"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
                        FROM INFORMATION_SCHEMA.COLUMNS
                        WHERE TABLE_NAME = @TableName
@@ -279,20 +333,26 @@ namespace DataTransfer
 
 
 
-        private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()
+        private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi()//kolon eşleşme listesini döndürüyor
         {
             var liste = new List<(string KaynakKolon, string HedefKolon)>();
+
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
                 KontrolEt(row);
-                if (row.IsNewRow) continue;
-                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun") continue;
 
-                string k = row.Cells["KaynakKolon"].Value?.ToString();
-                string h = row.Cells["HedefKolon"].Value?.ToString();
-                if (!string.IsNullOrWhiteSpace(k) && !string.IsNullOrWhiteSpace(h))
+                if (row.IsNewRow) 
+                    continue;
+
+                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
+                    continue;
+
+                string kaynak = row.Cells["KaynakKolon"].Value?.ToString();
+                string hedef = row.Cells["HedefKolon"].Value?.ToString();
+
+                if (!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) //boş olmayan kolonları listeye ekle
                 {
-                    liste.Add((k, h));
+                    liste.Add((kaynak, hedef));
                 }
             }
             return liste;
@@ -455,14 +515,17 @@ namespace DataTransfer
             $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
 
 
-        private DataTable GetDataTable(string connStr, string tablo, List<string> kolonlar, string where = "")
+        private DataTable DataTableGetir(string connStr, string tablo, List<string> kolonlar, string kosul = "")//sql den veri çeker datatable döndürür belirli tablo ve kolonlardan
         {
-            string kolList = string.Join(", ", kolonlar.Select(c => $"[{c}]"));
-            string sql = $"SELECT {kolList} FROM [{tablo}]";
-            if (!string.IsNullOrWhiteSpace(where))
-                sql += " WHERE " + where;
+            string kolonListe = string.Join(", ", kolonlar.Select(c => $"[{c}]"));//[ad]
+
+            string sql = $"SELECT {kolonListe} FROM [{tablo}]";
+
+            if (!string.IsNullOrWhiteSpace(kosul)) //eger koşul varsa sornadan ekelem yaparım
+                sql += " WHERE " + kosul;
 
             var dt = new DataTable();
+
             using (var conn = new SqlConnection(connStr))
             using (var da = new SqlDataAdapter(sql, conn))
             {
@@ -490,7 +553,7 @@ namespace DataTransfer
 
         private void LogEkle(string mesaj)
         {
-            if (lstLog.InvokeRequired)// uı threade böyle bir işim var lstloga ulaşcam senden izin istiyorum demek
+            if (lstLog.InvokeRequired)// uı threade böyle bir işim var lstloga ulaşmak izin istemek
             {
                 lstLog.Invoke(new Action(() => { LogEkle(mesaj); }));
                 return;
@@ -505,6 +568,7 @@ namespace DataTransfer
         {
             if (e.RowIndex < 0)
                 return;
+
             var row = GrdEslestirme.Rows[e.RowIndex];
             KontrolEt(row);
         }
@@ -526,14 +590,15 @@ namespace DataTransfer
                 return;
             }
 
-            var eslesmeler = EslestirmeListesi();
+            var eslesmeler = EslestirmeListesi(); //kolon eşleşmeya yapar
+
             if (eslesmeler.Count == 0)
             {
                 MessageBox.Show("Uygun kolon eşleşmesi bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
+            string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();//treeviewde seçilen tablo adları alır
             string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
 
             BtnTransferBaslat.Enabled = false;
@@ -547,10 +612,11 @@ namespace DataTransfer
                 string hedefConnStr = ConnectionString(hedef);
                 var kolonlar = eslesmeler.Select(x => x.KaynakKolon).ToList();
 
-                // Kaynak veriyi al
-                DataTable kaynakVeri = await Task.Run(() =>
-                    GetDataTable(kaynakConnStr, kaynakTablo, kolonlar, TxtFiltreleme.Text)
+                
+                DataTable kaynakVeri = await Task.Run(() => //kaynak veriyi datatable ile çekiyorum daha sonra bunu onizeme formunda göstericem
+                    DataTableGetir(kaynakConnStr, kaynakTablo, kolonlar, TxtFiltreleme.Text)
                 );
+
 
                 if (kaynakVeri.Rows.Count == 0)
                 {
@@ -559,7 +625,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // Önizleme formu aç
+               
                 using (var onizlemeForm = new FrmVeriOnizleme(kaynakVeri))
                 {
                     onizlemeForm.ShowDialog();
@@ -588,7 +654,7 @@ namespace DataTransfer
 
 
         private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
-            List<(string KaynakKolon, string HedefKolon)> eslesmeler, DataTable kaynakVeri)
+            List<(string KaynakKolon, string HedefKolon)> eslesmeler, DataTable kaynakVeri)//hedefteki verinin satır satır kontrolu
         { 
         
             string hedefConnStr = ConnectionString(hedef);
@@ -603,17 +669,18 @@ namespace DataTransfer
 
             foreach (DataRow row in kaynakVeri.Rows)
             {
-                //  Eşleşme kontrolü
-                string where = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));
-                string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {where}";
+                
+                string kosul = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));//eşleşen kolonları alır ve koşul oluşturur
 
-                using (var checkCmd = new SqlCommand(kontrolSql, conn))
+                string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {kosul}";//hedefte var mı kontrolü
+
+                using (var cmd = new SqlCommand(kontrolSql, conn))
                 {
                     foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
-                        checkCmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
 
-                    int exists = (int)await checkCmd.ExecuteScalarAsync();
-                    if (exists > 0)
+                    int sonuc = (int) await cmd.ExecuteScalarAsync();
+                    if (sonuc > 0)
                     {
                         atlanan++;
                         islenen++;
@@ -622,10 +689,11 @@ namespace DataTransfer
                     }
                 }
 
-                //  Insert işlemi
-                string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));
-                string paramList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));
-                string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({paramList})";
+                
+                string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));// Hedef tabloya ekleyeceğimiz kolonları virgülle birleştirir:
+                string parametreList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));//SQL parametrelerini oluşturur:
+
+                string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({parametreList})"; 
 
                 using (var insertCmd = new SqlCommand(insertSql, conn))
                 {
@@ -638,12 +706,12 @@ namespace DataTransfer
                 aktarılan++;
                 islenen++;
 
-                //  Progress her 10 kayıtta bir güncellenir
+                
                 if (islenen % 10 == 0 || islenen == toplam)
                     ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
             }
 
-            // 
+            
             ProgresGuncelle(toplam, toplam, aktarılan, atlanan);
             LogEkle($"Transfer tamamlandı: {aktarılan} yeni kayıt eklendi, {atlanan} kayıt zaten mevcuttu.");
             MessageBox.Show(
