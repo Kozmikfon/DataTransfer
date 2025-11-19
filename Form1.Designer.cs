@@ -110,7 +110,7 @@
             // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(985, 284);
+            BtnOtomatikEsle.Location = new Point(1028, 272);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(156, 48);
             BtnOtomatikEsle.TabIndex = 3;
@@ -120,9 +120,9 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(985, 425);
+            BtnStrSil.Location = new Point(1028, 370);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(156, 40);
+            BtnStrSil.Size = new Size(153, 40);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -130,7 +130,7 @@
             // 
             // BtnStrEkle
             // 
-            BtnStrEkle.Location = new Point(985, 360);
+            BtnStrEkle.Location = new Point(1028, 326);
             BtnStrEkle.Name = "BtnStrEkle";
             BtnStrEkle.Size = new Size(156, 38);
             BtnStrEkle.TabIndex = 1;
@@ -142,11 +142,12 @@
             // 
             GrdEslestirme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdEslestirme.Location = new Point(12, 272);
+            GrdEslestirme.Location = new Point(0, 272);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(967, 272);
+            GrdEslestirme.Size = new Size(1022, 272);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
+            GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick_1;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 

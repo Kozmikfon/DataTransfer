@@ -14,11 +14,11 @@ namespace DataTransfer
         private FrmBaglantiAc _oncekiForm;
 
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> KaynakKolonlar =
-            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgilerini tutmak için sözlük olustutkdu.
+        private Dictionary<string, KolonBilgisi> KaynakKolonlar =
+            new Dictionary<string, KolonBilgisi>(StringComparer.OrdinalIgnoreCase); //kaynak kolonların bilgilerini tutmak için sözlük olustutkdu.
 
-        private Dictionary<string, (string DataType, int? Length, bool IsNullable)> HedefKolonlar =
-            new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, KolonBilgisi> HedefKolonlar =
+            new Dictionary<string, KolonBilgisi>(StringComparer.OrdinalIgnoreCase);
 
         public FrmVeriEslestirme(BaglantiBilgileri kaynakBilgi, BaglantiBilgileri hedefBilgi, FrmBaglantiAc oncekiForm)
         {
@@ -37,7 +37,7 @@ namespace DataTransfer
             GrdEslestirme.AutoGenerateColumns = false;
             GrdEslestirme.Columns.Clear();
 
-            
+
             var kolonKaynak = new DataGridViewTextBoxColumn
             {
                 Name = "KaynakKolon",
@@ -63,7 +63,7 @@ namespace DataTransfer
                 ReadOnly = true
             };
 
-           
+
 
             var kolonHedef = new DataGridViewComboBoxColumn
             {
@@ -90,15 +90,17 @@ namespace DataTransfer
                 ReadOnly = true
             };
 
-            
+
             var kolonUygunluk = new DataGridViewTextBoxColumn
             {
                 Name = "Uygunluk",
                 HeaderText = "Uygunluk",
-                ReadOnly = true
+                ReadOnly = true,
+
+
             };
 
-            
+
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
                 kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
@@ -121,7 +123,7 @@ namespace DataTransfer
                     TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
 
 
-                var HedefTablo = await TabloGetirAsync(hedef);  
+                var HedefTablo = await TabloGetirAsync(hedef);
                 TrwHedefTablolar.Nodes.Clear();
 
                 foreach (var t in HedefTablo.OrderBy(x => x))
@@ -170,7 +172,7 @@ namespace DataTransfer
                 lstLog.Items.Add($"Kaynak tablo seçildi: {tablo}");
         }
 
-        private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e) 
+        private async void TrwHedefTablolar_AfterSelect(object sender, TreeViewEventArgs e)
         {
 
             if (e.Node?.Tag is string tablo && !string.IsNullOrWhiteSpace(tablo)) // node.tag? tablo adı
@@ -182,11 +184,11 @@ namespace DataTransfer
             if (sender is ComboBox combo && GrdEslestirme.CurrentCell != null)//sender combobox
             {
                 var secilen = combo.SelectedItem?.ToString();
-                if (string.IsNullOrWhiteSpace(secilen)) 
+                if (string.IsNullOrWhiteSpace(secilen))
                     return;
 
                 var row = GrdEslestirme.CurrentRow;
-                if (row == null) 
+                if (row == null)
                     return;
 
                 if (HedefKolonlar.TryGetValue(secilen, out var bilgi))
@@ -201,7 +203,7 @@ namespace DataTransfer
             }
         }
 
-        private void KaynakSutunBilgileriGetir(Dictionary<string, (string DataType, int? Length, bool IsNullable)> kaynakKolon)//dictionayden gelen kolon bilgilerini gride yükleme kaynak kolonları ama
+        private void KaynakSutunBilgileriGetir(Dictionary<string, KolonBilgisi> kaynakKolon)//dictionayden gelen kolon bilgilerini gride yükleme kaynak kolonları ama
         {
             GrdEslestirme.Rows.Clear();
             foreach (var kaynak in kaynakKolon)
@@ -209,7 +211,7 @@ namespace DataTransfer
                 int satır = GrdEslestirme.Rows.Add();
                 var row = GrdEslestirme.Rows[satır];
 
-                
+
                 row.Cells["KaynakKolon"].Value = kaynak.Key;
 
                 row.Cells["KaynakTip"].Value = kaynak.Value.DataType;
@@ -232,19 +234,39 @@ namespace DataTransfer
             }
         }
 
-        private async Task<Dictionary<string, (string DataType, int? Length, bool IsNullable)>> KolonBilgileriniGetirAsync(BaglantiBilgileri info, string tabloAdi)
+        private async Task<Dictionary<string, KolonBilgisi>> KolonBilgileriniGetirAsync(BaglantiBilgileri info, string tabloAdi)
         {
-            var kolonlar = new Dictionary<string, (string DataType, int? Length, bool IsNullable)>(StringComparer.OrdinalIgnoreCase);
+            var kolonlar = new Dictionary<string, KolonBilgisi>(StringComparer.OrdinalIgnoreCase);
 
             if (info == null || string.IsNullOrWhiteSpace(info.Sunucu) || string.IsNullOrWhiteSpace(tabloAdi))
                 return kolonlar;
 
             string connStr = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
 
-            string sql = @"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
-                       FROM INFORMATION_SCHEMA.COLUMNS
-                       WHERE TABLE_NAME = @TableName
-                       ORDER BY ORDINAL_POSITION";
+            // SQL Sorgusu: INFORMATION_SCHEMA ile sistem tablolarını (sys.indexes) birleştirerek
+            // Primary Key ve Unique Index bilgisini (tek bir IsUnique alanı olarak) çeker.
+            string sql = $@"
+            SELECT 
+                C.COLUMN_NAME, 
+                C.DATA_TYPE, 
+                C.CHARACTER_MAXIMUM_LENGTH, 
+                C.IS_NULLABLE,
+                ISNULL(INDEXES.IsUnique, 0) AS IsUnique -- PK ve Unique Index'leri tek bir alanda toplar
+            FROM INFORMATION_SCHEMA.COLUMNS C
+            JOIN sys.tables T ON T.name = C.TABLE_NAME AND T.name = @TableName
+            JOIN sys.schemas S ON S.schema_id = T.schema_id
+            LEFT JOIN (
+                SELECT 
+                    COL.name AS COLUMN_NAME, 
+                    MAX(CAST(I.is_unique_constraint AS INT)) AS IsUnique
+                FROM sys.indexes I
+                JOIN sys.index_columns IC ON I.object_id = IC.object_id AND I.index_id = IC.index_id
+                JOIN sys.columns COL ON COL.object_id = I.object_id AND COL.column_id = IC.column_id
+                WHERE I.object_id = OBJECT_ID(@TableName) AND (I.is_unique_constraint = 1 OR I.is_primary_key = 1)
+                GROUP BY COL.name
+            ) AS INDEXES ON INDEXES.COLUMN_NAME = C.COLUMN_NAME
+            WHERE C.TABLE_NAME = @TableName
+            ORDER BY C.ORDINAL_POSITION";
 
             try
             {
@@ -259,16 +281,33 @@ namespace DataTransfer
                         {
                             string KolonIsmi = reader["COLUMN_NAME"].ToString();
                             string tip = reader["DATA_TYPE"].ToString();
+
+                            // Maksimum Uzunluk (CHARACTER_MAXIMUM_LENGTH) kontrolü
                             int? uzunluk = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
+
+                            // IS_NULLABLE kontrolü
                             bool isNullable = reader["IS_NULLABLE"].ToString().Equals("YES", StringComparison.OrdinalIgnoreCase);
-                            kolonlar[KolonIsmi] = (tip, uzunluk, isNullable);
+
+                            // IsUnique kontrolü
+                            bool isUnique = Convert.ToBoolean(reader["IsUnique"]);
+
+                            // KolonBilgisi nesnesini oluşturma
+                            kolonlar[KolonIsmi] = new KolonBilgisi
+                            {
+                                DataType = tip,
+                                Length = uzunluk,
+                                IsNullable = isNullable,
+                                IsUnique = isUnique // Benzersiz kısıtlama bilgisini içerir
+                            };
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Kolon alinamadi: {ex.Message}");
+                // Hata loglama ve mesaj gösterme
+                // Not: lstLog'un bu kapsamda erişilebilir olduğunu varsayıyoruz.
+                // lstLog.Items.Add($"Kolon alinamadi: {ex.Message}"); 
                 MessageBox.Show($"Kolon bilgisi alınamadı: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
@@ -290,61 +329,161 @@ namespace DataTransfer
         {
             try
             {
+                // Eğer kullanıcı daha önce bu satırı manuel onayladıysa tekrar kontrol etme.
+                if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI")
+                {
+                    row.Cells["Uygunluk"].Value = "Uygun (Onaylı)";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Blue; // Onaylılar Mavi olsun
+                    return;
+                }
+
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+
                 if (string.IsNullOrWhiteSpace(kaynakKolon) || string.IsNullOrWhiteSpace(hedefKolon))
                 {
                     row.Cells["Uygunluk"].Value = "";
                     return;
                 }
 
-                if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi))
+                if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
+                    !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
                 {
-                    row.Cells["Uygunluk"].Value = "Kaynak yok";
+                    row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     return;
                 }
 
-                if (!HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
+                List<string> mesajlar = new List<string>();
+                bool kritikHata = false;     // Kesinlikle olmaz (Veri kaybı çok yüksek)
+                bool uyariGerekli = false;   // Kullanıcı onayı ile geçilebilir
+
+                // 1. Nullable Kontrolü (Hedef Null olamaz ama Kaynak Null geliyor)
+                if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable)
                 {
-                    row.Cells["Uygunluk"].Value = "Hedef yok";
+                    mesajlar.Add("Hedef NULL kabul etmiyor");
+                    kritikHata = true; // Bu genelde veritabanı patlatır, kritik kalsın.
+                }
+
+                // 2. Metinsel Dönüşümler (nvarchar <-> char vb.)
+                string[] metinselTipler = { "nvarchar", "nchar", "varchar", "char", "text", "ntext" };
+                bool kaynakMetin = metinselTipler.Contains(KaynakBilgi.DataType.ToLower());
+                bool hedefMetin = metinselTipler.Contains(HedefBilgi.DataType.ToLower());
+
+                if (kaynakMetin && hedefMetin)
+                {
+                    // Tip ismi farklıysa (örn: nvarchar -> nchar)
+                    if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        mesajlar.Add($"Tip Dönüşümü ({KaynakBilgi.DataType}->{HedefBilgi.DataType})");
+                        uyariGerekli = true; // Bu bir uyarıdır, onaylanırsa geçilir.
+                    }
+
+                    // Uzunluk Kontrolü
+                    if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue)
+                    {
+                        // -1 (MAX) değerlerini int.MaxValue'ye dönüştürerek mantıksal karşılaştırma yapıyoruz.
+                        long kaynakLen = KaynakBilgi.Length.Value == -1 ? int.MaxValue : KaynakBilgi.Length.Value;
+                        long hedefLen = HedefBilgi.Length.Value == -1 ? int.MaxValue : HedefBilgi.Length.Value;
+
+                        // Hedef kapasitesi Kaynaktan küçükse risk vardır.
+                        if (hedefLen < kaynakLen)
+                        {
+                            // Ekranda kullanıcıya -1 yerine "MAX" göstermek için string hazırlıyoruz
+                            string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
+                            string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
+
+                            mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
+                            uyariGerekli = true; // Onay gerektiren turuncu rengi tetikler.
+                        }
+                        else if (hedefLen > kaynakLen)
+                        {
+                            // BİLGİ: Hedef > Kaynak
+                            string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
+                            string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
+
+                            // Bu sadece bir bilgi olduğu için 'mesajlar' listesine eklenir. 
+                            // uyariGerekli = true yapılmaz, böylece otomatik uygun sayılır (Yeşil/Mavi).
+                            mesajlar.Add($"Genişletildi ({kStr}->{hStr})");
+                        }
+                        // NOT: Hedef Genişse (hedefLen >= kaynakLen) herhangi bir uyarıya gerek yoktur.
+                    }
+                }
+                // 3. Sayısal Dönüşümler
+                else if (IsNumericType(KaynakBilgi.DataType) && IsNumericType(HedefBilgi.DataType))
+                {
+                    bool kaynakOndalik = IsDecimalType(KaynakBilgi.DataType);
+                    bool hedefTam = IsIntegerType(HedefBilgi.DataType);
+
+                    if (kaynakOndalik && hedefTam)
+                    {
+                        // Örn: decimal -> int (Veri Kaybı RİSKİ, ama onaylanırsa geçilebilir)
+                        mesajlar.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
+                        uyariGerekli = true;
+                    }
+                    // NOT: Tamsayıdan ondalığa (int -> decimal) geçiş güvenlidir, uyarıya gerek yoktur.
+                }
+
+                // 4. KRİTİK ALAKASIZ TİPLER (Sayısal -> Metin / Tarih -> Metin)
+                // Bunlar mantıksal olarak aktarılmaması gereken dönüşlerdir.
+                else
+                {
+                    // Tanımlanmış yardımcı tipleri genişletelim:
+                    string[] tarihTipleri = { "date", "datetime", "datetime2", "smalldatetime", "time" };
+                    bool kaynakTarih = tarihTipleri.Contains(KaynakBilgi.DataType.ToLower());
+                    bool hedefTarih = tarihTipleri.Contains(HedefBilgi.DataType.ToLower());
+
+                    // Kritik Kural 1: Sayısal veya Tarihsel bir alanın metne dönüştürülmesi
+                    if ((IsNumericType(KaynakBilgi.DataType) || kaynakTarih) && hedefMetin)
+                    {
+                        // Örn: int -> varchar veya datetime -> nvarchar
+                        mesajlar.Add($"KRİTİK UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
+                        kritikHata = true;
+                    }
+                    // Kritik Kural 2: Metinsel bir alanın sayısal veya tarihsel bir alana dönüştürülmesi
+                    else if (kaynakMetin && (IsNumericType(HedefBilgi.DataType) || hedefTarih))
+                    {
+                        // Örn: nvarchar -> int
+                        mesajlar.Add($"KRİTİK UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
+                        kritikHata = true;
+                    }
+                    // Diğer tüm alakasız tipler (örneğin GUID'den Int'e)
+                    else if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        mesajlar.Add($"Alakasız Tip Uyuşmazlığı: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
+                        uyariGerekli = true; // Daha az kritik, onaylanırsa belki geçilebilir.
+                    }
+                }
+
+                // --- SONUÇ DEĞERLENDİRME ---
+                if (kritikHata)
+                {
+                    row.Cells["Uygunluk"].Value = string.Join(", ", mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    return;
+                    row.Tag = null; // Onaylanamaz
                 }
-
-                // data type kontrol
-                if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
+                else if (uyariGerekli)
                 {
-                    row.Cells["Uygunluk"].Value = $"Uyumsuz tip ({KaynakBilgi.DataType}->{HedefBilgi.DataType})";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    return;
+                    // Kullanıcı onayı gerekiyor
+                    row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", mesajlar);
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
+                    row.Tag = null; // Henüz onaylanmadı
                 }
-
-                // nullable hedef NOT NULL ise hata
-                if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable) //hedef no nullable=false ve kaynak yes ise
+                else
                 {
-                    // kaynak nullable ama hedef not null
-                    row.Cells["Uygunluk"].Value = "Hedef Null olamaz";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.OrangeRed;
-                    return;
+                    // Her şey yolunda
+                    row.Cells["Uygunluk"].Value = "Uygun";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
+                    row.Tag = "ONAYLANDI"; // Otomatik onaylı
                 }
-
-                // length kontrol
-                if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue && KaynakBilgi.Length > HedefBilgi.Length) // nvarchar varchar nchar
-                {
-                    row.Cells["Uygunluk"].Value = "Uzunluk Aşıyor";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Orange;
-                    return;
-                }
-
-                row.Cells["Uygunluk"].Value = "Uygun";
-                row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
             }
             catch (Exception ex)
             {
-                lstLog.Items.Add($"Kontrol hata: {ex.Message}");
+                row.Cells["Uygunluk"].Value = "Hata";
+                lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
             }
         }
+
 
 
 
@@ -354,18 +493,24 @@ namespace DataTransfer
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
+                // Mevcut durumu kontrol et (belki kullanıcı değiştirdi ama grid event tetiklenmedi)
                 KontrolEt(row);
 
-                if (row.IsNewRow) 
-                    continue;
+                if (row.IsNewRow) continue;
 
-                if (row.Cells["Uygunluk"].Value?.ToString() != "Uygun")
-                    continue;
+                string durum = row.Cells["Uygunluk"].Value?.ToString();
+
+                // Sadece "Uygun" veya "Uygun (Onaylı)" içerenleri al
+                // Veya Tag kontrolü yapabiliriz:
+                bool onayli = (row.Tag?.ToString() == "ONAYLANDI");
+
+                if (!onayli)
+                    continue; // Onaylanmamış (Kırmızı veya Turuncu) satırları aktarıma dahil etme!
 
                 string kaynak = row.Cells["KaynakKolon"].Value?.ToString();
                 string hedef = row.Cells["HedefKolon"].Value?.ToString();
 
-                if (!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef)) //boş olmayan kolonları listeye ekle
+                if (!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef))
                 {
                     liste.Add((kaynak, hedef));
                 }
@@ -406,53 +551,49 @@ namespace DataTransfer
             }
         }
 
-        private void BtnOtomatikEsle_Click(object sender, EventArgs e)// isim bazlı
+        private void BtnOtomatikEsle_Click(object sender, EventArgs e) // İsim Bazlı Eşleme (Düzeltilmiş)
         {
-
-            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            // --- 1. Performans İyileştirmesi: ComboBox Items Şablonu Ayarlama ---
+            // Bu kısım (kolonun şablonunun doldurulması) normalde Form Load'da yapılır.
+            // Ancak bu method içinde yapılacaksa, sadece kolon şablonu doldurulmalıdır.
+            if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
             {
-                if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell comboCell)
-                {
-                    comboCell.Items.Clear();
-                    comboCell.Items.AddRange(HedefKolonlar.Keys.ToArray());
-                }
+                comboCol.Items.Clear();
+                comboCol.Items.AddRange(HedefKolonlar.Keys.ToArray());
             }
 
             var hedefList = HedefKolonlar.Keys.ToList();
+
+            // --- 2. Tek Döngüde Eşleme, Değer Atama ve Kontrol ---
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                var source = row.Cells["KaynakKolon"].Value?.ToString();
+                var sourceName = row.Cells["KaynakKolon"].Value?.ToString();
 
-                if (string.IsNullOrWhiteSpace(source))
+                if (string.IsNullOrWhiteSpace(sourceName))
                     continue;
 
-                var match = hedefList.FirstOrDefault(h => h.Equals(source, StringComparison.OrdinalIgnoreCase));
+                // İsim bazlı eşleşmeyi bul
+                var matchName = hedefList.FirstOrDefault(h => h.Equals(sourceName, StringComparison.OrdinalIgnoreCase));
 
-                if (match != null)
+                if (matchName != null)
                 {
-                    var cell = row.Cells["HedefKolon"] as DataGridViewComboBoxCell;
-                    if (cell != null)
+                    // Hücre değerini ayarla
+                    row.Cells["HedefKolon"].Value = matchName;
+
+                    // Hedef kolon bilgileri (Tip, Uzunluk, Nullable)
+                    if (HedefKolonlar.TryGetValue(matchName, out var hInfo))
                     {
-
-                        if (!cell.Items.Contains(match))
-                            cell.Items.Add(match);
-
-                        cell.Value = match;
+                        row.Cells["HedefTip"].Value = hInfo.DataType;
+                        row.Cells["HedefUzunluk"].Value = hInfo.Length?.ToString() ?? "";
+                        row.Cells["HedefNullable"].Value = hInfo.IsNullable ? "YES" : "NO";
                     }
                 }
+
+                // Eşleme olsun veya olmasın, uygunluğu kontrol et
                 KontrolEt(row);
-
-                if (!string.IsNullOrEmpty(match) && HedefKolonlar.TryGetValue(match, out var hInfo))
-                {
-                    row.Cells["HedefTip"].Value = hInfo.DataType;
-                    row.Cells["HedefUzunluk"].Value = hInfo.Length?.ToString() ?? "";
-                    row.Cells["HedefNullable"].Value = hInfo.IsNullable ? "YES" : "NO";
-                }
-
             }
+
             lstLog.Items.Add("Eşleme tamamlandı.");
-
-
         }
 
         private void BtnStrEkle_Click(object sender, EventArgs e)
@@ -513,7 +654,7 @@ namespace DataTransfer
                     MessageBox.Show($"Filtre testi başarılı: {deger} satır döndü.");
                     lstLog.Items.Add($"Filtre testi başarılı: {deger} satır döndü. {where}");
                 }
-            
+
             }
             catch (Exception ex)
             {
@@ -627,7 +768,7 @@ namespace DataTransfer
                 string hedefConnStr = ConnectionString(hedef);
                 var kolonlar = eslesmeler.Select(x => x.KaynakKolon).ToList();
 
-                
+
                 DataTable kaynakVeri = await Task.Run(() => //kaynak veriyi datatable ile çekiyorum daha sonra bunu onizeme formunda göstericem
                     DataTableGetir(kaynakConnStr, kaynakTablo, kolonlar, TxtFiltreleme.Text)
                 );
@@ -640,7 +781,7 @@ namespace DataTransfer
                     return;
                 }
 
-               
+
                 using (var onizlemeForm = new FrmVeriOnizleme(kaynakVeri))
                 {
                     onizlemeForm.ShowDialog();
@@ -667,15 +808,55 @@ namespace DataTransfer
             }
         }
 
+        // TİP KONOTROLÜ
+        private bool IsNumericType(string dataType)
+        {
+            string[] numericTypes = { "int", "bigint", "smallint", "tinyint", "decimal", "numeric", "float", "real" };
+            return numericTypes.Contains(dataType.ToLower());
+        }
 
-        private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
-            List<(string KaynakKolon, string HedefKolon)> eslesmeler, DataTable kaynakVeri)//hedefteki verinin satır satır kontrolu
-        { 
-        
+        private bool IsIntegerType(string dataType)
+        {
+            string[] intTypes = { "int", "bigint", "smallint", "tinyint" };
+            return intTypes.Contains(dataType.ToLower());
+        }
+
+        private bool IsDecimalType(string dataType)
+        {
+            string[] decimalTypes = { "decimal", "numeric", "float", "real" };
+            return decimalTypes.Contains(dataType.ToLower());
+        }
+
+        private bool IsTextType(string dataType)
+        {
+            string[] textTypes = { "nvarchar", "varchar", "nchar", "char" };
+            return textTypes.Contains(dataType.ToLower());
+        }
+
+
+
+        private async Task TransferSatiriKontrolu(
+     BaglantiBilgileri kaynak,
+     BaglantiBilgileri hedef,
+     string kaynakTablo,
+     string hedefTablo,
+     List<(string KaynakKolon, string HedefKolon)> eslesmeler,
+     DataTable kaynakVeri)
+        {
             string hedefConnStr = ConnectionString(hedef);
 
+            // Mükerrer Kontrol Kolonlarını DÖNGÜ DIŞINDA BİR KEZ HAZIRLA
+            var uniqueTargetCols = eslesmeler
+                .Where(e => HedefKolonlar.ContainsKey(e.HedefKolon) && HedefKolonlar[e.HedefKolon].IsUnique)
+                .Select(e => e.HedefKolon)
+                .ToList();
+
+            bool requiresDuplicateCheck = uniqueTargetCols.Any();
+
+            // Bağlantı ve Transaction
             using var conn = new SqlConnection(hedefConnStr);
             await conn.OpenAsync();
+            using var transaction = conn.BeginTransaction();
 
             int toplam = kaynakVeri.Rows.Count;
             int aktarılan = 0;
@@ -684,56 +865,170 @@ namespace DataTransfer
 
             foreach (DataRow row in kaynakVeri.Rows)
             {
-                
-                string kosul = string.Join(" AND ", eslesmeler.Select(x => $"[{x.HedefKolon}] = @{x.HedefKolon}"));//eşleşen kolonları alır ve koşul oluşturur
-
-                string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {kosul}";//hedefte var mı kontrolü
-
-                using (var cmd = new SqlCommand(kontrolSql, conn))
+                try
                 {
-                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
-                        cmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
+                    bool satirUyumlu = true;
+                    var insertValues = new Dictionary<string, object>();
 
-                    int sonuc = (int) await cmd.ExecuteScalarAsync();
-                    if (sonuc > 0)
+                    // ... (Kolon değerlerinin hazırlanması ve NULL/Tip kontrolleri aynı kalır) ...
+
+                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
+                    {
+                        // HedefKolonlar ve KaynakKolonlar'ın erişilebilir olduğu varsayılmıştır.
+                        var KaynakBilgi = KaynakKolonlar[kaynakKolon];
+                        var HedefBilgi = HedefKolonlar[hedefKolon];
+
+                        object val = row[kaynakKolon];
+
+                        // 1. NULL KONTROLÜ
+                        if ((val == null || val == DBNull.Value))
+                        {
+                            if (!HedefBilgi.IsNullable)
+                            {
+                                LogEkle($"Satır Atlandı: '{hedefKolon}' kolonu NULL olamaz.");
+                                satirUyumlu = false;
+                                break;
+                            }
+                            insertValues[hedefKolon] = DBNull.Value;
+                            continue;
+                        }
+
+                        // 2. METİNSEL DÖNÜŞÜM VE KIRPMA
+                        if (IsTextType(KaynakBilgi.DataType) && IsTextType(HedefBilgi.DataType))
+                        {
+                            string sVal = val.ToString();
+
+                            if (HedefBilgi.Length.HasValue &&
+                                HedefBilgi.Length.Value != -1 &&
+                                sVal.Length > HedefBilgi.Length.Value)
+                            {
+                                sVal = sVal.Substring(0, HedefBilgi.Length.Value);
+                            }
+                            insertValues[hedefKolon] = sVal;
+                        }
+                        // 3. SAYISAL DÖNÜŞÜM
+                        else if (IsNumericType(KaynakBilgi.DataType) && IsNumericType(HedefBilgi.DataType))
+                        {
+                            if (IsDecimalType(KaynakBilgi.DataType) && IsIntegerType(HedefBilgi.DataType))
+                            {
+                                decimal dVal = Convert.ToDecimal(val);
+                                insertValues[hedefKolon] = (long)Math.Truncate(dVal);
+                            }
+                            else
+                            {
+                                insertValues[hedefKolon] = val;
+                            }
+                        }
+                        // 4. DİĞER TİPLER
+                        else
+                        {
+                            insertValues[hedefKolon] = val;
+                        }
+                    } // Kolon döngüsü sonu
+
+                    if (!satirUyumlu)
                     {
                         atlanan++;
                         islenen++;
                         ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
                         continue;
                     }
+
+                    // --- GÜNCELLENMİŞ MÜKERRER KAYIT KONTROLÜ ---
+                    if (requiresDuplicateCheck)
+                    {
+                        var checkConditions = new List<string>();
+                        var checkParameters = new Dictionary<string, object>();
+
+                        // Koşulları oluştururken NULL kontrolü yap
+                        foreach (var hedefKolon in uniqueTargetCols)
+                        {
+                            if (insertValues.TryGetValue(hedefKolon, out object checkValue))
+                            {
+                                // Eğer değer DBNull ise, koşulu "IS NULL" olarak oluştur.
+                                if (checkValue == DBNull.Value)
+                                {
+                                    checkConditions.Add($"[{hedefKolon}] IS NULL");
+                                }
+                                // Eğer değer dolu ise, koşulu "= @Param" olarak oluştur ve parametreyi ekle.
+                                else
+                                {
+                                    string paramName = $"@{hedefKolon}_Check";
+                                    checkConditions.Add($"[{hedefKolon}] = {paramName}");
+                                    checkParameters.Add(paramName, checkValue);
+                                }
+                            }
+                        }
+
+                        // Eğer hiç koşul oluşmadıysa (tüm benzersiz alanlar NULL kabul eden alanlarda NULL gelirse),
+                        // normalde kayıt eklenir (SQL Server Unique Index kuralı). Ancak güvenlik için kontrol ediyoruz.
+                        if (!checkConditions.Any())
+                        {
+                            // Eğer tüm benzersiz kolonlar NULL ise, bu satırın eklenmesi beklenir (Unique Index'in NULL'a izin vermesi durumunda).
+                            // Kontrolü atlayıp devam ediyoruz.
+                        }
+                        else
+                        {
+                            string kosul = string.Join(" AND ", checkConditions);
+                            string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {kosul}";
+
+                            using (var cmdCheck = new SqlCommand(kontrolSql, conn, transaction))
+                            {
+                                // Oluşturulan parametreleri ekle
+                                foreach (var kvp in checkParameters)
+                                {
+                                    cmdCheck.Parameters.AddWithValue(kvp.Key, kvp.Value);
+                                }
+
+                                int count = (int)await cmdCheck.ExecuteScalarAsync();
+                                if (count > 0)
+                                {
+                                    atlanan++;
+                                    islenen++;
+                                    LogEkle($"Satır Atlandı: Benzersiz kaydı mevcut. Anahtar: {string.Join(", ", uniqueTargetCols)}");
+                                    ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    // --- INSERT İŞLEMİ ---
+                    string cols = string.Join(",", insertValues.Keys.Select(k => $"[{k}]"));
+                    string paramsNames = string.Join(",", insertValues.Keys.Select(k => $"@{k}"));
+                    string insertSql = $"INSERT INTO [{hedefTablo}] ({cols}) VALUES ({paramsNames})";
+
+                    using (var cmdInsert = new SqlCommand(insertSql, conn, transaction))
+                    {
+                        foreach (var kvp in insertValues)
+                        {
+                            cmdInsert.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value ?? DBNull.Value);
+                        }
+                        await cmdInsert.ExecuteNonQueryAsync();
+                    }
+
+                    aktarılan++;
+                    islenen++;
+
+                    if (islenen % 10 == 0) ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
+
                 }
-
-                
-                string kolonList = string.Join(",", eslesmeler.Select(x => $"[{x.HedefKolon}]"));// Hedef tabloya ekleyeceğimiz kolonları virgülle birleştirir:
-                string parametreList = string.Join(",", eslesmeler.Select(x => $"@{x.HedefKolon}"));//SQL parametrelerini oluşturur:
-
-                string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonList}) VALUES ({parametreList})"; 
-
-                using (var insertCmd = new SqlCommand(insertSql, conn))
+                catch (Exception ex)
                 {
-                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
-                        insertCmd.Parameters.AddWithValue($"@{hedefKolon}", row[kaynakKolon] ?? DBNull.Value);
-
-                    await insertCmd.ExecuteNonQueryAsync();
-                }
-
-                aktarılan++;
-                islenen++;
-
-                
-                if (islenen % 10 == 0 || islenen == toplam)
+                    islenen++;
+                    atlanan++;
+                    LogEkle($"Satır Hatası: {ex.Message}");
                     ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
+                }
             }
 
-            
+            transaction.Commit();
             ProgresGuncelle(toplam, toplam, aktarılan, atlanan);
-            LogEkle($"Transfer tamamlandı: {aktarılan} yeni kayıt eklendi, {atlanan} kayıt zaten mevcuttu.");
-            MessageBox.Show(
-                $"Transfer tamamlandı.\nYeni kayıt: {aktarılan}\nZaten mevcut: {atlanan}",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information
-            );
+            LogEkle($"Transfer Bitti. Aktarılan: {aktarılan}, Atlanan: {atlanan}");
+            MessageBox.Show($"İşlem Tamamlandı.\nAktarılan: {aktarılan}\nAtlanan: {atlanan}", "Sonuç", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+
 
 
 
@@ -779,12 +1074,51 @@ namespace DataTransfer
                 lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
 
             }
-           
+
         }
 
         private async Task UI_Guncelle()
         {
 
+        }
+
+        private void GrdEslestirme_CellDoubleClick_1(object sender, DataGridViewCellEventArgs e)//ONAYLAMA EVENTİ
+        {
+            if (e.RowIndex < 0) return;
+
+            var row = GrdEslestirme.Rows[e.RowIndex];
+            string durum = row.Cells["Uygunluk"].Value?.ToString();
+
+            // Eğer zaten uygunsa veya boşsa işlem yapma
+            if (string.IsNullOrEmpty(durum) || durum == "Uygun") return;
+
+            // Eğer Kritik Hata varsa (Red) onaylatmayalım (İsteğe bağlı, şimdilik engelliyorum)
+            if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
+            {
+                MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
+                                "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Eğer "ONAY GEREKİYOR" ise kullanıcıya sor
+            if (durum.StartsWith("ONAY GEREKİYOR"))
+            {
+                string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
+
+                DialogResult result = MessageBox.Show(
+                    $"Bu eşleşmede şu uyarılar var:\n\n{uyariMesaji}\n\n" +
+                    "Aktarım sırasında veri kaybı veya kırpılma olabilir. Bunu kabul edip onaylıyor musunuz?",
+                    "Onay İsteği",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Kullanıcı onayladı
+                    row.Tag = "ONAYLANDI"; // Tag'i işaretle
+                    KontrolEt(row); // Tekrar kontrol et (Bu sefer Tag dolu olduğu için Mavi/Uygun yapacak)
+                }
+            }
         }
     }
 }
