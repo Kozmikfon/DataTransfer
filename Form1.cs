@@ -32,73 +32,83 @@ namespace DataTransfer
             this.Load += FrmVeriEslestirme_Load;
         }
 
-        private void GridBaslat() // iki tablo arası eşlestiremyi gösterir
+        private void GridBaslat()
         {
-            GrdEslestirme.AutoGenerateColumns = false; //otomaitk kolon oluşturmaaz
+            GrdEslestirme.AutoGenerateColumns = false;
             GrdEslestirme.Columns.Clear();
 
-            var kolonKaynak = new DataGridViewTextBoxColumn 
-            { 
-                Name = "KaynakKolon",
-                HeaderText = "Kaynak kolonlar",
-                ReadOnly = true 
-            };
-            var KaynakkolonTip = new DataGridViewTextBoxColumn
+            
+            var kolonKaynak = new DataGridViewTextBoxColumn
             {
-                Name = "Tip",
+                Name = "KaynakKolon",
+                HeaderText = "Kaynak Kolon",
+                ReadOnly = true
+            };
+            var KaynakTip = new DataGridViewTextBoxColumn
+            {
+                Name = "KaynakTip",
                 HeaderText = "Kaynak Data Tipi",
                 ReadOnly = true
             };
-            var KaynakkolonUzunlugu = new DataGridViewTextBoxColumn
+            var KaynakUzunluk = new DataGridViewTextBoxColumn
             {
-                Name = "Uzunluk",
+                Name = "KaynakUzunluk",
                 HeaderText = "Kaynak Uzunluk",
                 ReadOnly = true
             };
-            var KaynakkolonNullable = new DataGridViewTextBoxColumn
+            var KaynakNullable = new DataGridViewTextBoxColumn
             {
-                Name = "Nullable",
+                Name = "KaynakNullable",
                 HeaderText = "Kaynak Boş Geçilebilir",
                 ReadOnly = true
             };
 
+           
 
-            var kolonHedef = new DataGridViewComboBoxColumn 
-            { 
-                Name = "HedefKolon",
-                HeaderText = "Hedef kolonlar",
-                FlatStyle = FlatStyle.Flat 
-            }; 
-            var kolonTip = new DataGridViewTextBoxColumn 
-            { 
-                Name = "Tip",
-                HeaderText = "Hedef Data Tipi",
-                ReadOnly = true 
-            };
-            var kolonUzunlugu = new DataGridViewTextBoxColumn 
+            var kolonHedef = new DataGridViewComboBoxColumn
             {
-                Name = "Uzunluk", 
+                Name = "HedefKolon",
+                HeaderText = "Hedef Kolon",
+                FlatStyle = FlatStyle.Flat
+            };
+            var HedefTip = new DataGridViewTextBoxColumn
+            {
+                Name = "HedefTip",
+                HeaderText = "Hedef Data Tipi",
+                ReadOnly = true
+            };
+            var HedefUzunluk = new DataGridViewTextBoxColumn
+            {
+                Name = "HedefUzunluk",
                 HeaderText = "Hedef Uzunluk",
                 ReadOnly = true
             };
-            var kolonNullable = new DataGridViewTextBoxColumn
-            { 
-                Name = "Nullable", 
+            var HedefNullable = new DataGridViewTextBoxColumn
+            {
+                Name = "HedefNullable",
                 HeaderText = "Hedef Boş Geçilebilir",
-                ReadOnly = true 
+                ReadOnly = true
             };
-            var kolonUygunluk = new DataGridViewTextBoxColumn 
-            { 
+
+            
+            var kolonUygunluk = new DataGridViewTextBoxColumn
+            {
                 Name = "Uygunluk",
                 HeaderText = "Uygunluk",
-                ReadOnly = true 
+                ReadOnly = true
             };
 
-            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[] { kolonKaynak,KaynakkolonTip,KaynakkolonUzunlugu,KaynakkolonNullable ,kolonHedef, kolonTip, kolonUzunlugu, kolonNullable, kolonUygunluk });
-            GrdEslestirme.AllowUserToAddRows = false; // kullanıcı bofş satır ekleyemez
+            
+            GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
+            {
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
+            });
+
+            GrdEslestirme.AllowUserToAddRows = false;
         }
 
-        
+
+
         private async Task TablolarıAgacaYukleAsync() //secilen veritabanındaki tabloları treeview a yükleme
         {
             try
@@ -181,9 +191,9 @@ namespace DataTransfer
 
                 if (HedefKolonlar.TryGetValue(secilen, out var bilgi))
                 {
-                    row.Cells["Tip"].Value = bilgi.DataType;
-                    row.Cells["Uzunluk"].Value = bilgi.Length?.ToString() ?? "";
-                    row.Cells["Nullable"].Value = bilgi.IsNullable ? "YES" : "NO";
+                    row.Cells["HedefTip"].Value = bilgi.DataType;
+                    row.Cells["HedefUzunluk"].Value = bilgi.Length?.ToString() ?? "";
+                    row.Cells["HedefNullable"].Value = bilgi.IsNullable ? "YES" : "NO";
                 }
 
                 // Uygunluk kontrolünü güncelle
@@ -199,8 +209,13 @@ namespace DataTransfer
                 int satır = GrdEslestirme.Rows.Add();
                 var row = GrdEslestirme.Rows[satır];
 
-               
-                row.Cells["KaynakKolon"].Value = kaynak.Key;              
+                
+                row.Cells["KaynakKolon"].Value = kaynak.Key;
+
+                row.Cells["KaynakTip"].Value = kaynak.Value.DataType;
+                row.Cells["KaynakUzunluk"].Value = kaynak.Value.Length?.ToString() ?? "";
+                row.Cells["KaynakNullable"].Value = kaynak.Value.IsNullable ? "YES" : "NO";
+
                 row.Cells["Uygunluk"].Value = "";
             }
         }
@@ -429,9 +444,9 @@ namespace DataTransfer
 
                 if (!string.IsNullOrEmpty(match) && HedefKolonlar.TryGetValue(match, out var hInfo))
                 {
-                    row.Cells["Tip"].Value = hInfo.DataType;
-                    row.Cells["Uzunluk"].Value = hInfo.Length?.ToString() ?? "";
-                    row.Cells["Nullable"].Value = hInfo.IsNullable ? "YES" : "NO";
+                    row.Cells["HedefTip"].Value = hInfo.DataType;
+                    row.Cells["HedefUzunluk"].Value = hInfo.Length?.ToString() ?? "";
+                    row.Cells["HedefNullable"].Value = hInfo.IsNullable ? "YES" : "NO";
                 }
 
             }

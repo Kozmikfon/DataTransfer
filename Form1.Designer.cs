@@ -144,7 +144,7 @@
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Location = new Point(12, 272);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(913, 272);
+            GrdEslestirme.Size = new Size(967, 272);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
