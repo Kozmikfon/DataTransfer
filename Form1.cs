@@ -63,8 +63,6 @@ namespace DataTransfer
                 ReadOnly = true
             };
 
-
-
             var kolonHedef = new DataGridViewComboBoxColumn
             {
                 Name = "HedefKolon",
@@ -87,7 +85,7 @@ namespace DataTransfer
                 ReadOnly = true
             };
             var HedefUzunluk = new DataGridViewTextBoxColumn
-            {
+            { 
                 Name = "HedefUzunluk",
                 HeaderText = "Hedef Uzunluk",
                 ReadOnly = true
@@ -105,8 +103,6 @@ namespace DataTransfer
                 Name = "Uygunluk",
                 HeaderText = "Uygunluk",
                 ReadOnly = true,
-
-
             };
 
 
@@ -314,9 +310,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                // Hata loglama ve mesaj gösterme
-                // Not: lstLog'un bu kapsamda erişilebilir olduğunu varsayıyoruz.
-                // lstLog.Items.Add($"Kolon alinamadi: {ex.Message}"); 
+               
                 MessageBox.Show($"Kolon bilgisi alınamadı: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
@@ -363,14 +357,15 @@ namespace DataTransfer
                 }
 
                 List<string> mesajlar = new List<string>();
+
                 bool kritikHata = false;     // Kesinlikle olmaz (Veri kaybı çok yüksek)
                 bool uyariGerekli = false;   // Kullanıcı onayı ile geçilebilir
 
-                // 1. Nullable Kontrolü (Hedef Null olamaz ama Kaynak Null geliyor)
+                // 1. Nullable Kontrolü hhedef Null olamaz ama Kaynak Null geliyorsa
                 if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable)
                 {
                     mesajlar.Add("Hedef NULL kabul etmiyor");
-                    kritikHata = true; // Bu genelde veritabanı patlatır, kritik kalsın.
+                    kritikHata = true;
                 }
 
                 // 2. Metinsel Dönüşümler (nvarchar <-> char vb.)
@@ -384,7 +379,7 @@ namespace DataTransfer
                     if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
                     {
                         mesajlar.Add($"Tip Dönüşümü ({KaynakBilgi.DataType}->{HedefBilgi.DataType})");
-                        uyariGerekli = true; // Bu bir uyarıdır, onaylanırsa geçilir.
+                        uyariGerekli = true; // Bu bir uyarıd onaylanırsa geçilir
                     }
 
                     // Uzunluk Kontrolü
@@ -406,30 +401,38 @@ namespace DataTransfer
                         }
                         else if (hedefLen > kaynakLen)
                         {
-                            // BİLGİ: Hedef > Kaynak
+                            
                             string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
                             string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
 
-                            // Bu sadece bir bilgi olduğu için 'mesajlar' listesine eklenir. 
-                            // uyariGerekli = true yapılmaz, böylece otomatik uygun sayılır (Yeşil/Mavi).
-                            mesajlar.Add($"Genişletildi ({kStr}->{hStr})");
+                         
+                            mesajlar.Add($" ({kStr}->{hStr})");
                         }
                         // NOT: Hedef Genişse (hedefLen >= kaynakLen) herhangi bir uyarıya gerek yoktur.
                     }
                 }
+
+                // 3. Sayısal Dönüşümler
                 // 3. Sayısal Dönüşümler
                 else if (IsNumericType(KaynakBilgi.DataType) && IsNumericType(HedefBilgi.DataType))
                 {
                     bool kaynakOndalik = IsDecimalType(KaynakBilgi.DataType);
                     bool hedefTam = IsIntegerType(HedefBilgi.DataType);
 
-                    if (kaynakOndalik && hedefTam)
+                    // 1. ONDALIK -> TAM SAYI (RİSK)
+                    if (kaynakOndalik && hedefTam) // Örn: decimal -> int
                     {
-                        // Örn: decimal -> int (Veri Kaybı RİSKİ, ama onaylanırsa geçilebilir)
+                        // Bu dönüşüm TİP OLARAK risklidir. 
+                        // Kullanıcıya bu riski bildirip ONAYINI istemeliyiz (uyariGerekli = true).
+                        // Gerçek veri kontrolü transfer anında yapılacaktır.
                         mesajlar.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
-                        uyariGerekli = true;
+
+                        kritikHata = false; // KIRMIZI OLMAZ!
+                        uyariGerekli = true; // TURUNCU ONAY GEREKİR.
                     }
-                    // NOT: Tamsayıdan ondalığa (int -> decimal) geçiş güvenlidir, uyarıya gerek yoktur.
+
+                    // 2. TAM SAYI -> ONDALIK (GÜVENLİ)
+                    // Güvenli dönüşüm olduğu için uyarıya gerek yoktur. (Önceki gereksiz uyarıyı kaldırdık)
                 }
 
                 // 4. KRİTİK ALAKASIZ TİPLER (Sayısal -> Metin / Tarih -> Metin)
@@ -445,14 +448,14 @@ namespace DataTransfer
                     if ((IsNumericType(KaynakBilgi.DataType) || kaynakTarih) && hedefMetin)
                     {
                         // Örn: int -> varchar veya datetime -> nvarchar
-                        mesajlar.Add($"KRİTİK UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
+                        mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
                         kritikHata = true;
                     }
                     // Kritik Kural 2: Metinsel bir alanın sayısal veya tarihsel bir alana dönüştürülmesi
                     else if (kaynakMetin && (IsNumericType(HedefBilgi.DataType) || hedefTarih))
                     {
                         // Örn: nvarchar -> int
-                        mesajlar.Add($"KRİTİK UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
+                        mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
                         kritikHata = true;
                     }
                     // Diğer tüm alakasız tipler (örneğin GUID'den Int'e)
@@ -463,7 +466,7 @@ namespace DataTransfer
                     }
                 }
 
-                // --- SONUÇ DEĞERLENDİRME ---
+                
                 if (kritikHata)
                 {
                     row.Cells["Uygunluk"].Value = string.Join(", ", mesajlar);
@@ -535,29 +538,7 @@ namespace DataTransfer
         #endregion
 
 
-        private async void BtnSutunYkle_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Kaynak tablo seçiliyse
-                if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
-                {
-                    lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
-                    KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, kaynakTablo);
-                    KaynakSutunBilgileriGetir(KaynakKolonlar);
-                    lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
-                }
-                else
-                {
-                    lstLog.Items.Add("Kaynak tablo seçilmedi.");
-                }
-            }
-            catch (Exception ex)
-            {
-                lstLog.Items.Add($"Kaynak kolon yükleme hatası: {ex.Message}");
 
-            }
-        }
 
         private void BtnOtomatikEsle_Click(object sender, EventArgs e) // İsim Bazlı Eşleme (Düzeltilmiş)
         {
@@ -761,9 +742,40 @@ namespace DataTransfer
                 MessageBox.Show("Uygun kolon eşleşmesi bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
-            string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();//treeviewde seçilen tablo adları alır
+            string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
             string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
+
+
+            foreach (var eslesme in eslesmeler)
+            {
+                var kaynakBilgi = KaynakKolonlar[eslesme.KaynakKolon];
+                var hedefBilgi = HedefKolonlar[eslesme.HedefKolon];
+
+                // Kaynak ondalık, Hedef tam sayı ise tehlike var demektir.
+                if (IsDecimalType(kaynakBilgi.DataType) && IsIntegerType(hedefBilgi.DataType))
+                {
+                    LogEkle($"Veri kaybı ön kontrolü: {eslesme.KaynakKolon} ({kaynakBilgi.DataType}) -> {eslesme.HedefKolon} ({hedefBilgi.DataType})");
+
+                    long ondalikSatirSayisi = await OndalikSayiKontroluAsync(kaynak, kaynakTablo, eslesme.KaynakKolon);
+
+                    if (ondalikSatirSayisi > 0)
+                    {
+                        LogEkle($"KRİTİK HATA: {eslesme.KaynakKolon} kolonunda {ondalikSatirSayisi} adet ondalık veri bulundu.");
+                        MessageBox.Show(
+                            $"Aktarım İPTAL EDİLDİ.\n\n" +
+                            $"{eslesme.KaynakKolon} kolonunda ondalık değerler mevcuttur. " +
+                            $"Hedef kolon ({eslesme.HedefKolon}) tam sayı tipindedir. Bu durum geri dönülemez veri kaybına yol açar.",
+                            "Kritik Veri Kaybı Engellendi",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+
+                        BtnTransferBaslat.Enabled = true;
+                        return; // Kritik hata varsa aktarımı durdur
+                    }
+                }
+            }
+
+
 
             BtnTransferBaslat.Enabled = false;
             prgTransfer.Value = 0;
@@ -841,7 +853,29 @@ namespace DataTransfer
             return textTypes.Contains(dataType.ToLower());
         }
 
+        private async Task<long> OndalikSayiKontroluAsync(BaglantiBilgileri info,string tabloAdi,string kolonAdi) 
+        {
+            string connStr= ConnectionString(info);
+            string sql= $@"SELECT COUNT(1) FROM [{tabloAdi}] WHERE [{kolonAdi}] IS NOT NULL AND FLOOR([{kolonAdi}]) <> [{kolonAdi}]
+           {(!string.IsNullOrWhiteSpace(TxtFiltreleme.Text) ? " AND " + TxtFiltreleme.Text : "")}";
 
+            try
+            {
+                using (var conn = new SqlConnection(connStr))
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    await conn.OpenAsync();
+                    var result = await cmd.ExecuteScalarAsync();
+                    return Convert.ToInt64(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogEkle($"Ondalık kontrolü sırasında hata: {ex.Message}");
+                return long.MaxValue;
+            }
+
+        }
 
         private async Task TransferSatiriKontrolu(
             BaglantiBilgileri kaynak,
@@ -1072,38 +1106,7 @@ namespace DataTransfer
             }
         }
 
-        private async void BtnHedefSutunYkle_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                foreach (DataGridViewRow row in GrdEslestirme.Rows)
-                {
-                    if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell combo)
-                    {
-                        combo.Items.Clear();
-                        combo.Value = null;
-                    }
-                }
 
-                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
-                {
-                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
-                    HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
-                    HedefGuncelle(HedefKolonlar.Keys.ToList());
-                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
-                }
-                else
-                {
-                    lstLog.Items.Add("Hedef tablo seçilmedi.");
-                }
-            }
-            catch (Exception ex)
-            {
-                lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
-
-            }
-
-        }
 
         private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -1131,10 +1134,10 @@ namespace DataTransfer
 
             string durum = row.Cells["Uygunluk"].Value?.ToString();
 
-            // Eğer zaten uygunsa veya boşsa işlem yapma
+            
             if (string.IsNullOrEmpty(durum) || durum == "Uygun") return;
 
-            // Kritik Hata (Red) engelleme
+            
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1142,7 +1145,7 @@ namespace DataTransfer
                 return;
             }
 
-            // Eğer "ONAY GEREKİYOR" ise kullanıcıya sor
+            
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
@@ -1156,10 +1159,64 @@ namespace DataTransfer
 
                 if (result == DialogResult.Yes)
                 {
-                    // Kullanıcı onayladı
-                    row.Tag = "ONAYLANDI"; // Tag'i işaretle
-                    KontrolEt(row); // Tekrar kontrol et (Mavi/Uygun yapacak)
+                    
+                    row.Tag = "ONAYLANDI";
+                    KontrolEt(row); 
                 }
+            }
+        }
+
+        private async void BtnKynkSutunYkle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
+                {
+                    lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
+                    KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, kaynakTablo);
+                    KaynakSutunBilgileriGetir(KaynakKolonlar);
+                    lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
+                }
+                else
+                {
+                    lstLog.Items.Add("Kaynak tablo seçilmedi.");
+                }
+            }
+            catch (Exception ex)
+            {
+                lstLog.Items.Add($"Kaynak kolon yükleme hatası: {ex.Message}");
+
+            }
+        }
+
+        private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow row in GrdEslestirme.Rows)
+                {
+                    if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell combo)
+                    {
+                        combo.Items.Clear();
+                        combo.Value = null;
+                    }
+                }
+
+                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
+                {
+                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
+                    HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
+                    HedefGuncelle(HedefKolonlar.Keys.ToList());
+                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
+                }
+                else
+                {
+                    lstLog.Items.Add("Hedef tablo seçilmedi.");
+                }
+            }
+            catch (Exception ex)
+            {
+                lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
             }
         }
     }
