@@ -26,7 +26,6 @@
             TrwKaynakTablolar = new TreeView();
             BtnOtomatikEsle = new Button();
             BtnStrSil = new Button();
-            BtnStrEkle = new Button();
             GrdEslestirme = new DataGridView();
             BtnTransferBaslat = new Button();
             prgTransfer = new ProgressBar();
@@ -79,23 +78,13 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(1124, 515);
+            BtnStrSil.Location = new Point(1124, 472);
             BtnStrSil.Name = "BtnStrSil";
             BtnStrSil.Size = new Size(153, 66);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
             BtnStrSil.Click += BtnStrSil_Click;
-            // 
-            // BtnStrEkle
-            // 
-            BtnStrEkle.Location = new Point(1124, 441);
-            BtnStrEkle.Name = "BtnStrEkle";
-            BtnStrEkle.Size = new Size(156, 68);
-            BtnStrEkle.TabIndex = 1;
-            BtnStrEkle.Text = "Satır ekle";
-            BtnStrEkle.UseVisualStyleBackColor = true;
-            BtnStrEkle.Click += BtnStrEkle_Click;
             // 
             // GrdEslestirme
             // 
@@ -111,7 +100,7 @@
             // 
             // BtnTransferBaslat
             // 
-            BtnTransferBaslat.Location = new Point(1124, 609);
+            BtnTransferBaslat.Location = new Point(1124, 580);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
@@ -263,7 +252,6 @@
             Controls.Add(BtnGeri);
             Controls.Add(BtnStrSil);
             Controls.Add(BtnOtomatikEsle);
-            Controls.Add(BtnStrEkle);
             Controls.Add(lstLog);
             Controls.Add(prgTransfer);
             Controls.Add(BtnTransferBaslat);
@@ -294,7 +282,6 @@
         private Button BtnGeri;
         private Button BtnOtomatikEsle;
         private Button BtnStrSil;
-        private Button BtnStrEkle;
         private Button BtnFiltreTest;
         private TextBox TxtFiltreleme;
         private RadioButton RdoBtnFiltre;
