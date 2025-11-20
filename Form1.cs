@@ -71,6 +71,15 @@ namespace DataTransfer
                 HeaderText = "Hedef Kolon",
                 FlatStyle = FlatStyle.Flat
             };
+
+            var mukerrerKolon = new DataGridViewCheckBoxColumn
+            {
+                Name = "IsUnique",
+                HeaderText = "Benzersiz Kolon",
+                ReadOnly = true,
+                Width = 100,
+            };
+
             var HedefTip = new DataGridViewTextBoxColumn
             {
                 Name = "HedefTip",
@@ -103,7 +112,7 @@ namespace DataTransfer
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
-                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
             });
 
             GrdEslestirme.AllowUserToAddRows = false;
@@ -316,19 +325,18 @@ namespace DataTransfer
 
 
 
-        private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            // hızlı kontrol trigger
-            if (e.RowIndex >= 0)
-                KontrolEt(GrdEslestirme.Rows[e.RowIndex]);
-        }
-
-
-
         private void KontrolEt(DataGridViewRow row)
         {
             try
             {
+                bool isManualUniqueCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
+
+                // Eğer manüel CheckBox seçiliyse VE kritik HATA YOKSA, satırı onaylı kabul et.
+                if (isManualUniqueCheck && row.Cells["Uygunluk"].Style.ForeColor != Color.Red)
+                {
+                    row.Tag = "ONAYLANDI";
+                }
+
                 // Eğer kullanıcı daha önce bu satırı manuel onayladıysa tekrar kontrol etme.
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI")
                 {
@@ -836,20 +844,46 @@ namespace DataTransfer
 
 
         private async Task TransferSatiriKontrolu(
-     BaglantiBilgileri kaynak,
-     BaglantiBilgileri hedef,
-     string kaynakTablo,
-     string hedefTablo,
-     List<(string KaynakKolon, string HedefKolon)> eslesmeler,
-     DataTable kaynakVeri)
+            BaglantiBilgileri kaynak,
+            BaglantiBilgileri hedef,
+            string kaynakTablo,
+            string hedefTablo,
+            List<(string KaynakKolon, string HedefKolon)> eslesmeler,
+            DataTable kaynakVeri)
         {
             string hedefConnStr = ConnectionString(hedef);
 
-            // Mükerrer Kontrol Kolonlarını DÖNGÜ DIŞINDA BİR KEZ HAZIRLA
-            var uniqueTargetCols = eslesmeler
-                .Where(e => HedefKolonlar.ContainsKey(e.HedefKolon) && HedefKolonlar[e.HedefKolon].IsUnique)
-                .Select(e => e.HedefKolon)
-                .ToList();
+            var uniqueTargetCols = new List<string>();
+
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                // YALNIZCA KULLANICININ ONAYLADIĞI SATIRLARI DİKKATE AL
+                if (row.Tag?.ToString() != "ONAYLANDI") continue;
+
+                string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(hedefKolon)) continue;
+
+                // a) Manuel Kontrol: Grid'deki yeni CheckBox sütununu kontrol et
+                bool isManualUnique = false;
+                // Not: "IsUniqueCheck" adını, GrdEslestirme'ye eklediğiniz CheckBox sütununun Name özelliği olarak varsayıyoruz.
+                if (row.Cells["IsUnique"] is DataGridViewCheckBoxCell checkCell)
+                {
+                    isManualUnique = (bool)(checkCell.Value ?? false);
+                }
+
+                // b) Meta Veri Kontrolü: Veritabanı meta verisinde Unique mi?
+                bool isMetaUnique = HedefKolonlar.ContainsKey(hedefKolon) && HedefKolonlar[hedefKolon].IsUnique;
+
+                // Eğer manuel olarak seçilmiş VEYA meta veride Unique ise listeye ekle.
+                if (isManualUnique || isMetaUnique)
+                {
+                    uniqueTargetCols.Add(hedefKolon);
+                }
+            }
+
+            // Aynı kolonun birden fazla eklenmesini engelle
+            uniqueTargetCols = uniqueTargetCols.Distinct().ToList();
 
             bool requiresDuplicateCheck = uniqueTargetCols.Any();
 
@@ -863,6 +897,8 @@ namespace DataTransfer
             int atlanan = 0;
             int islenen = 0;
 
+            LogEkle($"Mükerrer Kontrol Kolonları (Meta/Manuel): {string.Join(", ", uniqueTargetCols)} (Sayısı: {uniqueTargetCols.Count})");
+
             foreach (DataRow row in kaynakVeri.Rows)
             {
                 try
@@ -870,14 +906,11 @@ namespace DataTransfer
                     bool satirUyumlu = true;
                     var insertValues = new Dictionary<string, object>();
 
-                    // ... (Kolon değerlerinin hazırlanması ve NULL/Tip kontrolleri aynı kalır) ...
-
+                    // --- Kolon Değerlerini Hazırlama Bloğu (NULL Kontrolü, Kırpma, Dönüşüm) ---
                     foreach (var (kaynakKolon, hedefKolon) in eslesmeler)
                     {
-                        // HedefKolonlar ve KaynakKolonlar'ın erişilebilir olduğu varsayılmıştır.
                         var KaynakBilgi = KaynakKolonlar[kaynakKolon];
                         var HedefBilgi = HedefKolonlar[hedefKolon];
-
                         object val = row[kaynakKolon];
 
                         // 1. NULL KONTROLÜ
@@ -897,10 +930,7 @@ namespace DataTransfer
                         if (IsTextType(KaynakBilgi.DataType) && IsTextType(HedefBilgi.DataType))
                         {
                             string sVal = val.ToString();
-
-                            if (HedefBilgi.Length.HasValue &&
-                                HedefBilgi.Length.Value != -1 &&
-                                sVal.Length > HedefBilgi.Length.Value)
+                            if (HedefBilgi.Length.HasValue && HedefBilgi.Length.Value != -1 && sVal.Length > HedefBilgi.Length.Value)
                             {
                                 sVal = sVal.Substring(0, HedefBilgi.Length.Value);
                             }
@@ -940,47 +970,45 @@ namespace DataTransfer
                         var checkConditions = new List<string>();
                         var checkParameters = new Dictionary<string, object>();
 
-                        // Koşulları oluştururken NULL kontrolü yap
                         foreach (var hedefKolon in uniqueTargetCols)
                         {
                             if (insertValues.TryGetValue(hedefKolon, out object checkValue))
                             {
-                                // Eğer değer DBNull ise, koşulu "IS NULL" olarak oluştur.
                                 if (checkValue == DBNull.Value)
                                 {
                                     checkConditions.Add($"[{hedefKolon}] IS NULL");
                                 }
-                                // Eğer değer dolu ise, koşulu "= @Param" olarak oluştur ve parametreyi ekle.
                                 else
                                 {
                                     string paramName = $"@{hedefKolon}_Check";
+                                    object finalCheckValue = checkValue;
+
+                                    // Metin tiplerinde karşılaştırmadan önce trimleme uygula
+                                    if (checkValue is string s)
+                                    {
+                                        finalCheckValue = s.Trim();
+                                    }
+
                                     checkConditions.Add($"[{hedefKolon}] = {paramName}");
-                                    checkParameters.Add(paramName, checkValue);
+                                    checkParameters.Add(paramName, finalCheckValue);
                                 }
                             }
                         }
 
-                        // Eğer hiç koşul oluşmadıysa (tüm benzersiz alanlar NULL kabul eden alanlarda NULL gelirse),
-                        // normalde kayıt eklenir (SQL Server Unique Index kuralı). Ancak güvenlik için kontrol ediyoruz.
-                        if (!checkConditions.Any())
-                        {
-                            // Eğer tüm benzersiz kolonlar NULL ise, bu satırın eklenmesi beklenir (Unique Index'in NULL'a izin vermesi durumunda).
-                            // Kontrolü atlayıp devam ediyoruz.
-                        }
-                        else
+                        if (checkConditions.Any())
                         {
                             string kosul = string.Join(" AND ", checkConditions);
                             string kontrolSql = $"SELECT COUNT(1) FROM [{hedefTablo}] WHERE {kosul}";
 
                             using (var cmdCheck = new SqlCommand(kontrolSql, conn, transaction))
                             {
-                                // Oluşturulan parametreleri ekle
                                 foreach (var kvp in checkParameters)
                                 {
                                     cmdCheck.Parameters.AddWithValue(kvp.Key, kvp.Value);
                                 }
 
                                 int count = (int)await cmdCheck.ExecuteScalarAsync();
+
                                 if (count > 0)
                                 {
                                     atlanan++;
@@ -1077,22 +1105,36 @@ namespace DataTransfer
 
         }
 
-        private async Task UI_Guncelle()
-        {
-
-        }
-
-        private void GrdEslestirme_CellDoubleClick_1(object sender, DataGridViewCellEventArgs e)//ONAYLAMA EVENTİ
+        private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
+            if (e.ColumnIndex == GrdEslestirme.Columns["IsUnique"].Index)
+            {
+                var cell = row.Cells["IsUnique"] as DataGridViewCheckBoxCell;
+
+                if (cell != null)
+                {
+                    // ReadOnly olsa bile değerini tersine çeviriyoruz (Manuel seçim)
+                    bool currentValue = (bool)(cell.Value ?? false);
+                    cell.Value = !currentValue;
+
+                    // Değişikliği hemen uygula
+                    GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+
+                    // Bu seçim, satırın uygunluk durumunu etkileyebilir, bu yüzden kontrol et
+                    KontrolEt(row);
+                }
+                return; // İşlem bitti
+            }
+
             string durum = row.Cells["Uygunluk"].Value?.ToString();
 
             // Eğer zaten uygunsa veya boşsa işlem yapma
             if (string.IsNullOrEmpty(durum) || durum == "Uygun") return;
 
-            // Eğer Kritik Hata varsa (Red) onaylatmayalım (İsteğe bağlı, şimdilik engelliyorum)
+            // Kritik Hata (Red) engelleme
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1116,7 +1158,7 @@ namespace DataTransfer
                 {
                     // Kullanıcı onayladı
                     row.Tag = "ONAYLANDI"; // Tag'i işaretle
-                    KontrolEt(row); // Tekrar kontrol et (Bu sefer Tag dolu olduğu için Mavi/Uygun yapacak)
+                    KontrolEt(row); // Tekrar kontrol et (Mavi/Uygun yapacak)
                 }
             }
         }

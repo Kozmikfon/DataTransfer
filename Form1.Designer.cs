@@ -25,7 +25,6 @@
             TrwHedefTablolar = new TreeView();
             TrwKaynakTablolar = new TreeView();
             BtnSutunYkle = new Button();
-            splitContainerMain = new SplitContainer();
             BtnHedefSutunYkle = new Button();
             BtnOtomatikEsle = new Button();
             BtnStrSil = new Button();
@@ -42,18 +41,15 @@
             GrbBoxFiltreleme = new GroupBox();
             lblTransferSayisi = new Label();
             label2 = new Label();
-            ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
-            splitContainerMain.Panel1.SuspendLayout();
-            splitContainerMain.Panel2.SuspendLayout();
-            splitContainerMain.SuspendLayout();
+            lblKaynak = new Label();
+            label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             SuspendLayout();
             // 
             // TrwHedefTablolar
             // 
-            TrwHedefTablolar.Dock = DockStyle.Fill;
-            TrwHedefTablolar.Location = new Point(0, 0);
+            TrwHedefTablolar.Location = new Point(597, 24);
             TrwHedefTablolar.Name = "TrwHedefTablolar";
             TrwHedefTablolar.Size = new Size(589, 256);
             TrwHedefTablolar.TabIndex = 0;
@@ -61,9 +57,8 @@
             // 
             // TrwKaynakTablolar
             // 
-            TrwKaynakTablolar.Dock = DockStyle.Fill;
             TrwKaynakTablolar.ItemHeight = 18;
-            TrwKaynakTablolar.Location = new Point(0, 0);
+            TrwKaynakTablolar.Location = new Point(0, 24);
             TrwKaynakTablolar.Name = "TrwKaynakTablolar";
             TrwKaynakTablolar.Size = new Size(591, 256);
             TrwKaynakTablolar.TabIndex = 0;
@@ -71,48 +66,29 @@
             // 
             // BtnSutunYkle
             // 
-            BtnSutunYkle.Location = new Point(486, 224);
+            BtnSutunYkle.Location = new Point(466, 286);
             BtnSutunYkle.Name = "BtnSutunYkle";
-            BtnSutunYkle.Size = new Size(102, 29);
+            BtnSutunYkle.Size = new Size(125, 29);
             BtnSutunYkle.TabIndex = 12;
-            BtnSutunYkle.Text = "Sütun Yükle";
+            BtnSutunYkle.Text = "Kaynak Sütun Yükle";
             BtnSutunYkle.UseVisualStyleBackColor = true;
             BtnSutunYkle.Click += BtnSutunYkle_Click;
             // 
-            // splitContainerMain
-            // 
-            splitContainerMain.Dock = DockStyle.Top;
-            splitContainerMain.Location = new Point(0, 0);
-            splitContainerMain.Name = "splitContainerMain";
-            // 
-            // splitContainerMain.Panel1
-            // 
-            splitContainerMain.Panel1.Controls.Add(BtnSutunYkle);
-            splitContainerMain.Panel1.Controls.Add(TrwKaynakTablolar);
-            // 
-            // splitContainerMain.Panel2
-            // 
-            splitContainerMain.Panel2.Controls.Add(BtnHedefSutunYkle);
-            splitContainerMain.Panel2.Controls.Add(TrwHedefTablolar);
-            splitContainerMain.Size = new Size(1184, 256);
-            splitContainerMain.SplitterDistance = 591;
-            splitContainerMain.TabIndex = 0;
-            // 
             // BtnHedefSutunYkle
             // 
-            BtnHedefSutunYkle.Location = new Point(483, 224);
+            BtnHedefSutunYkle.Location = new Point(1041, 286);
             BtnHedefSutunYkle.Name = "BtnHedefSutunYkle";
-            BtnHedefSutunYkle.Size = new Size(103, 29);
+            BtnHedefSutunYkle.Size = new Size(137, 29);
             BtnHedefSutunYkle.TabIndex = 12;
-            BtnHedefSutunYkle.Text = "Sutun Yükle";
+            BtnHedefSutunYkle.Text = "Hedef Sutun Yükle";
             BtnHedefSutunYkle.UseVisualStyleBackColor = true;
             BtnHedefSutunYkle.Click += BtnHedefSutunYkle_Click;
             // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(1028, 272);
+            BtnOtomatikEsle.Location = new Point(1025, 342);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(156, 48);
+            BtnOtomatikEsle.Size = new Size(156, 65);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -120,9 +96,9 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(1028, 370);
+            BtnStrSil.Location = new Point(1025, 487);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(153, 40);
+            BtnStrSil.Size = new Size(153, 66);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -130,9 +106,9 @@
             // 
             // BtnStrEkle
             // 
-            BtnStrEkle.Location = new Point(1028, 326);
+            BtnStrEkle.Location = new Point(1025, 413);
             BtnStrEkle.Name = "BtnStrEkle";
-            BtnStrEkle.Size = new Size(156, 38);
+            BtnStrEkle.Size = new Size(156, 68);
             BtnStrEkle.TabIndex = 1;
             BtnStrEkle.Text = "Satır ekle";
             BtnStrEkle.UseVisualStyleBackColor = true;
@@ -142,19 +118,19 @@
             // 
             GrdEslestirme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdEslestirme.Location = new Point(0, 272);
+            GrdEslestirme.Location = new Point(0, 321);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(1022, 272);
+            GrdEslestirme.Size = new Size(1019, 232);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
-            GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick_1;
+            GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            BtnTransferBaslat.Location = new Point(985, 582);
+            BtnTransferBaslat.Location = new Point(1025, 582);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
@@ -265,11 +241,35 @@
             label2.TabIndex = 13;
             label2.Text = "veri transfer edildi.";
             // 
+            // lblKaynak
+            // 
+            lblKaynak.AutoSize = true;
+            lblKaynak.Location = new Point(0, 6);
+            lblKaynak.Name = "lblKaynak";
+            lblKaynak.Size = new Size(90, 15);
+            lblKaynak.TabIndex = 14;
+            lblKaynak.Text = "Kaynak Tablolar";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(597, 6);
+            label1.Name = "label1";
+            label1.Size = new Size(84, 15);
+            label1.TabIndex = 15;
+            label1.Text = "Hedef Tablolar";
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1184, 861);
+            Controls.Add(label1);
+            Controls.Add(lblKaynak);
+            Controls.Add(TrwKaynakTablolar);
+            Controls.Add(BtnHedefSutunYkle);
+            Controls.Add(BtnSutunYkle);
+            Controls.Add(TrwHedefTablolar);
             Controls.Add(label2);
             Controls.Add(lblTransferSayisi);
             Controls.Add(BtnGeri);
@@ -281,17 +281,12 @@
             Controls.Add(BtnTransferBaslat);
             Controls.Add(GrbBoxFiltreleme);
             Controls.Add(GrdEslestirme);
-            Controls.Add(splitContainerMain);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmVeriEslestirme";
             Text = "Veri Transferi";
             Load += FrmVeriEslestirme_Load;
-            splitContainerMain.Panel1.ResumeLayout(false);
-            splitContainerMain.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainerMain).EndInit();
-            splitContainerMain.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).EndInit();
             GrbBoxFiltreleme.ResumeLayout(false);
             GrbBoxFiltreleme.PerformLayout();
@@ -301,7 +296,7 @@
         private TreeView TrwHedefTablolar;
         private TreeView TrwKaynakTablolar;
         private Button BtnSutunYkle;
-        private SplitContainer splitContainerMain;
+       // private SplitContainer splitContainerMain;
         private DataGridView GrdEslestirme;
         private Button BtnTransferBaslat;
         private ProgressBar prgTransfer;
@@ -318,6 +313,8 @@
         private Button BtnHedefSutunYkle;
         private Label lblTransferSayisi;
         private Label label2;
+        private Label lblKaynak;
+        private Label label1;
     }
 
 }
