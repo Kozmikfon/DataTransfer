@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Drawing.Printing;
 using System.Threading.Tasks;
 using static Azure.Core.HttpHeader;
 
@@ -226,6 +227,10 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Value = "";
             }
         }
+        private void HedefSutunBilgileriGetir(Dictionary<string, KolonBilgisi> hedefKolon)//dictionayden gelen kolon bilgilerini gride yükleme hedef kolonları ama
+        {
+            
+        }
 
         private void HedefGuncelle(List<string> hedefKolonIsimleri) //hedef kolon comboxolarına yükleme için kolon adları tutuluyor.
         {
@@ -412,16 +417,24 @@ namespace DataTransfer
                 {
                     bool kaynakOndalik = OndalikliTip(KaynakBilgi.DataType);
                     bool hedefTam = TamSayiliTip(HedefBilgi.DataType);
-
+                    bool kaynakTam = TamSayiliTip(KaynakBilgi.DataType);
+                    bool hedefOndalikli = OndalikliTip(HedefBilgi.DataType);
                     
-                    if (kaynakOndalik && hedefTam) 
+                    if (kaynakOndalik && hedefTam)//kaynak ondalıklı ve hedef tam ise uygun değil 
                     {
                         
-                        mesajlar.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
+                        mesajlar.Add("Uygun Değil");
+                        LogEkle("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
+                        kritikHata = true; 
+                        uyariGerekli = false; 
+                    }   
 
-                        kritikHata = false; 
-                        uyariGerekli = true; 
-                    }                   
+                    //else if (kaynakTam && hedefOndalikli)
+                    //{
+                    //    mesajlar.Add("Tam -> Ondalık");
+                    //    kritikHata = false;
+                    //    uyariGerekli = true;
+                    //}
                 }
                 else
                 {                  
@@ -729,24 +742,7 @@ namespace DataTransfer
                 // Kaynak ondalık, Hedef tam sayı ise tehlike var demektir.
                 if (OndalikliTip(kaynakBilgi.DataType) && TamSayiliTip(hedefBilgi.DataType))
                 {
-                    LogEkle($"Veri kaybı ön kontrolü: {eslesme.KaynakKolon} ({kaynakBilgi.DataType}) -> {eslesme.HedefKolon} ({hedefBilgi.DataType})");
-
-                    long ondalikSatirSayisi = await OndalikSayiKontroluAsync(kaynak, kaynakTablo, eslesme.KaynakKolon);
-
-                    if (ondalikSatirSayisi > 0)
-                    {
-                        LogEkle($"KRİTİK HATA: {eslesme.KaynakKolon} kolonunda {ondalikSatirSayisi} adet ondalık veri bulundu.");
-                        MessageBox.Show(
-                            $"Aktarım İPTAL EDİLDİ.\n\n" +
-                            $"{eslesme.KaynakKolon} kolonunda ondalık değerler mevcuttur. " +
-                            $"Hedef kolon ({eslesme.HedefKolon}) tam sayı tipindedir. Bu durum geri dönülemez veri kaybına yol açar.",
-                            "Kritik Veri Kaybı Engellendi",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-
-                        BtnTransferBaslat.Enabled = true;
-                        return; // Kritik hata varsa aktarımı durdur
-                    }
+                   LogEkle($"UYARI: '{eslesme.KaynakKolon}' kolonunda ondalık -> tam sayı dönüşümü var. Veri kaybı olabilir.");
                 }
             }
 
@@ -828,29 +824,6 @@ namespace DataTransfer
             return textTypes.Contains(dataType.ToLower());
         }
 
-        private async Task<long> OndalikSayiKontroluAsync(BaglantiBilgileri info,string tabloAdi,string kolonAdi) 
-        {
-            string connStr= ConnectionString(info);
-            string sql= $@"SELECT COUNT(1) FROM [{tabloAdi}] WHERE [{kolonAdi}] IS NOT NULL AND FLOOR([{kolonAdi}]) <> [{kolonAdi}]
-           {(!string.IsNullOrWhiteSpace(TxtFiltreleme.Text) ? " AND " + TxtFiltreleme.Text : "")}";
-
-            try
-            {
-                using (var conn = new SqlConnection(connStr))
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    await conn.OpenAsync();
-                    var result = await cmd.ExecuteScalarAsync();
-                    return Convert.ToInt64(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogEkle($"Ondalık kontrolü sırasında hata: {ex.Message}");
-                return long.MaxValue;
-            }
-
-        }
 
         private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
             List<(string KaynakKolon, string HedefKolon)> eslesmeler,
@@ -1178,6 +1151,9 @@ namespace DataTransfer
                 {
                     lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
                     HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
+                    HedefKolonDetaylariniGrideDoldur();
+
+
                     HedefGuncelle(HedefKolonlar.Keys.ToList());
                     lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
                 }
@@ -1190,6 +1166,25 @@ namespace DataTransfer
             {
                 lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
             }
+        }
+
+        private void HedefKolonDetaylariniGrideDoldur()
+        {
+           
+            var detayListesi = HedefKolonlar
+                .OrderBy(kvp => kvp.Key) 
+                .Select(kvp => new
+                {
+                    KolonAdi = kvp.Key, 
+                    NullOzelik = kvp.Value.IsNullable ? "YES" : "NO" 
+                })
+                .ToList();
+
+            
+            GrdHedefNullable.DataSource = null;
+            GrdHedefNullable.DataSource = detayListesi;
+
+            GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
         }
     }
 }

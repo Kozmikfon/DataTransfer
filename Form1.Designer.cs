@@ -41,10 +41,12 @@
             BtnHdfSutunYkle = new Button();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
+            GrdHedefNullable = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)GrdHedefNullable).BeginInit();
             SuspendLayout();
             // 
             // TrwHedefTablolar
@@ -122,7 +124,7 @@
             lstLog.ItemHeight = 15;
             lstLog.Location = new Point(12, 770);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(1260, 124);
+            lstLog.Size = new Size(1560, 124);
             lstLog.TabIndex = 9;
             // 
             // BtnGeri
@@ -241,11 +243,20 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Hedef Tablolar";
             // 
+            // GrdHedefNullable
+            // 
+            GrdHedefNullable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            GrdHedefNullable.Location = new Point(1292, 23);
+            GrdHedefNullable.Name = "GrdHedefNullable";
+            GrdHedefNullable.Size = new Size(229, 341);
+            GrdHedefNullable.TabIndex = 20;
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
-            ClientSize = new Size(1284, 961);
+            ClientSize = new Size(1584, 961);
+            Controls.Add(GrdHedefNullable);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(lblTransferSayisi);
@@ -267,6 +278,7 @@
             GrbBoxFiltreleme.PerformLayout();
             groupBox1.ResumeLayout(false);
             groupBox2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)GrdHedefNullable).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -292,6 +304,7 @@
         private Button BtnHdfSutunYkle;
         private GroupBox groupBox1;
         private GroupBox groupBox2;
+        private DataGridView GrdHedefNullable;
     }
 
 }
