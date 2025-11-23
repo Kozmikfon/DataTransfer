@@ -986,7 +986,7 @@ namespace DataTransfer
                     aktarılan++;
                     islenen++;
 
-                    if (islenen % 10 == 0) ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
+                    if (islenen % 1 == 0) ProgresGuncelle(islenen, toplam, aktarılan, atlanan);
 
                 }
                 catch (Exception ex)
@@ -1055,6 +1055,7 @@ namespace DataTransfer
             return benzersizKolon.Distinct().ToList();
         }
         #endregion
+
         private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
@@ -1086,7 +1087,7 @@ namespace DataTransfer
                     GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
                     GridKontrolEt(row);
                 }
-                return; // İşlem bitti
+                return; 
             }
 
             string durum = row.Cells["Uygunluk"].Value?.ToString();
