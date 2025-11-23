@@ -749,7 +749,7 @@ namespace DataTransfer
                     }
                 }
 
-                // Bu metodun da yeni Repository'i kullanacak şekilde güncellenmesi gerekebilir
+                
                 await TransferSatiriKontrolu(kaynak, hedef, kaynakTablo, hedefTablo, eslesmeler, kaynakVeri);
             }
             catch (Exception ex)
@@ -842,7 +842,7 @@ namespace DataTransfer
             int atlanan = 0;
             int islenen = 0;
 
-            LogEkle($"Mükerrer Kontrol Kolonları (Meta/Manuel): {string.Join(", ", benzersizKolon)} (Sayısı: {benzersizKolon.Count})");
+            LogEkle($"Mükerrer Kontrol Kolonları : {string.Join(", ", benzersizKolon)} (Sayısı: {benzersizKolon.Count})");
 
             foreach (DataRow row in kaynakVeri.Rows)
             {
@@ -850,7 +850,7 @@ namespace DataTransfer
                 {
                     bool satirUyumlu = true;
 
-                    var degerEkle = new Dictionary<string, object>();//hedef kolona eklenecek değerler
+                    var hedefDegerEkle = new Dictionary<string, object>();//hedef kolona eklenecek değerler
 
 
                     foreach (var (kaynakKolon, hedefKolon) in eslesmeler) //kolon ciftleri uzeronde donuyorum
@@ -861,7 +861,7 @@ namespace DataTransfer
                         object val = row[kaynakKolon];
 
                         
-                        if ((val == null || val == DBNull.Value))
+                        if ((val == null || val == DBNull.Value)) 
                         {
                             if (!HedefBilgi.IsNullable)
                             {
@@ -869,7 +869,7 @@ namespace DataTransfer
                                 satirUyumlu = false;
                                 break;
                             }
-                            degerEkle[hedefKolon] = DBNull.Value;
+                            hedefDegerEkle[hedefKolon] = DBNull.Value;
                             continue;
                         }
 
@@ -882,7 +882,7 @@ namespace DataTransfer
                             {
                                 sVal = sVal.Substring(0, HedefBilgi.Length.Value); //kırpma islemi
                             }
-                            degerEkle[hedefKolon] = sVal; //kırpılmıs str degeri ekle
+                            hedefDegerEkle[hedefKolon] = sVal; //kırpılmıs str degeri ekle
                         }
                         
                         else if (SayiKontrolu(KaynakBilgi.DataType) && SayiKontrolu(HedefBilgi.DataType))
@@ -890,16 +890,16 @@ namespace DataTransfer
                             if (OndalikliTip(KaynakBilgi.DataType) && TamSayiliTip(HedefBilgi.DataType))
                             {
                                 decimal dVal = Convert.ToDecimal(val);
-                                degerEkle[hedefKolon] = (long)Math.Truncate(dVal);
+                                hedefDegerEkle[hedefKolon] = (long)Math.Truncate(dVal);
                             }
                             else
                             {
-                                degerEkle[hedefKolon] = val;//oldugu gibi ekle
+                                hedefDegerEkle[hedefKolon] = val;//oldugu gibi ekle
                             }
                         }                        
                         else
                         {
-                            degerEkle[hedefKolon] = val;
+                            hedefDegerEkle[hedefKolon] = val;
                         }
                     } 
                     if (!satirUyumlu)
@@ -918,7 +918,7 @@ namespace DataTransfer
 
                         foreach (var hedefKolon in benzersizKolon)
                         {
-                            if (degerEkle.TryGetValue(hedefKolon, out object checkValue))
+                            if (hedefDegerEkle.TryGetValue(hedefKolon, out object checkValue))
                             {
                                 if (checkValue == DBNull.Value)
                                 {
@@ -950,6 +950,7 @@ namespace DataTransfer
                             {
                                 foreach (var kvp in parametreKontrolu)
                                 {
+                                    cmd.CommandTimeout = 300;
                                     cmd.Parameters.AddWithValue(kvp.Key, kvp.Value);
                                 }
 
@@ -967,14 +968,15 @@ namespace DataTransfer
                         }
                     }
 
-                    // --- INSERT İŞLEMİ ---
-                    string cols = string.Join(",", degerEkle.Keys.Select(k => $"[{k}]"));
-                    string parametreAdlari = string.Join(",", degerEkle.Keys.Select(k => $"@{k}"));
+                    // insert
+                    string cols = string.Join(",", hedefDegerEkle.Keys.Select(k => $"[{k}]"));
+                    string parametreAdlari = string.Join(",", hedefDegerEkle.Keys.Select(k => $"@{k}"));
                     string insertSql = $"INSERT INTO [{hedefTablo}] ({cols}) VALUES ({parametreAdlari})";
 
                     using (var cmdInsert = new SqlCommand(insertSql, conn, transaction))
                     {
-                        foreach (var kvp in degerEkle)
+                        cmdInsert.CommandTimeout = 300;
+                        foreach (var kvp in hedefDegerEkle)
                         {
                             cmdInsert.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value ?? DBNull.Value);
                         }
@@ -996,7 +998,31 @@ namespace DataTransfer
                 }
             }
 
-            transaction.Commit();
+            try
+            {
+                transaction.Commit();
+                LogEkle("Tüm transfer işlemleri başarıyla Commit edildi.");
+            }
+            catch (Exception ex)
+            {
+                
+                try
+                {
+                    transaction.Rollback();
+                    LogEkle($"KRİTİK HATA: Commit başarısız oldu. İşlem geri alındı (Rollback). Hata: {ex.Message}");
+                }
+                catch (Exception rollbackEx)
+                {
+                    LogEkle($"KRİTİK HATA: Rollback başarısız oldu. Veritabanı tutarsız olabilir. Hata: {rollbackEx.Message}");
+                }
+
+                MessageBox.Show($"Aktarım Commit edilirken KRİTİK HATA oluştu ve işlem geri alındı/başarısız oldu.\n{ex.Message}", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                
+                aktarılan = 0;
+                atlanan = toplam;
+            }
+
+
             ProgresGuncelle(toplam, toplam, aktarılan, atlanan);
             LogEkle($"Transfer Bitti. Aktarılan: {aktarılan}, Atlanan: {atlanan}");
             MessageBox.Show($"İşlem Tamamlandı.\nAktarılan: {aktarılan}\nAtlanan: {atlanan}", "Sonuç", MessageBoxButtons.OK, MessageBoxIcon.Information);
