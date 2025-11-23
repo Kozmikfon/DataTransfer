@@ -1,4 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DataTransfer.Model;
+using DataTransfer.Repository;
+using DataTransfer.Service;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Drawing.Printing;
 using System.Threading.Tasks;
@@ -11,6 +14,10 @@ namespace DataTransfer
     {
         private BaglantiBilgileri kaynak;
         private BaglantiBilgileri hedef;
+
+        private SqlTransferRepository KaynakRepo;
+        private SqlTransferRepository HedefRepo;
+        private EslestirmeService _eslestirmeService;
 
         private FrmBaglantiAc _oncekiForm;
 
@@ -27,7 +34,11 @@ namespace DataTransfer
 
             kaynak = kaynakBilgi;
             hedef = hedefBilgi;
+            KaynakRepo = new SqlTransferRepository(kaynak);
+            HedefRepo = new SqlTransferRepository(hedef);
             _oncekiForm = oncekiForm;
+
+            _eslestirmeService = new EslestirmeService();
 
             GridBaslat();
             this.Load += FrmVeriEslestirme_Load;
@@ -122,14 +133,14 @@ namespace DataTransfer
             try
             {
                 // kaynak tablolar
-                var KaynakTablo = await TabloGetirAsync(kaynak);
+                var KaynakTablo = await KaynakRepo.TabloGetirAsync();
                 TrwKaynakTablolar.Nodes.Clear(); //treewievdeki düğümleri siler
 
                 foreach (var tabloAd in KaynakTablo.OrderBy(x => x))
                     TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
 
 
-                var HedefTablo = await TabloGetirAsync(hedef);
+                var HedefTablo = await HedefRepo.TabloGetirAsync();
                 TrwHedefTablolar.Nodes.Clear();
 
                 foreach (var t in HedefTablo.OrderBy(x => x))
@@ -140,37 +151,6 @@ namespace DataTransfer
                 MessageBox.Show($"Tablo yükleme hatası: {ex.Message}");
             }
         }
-
-        #region TabloGetirme
-        private async Task<List<string>> TabloGetirAsync(BaglantiBilgileri info)
-        {
-            var list = new List<string>();
-            string connStr = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
-
-            string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
-            try
-            {
-                using (var conn = new SqlConnection(connStr))
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    await conn.OpenAsync();
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            list.Add(reader.GetString(0));
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                lstLog.Items.Add($"Tablo Yükleme hatası ({info.Sunucu}): {ex.Message}");
-            }
-            return list;
-        }
-        #endregion
-
 
         private async void TrwKaynakTablolar_AfterSelect(object sender, TreeViewEventArgs e)//tablo seçme işlemi
         {
@@ -205,7 +185,7 @@ namespace DataTransfer
                 }
 
                 // Uygunluk kontrolünü güncelle
-                KontrolEt(row);
+                GridKontrolEt(row);
             }
         }
 
@@ -244,250 +224,254 @@ namespace DataTransfer
             }
         }
 
-        private async Task<Dictionary<string, KolonBilgisi>> KolonBilgileriniGetirAsync(BaglantiBilgileri info, string tabloAdi)
+
+        //private void KontrolEt(DataGridViewRow row)
+        //{
+        //    try
+        //    {
+        //        bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
+
+
+        //        if (benzersizAlanCheck && row.Cells["Uygunluk"].Style.ForeColor != Color.Red)
+        //        {
+        //            row.Tag = "ONAYLANDI";
+        //        }
+
+
+        //        if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI")
+        //        {
+        //            row.Cells["Uygunluk"].Value = "Uygun";
+        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
+        //            return;
+        //        }
+
+        //        var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
+        //        var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+
+        //        if (string.IsNullOrWhiteSpace(kaynakKolon) || string.IsNullOrWhiteSpace(hedefKolon))
+        //        {
+        //            row.Cells["Uygunluk"].Value = "";
+        //            return;
+        //        }
+
+        //        if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
+        //            !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
+        //        {
+        //            row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
+        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+        //            return;
+        //        }
+
+        //        List<string> mesajlar = new List<string>();
+
+        //        bool kritikHata = false;    
+        //        bool uyariGerekli = false;   
+
+        //        // 1. Nullable Kontrolü hhedef Null olamaz ama Kaynak Null geliyorsa
+        //        if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable)
+        //        {
+        //            mesajlar.Add("Hedef NULL kabul etmiyor");
+        //            kritikHata = true;
+        //        }
+
+        //        // 2. Metinsel Dönüşümler (nvarchar <-> char vb.)
+        //        string[] metinselTipler = { "nvarchar", "nchar", "varchar", "char", "text", "ntext" };
+        //        bool kaynakMetin = metinselTipler.Contains(KaynakBilgi.DataType.ToLower());
+        //        bool hedefMetin = metinselTipler.Contains(HedefBilgi.DataType.ToLower());
+
+        //        if (kaynakMetin && hedefMetin)
+        //        {
+        //            // Tip ismi farklıysa (örn: nvarchar -> nchar)
+        //            if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                mesajlar.Add($"Tip Dönüşümü ({KaynakBilgi.DataType}->{HedefBilgi.DataType})");
+        //                uyariGerekli = true; // Bu bir uyarıd onaylanırsa geçilir
+        //            }
+
+        //            // Uzunluk Kontrolü
+        //            if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue)
+        //            {
+        //                // -1  değerlerini int.MaxValuee dönüştürerek mantıksal karşılaştırma yapıyoruz
+        //                long kaynakLen = KaynakBilgi.Length.Value == -1 ? int.MaxValue : KaynakBilgi.Length.Value;
+        //                long hedefLen = HedefBilgi.Length.Value == -1 ? int.MaxValue : HedefBilgi.Length.Value;
+
+
+        //                if (hedefLen < kaynakLen)
+        //                {
+        //                    // Ekranda kullanıcıya -1 yerine "MAX" göstermek için string hazırlıyoruz
+        //                    string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
+        //                    string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
+
+        //                    mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
+        //                    uyariGerekli = true; // Onay gerektiren turuncu rengi tetikler.
+        //                }
+        //                else if (hedefLen > kaynakLen)
+        //                {
+
+        //                    string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
+        //                    string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
+
+
+        //                    mesajlar.Add($" ({kStr}->{hStr})");
+        //                }
+
+        //            }
+        //        }
+
+
+        //        else if (SayiKontrolu(KaynakBilgi.DataType) && SayiKontrolu(HedefBilgi.DataType))
+        //        {
+        //            bool kaynakOndalik = OndalikliTip(KaynakBilgi.DataType);
+        //            bool hedefTam = TamSayiliTip(HedefBilgi.DataType);
+        //            bool kaynakTam = TamSayiliTip(KaynakBilgi.DataType);
+        //            bool hedefOndalikli = OndalikliTip(HedefBilgi.DataType);
+
+        //            if (kaynakOndalik && hedefTam)//kaynak ondalıklı ve hedef tam ise uygun değil 
+        //            {
+
+        //                mesajlar.Add("Uygun Değil");
+        //                LogEkle("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
+        //                kritikHata = true; 
+        //                uyariGerekli = false; 
+        //            }   
+
+        //            //else if (kaynakTam && hedefOndalikli)
+        //            //{
+        //            //    mesajlar.Add("Tam -> Ondalık");
+        //            //    kritikHata = false;
+        //            //    uyariGerekli = true;
+        //            //}
+        //        }
+        //        else
+        //        {                  
+        //            string [] tarihTipleri = { "date", "datetime", "datetime2", "smalldatetime", "time" };
+        //            bool kaynakTarih = tarihTipleri.Contains(KaynakBilgi.DataType.ToLower());
+        //            bool hedefTarih = tarihTipleri.Contains(HedefBilgi.DataType.ToLower());
+
+
+        //            if ((SayiKontrolu(KaynakBilgi.DataType) || kaynakTarih) && hedefMetin)
+        //            {
+        //                //  int varchar veya datetime nvarchar
+        //                mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
+        //                kritikHata = true;
+        //            }
+        //            //  Metinsel bir alanın sayısal veya tarihsel bir alana dönüştürülmemesi
+        //            else if (kaynakMetin && (SayiKontrolu(HedefBilgi.DataType) || hedefTarih))
+        //            {
+        //                //  nvarchar  int
+        //                mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
+        //                kritikHata = true;
+        //            }
+
+        //            else if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                mesajlar.Add($"Alakasız Tip Uyuşmazlığı: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
+        //                uyariGerekli = true; 
+        //            }
+        //        }
+
+
+        //        if (kritikHata)
+        //        {
+        //            row.Cells["Uygunluk"].Value = string.Join(", ", mesajlar);
+        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+        //            row.Tag = null; 
+        //        }
+        //        else if (uyariGerekli)
+        //        {
+
+        //            row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", mesajlar);
+        //            row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
+        //            row.Tag = null; 
+        //        }
+        //        else
+        //        {
+
+        //            row.Cells["Uygunluk"].Value = "Uygun";
+        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
+        //            row.Tag = "ONAYLANDI"; 
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        row.Cells["Uygunluk"].Value = "Hata";
+        //        lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
+        //    }
+        //}
+
+        private void GridKontrolEt(DataGridViewRow row)
         {
-            var kolonlar = new Dictionary<string, KolonBilgisi>(StringComparer.OrdinalIgnoreCase);
-
-            if (info == null || string.IsNullOrWhiteSpace(info.Sunucu) || string.IsNullOrWhiteSpace(tabloAdi))
-                return kolonlar;
-
-            string connStr = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
-
-            //  INFORMATION_SCHEMA ile sistem tablolarını (sys.indexes) birleştirerek Primary Key ve Unique Index bilgisini tek bir IsUnique alanı olarak çeker.
-            
-            string sql = $@"
-            SELECT 
-                C.COLUMN_NAME, 
-                C.DATA_TYPE, 
-                C.CHARACTER_MAXIMUM_LENGTH, 
-                C.IS_NULLABLE,
-                ISNULL(INDEXES.IsUnique, 0) AS IsUnique -- PK ve Unique Index'leri tek bir alanda toplar
-            FROM INFORMATION_SCHEMA.COLUMNS C
-            JOIN sys.tables T ON T.name = C.TABLE_NAME AND T.name = @TableName
-            JOIN sys.schemas S ON S.schema_id = T.schema_id
-            LEFT JOIN (
-                SELECT 
-                    COL.name AS COLUMN_NAME, 
-                    MAX(CAST(I.is_unique_constraint AS INT)) AS IsUnique
-                FROM sys.indexes I
-                JOIN sys.index_columns IC ON I.object_id = IC.object_id AND I.index_id = IC.index_id
-                JOIN sys.columns COL ON COL.object_id = I.object_id AND COL.column_id = IC.column_id
-                WHERE I.object_id = OBJECT_ID(@TableName) AND (I.is_unique_constraint = 1 OR I.is_primary_key = 1)
-                GROUP BY COL.name
-            ) AS INDEXES ON INDEXES.COLUMN_NAME = C.COLUMN_NAME
-            WHERE C.TABLE_NAME = @TableName
-            ORDER BY C.ORDINAL_POSITION";
-
             try
             {
-                using (var conn = new SqlConnection(connStr))
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@TableName", tabloAdi);
-                    await conn.OpenAsync();
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            string KolonIsmi = reader["COLUMN_NAME"].ToString();
-                            string tip = reader["DATA_TYPE"].ToString();
-
-                            
-                            int? uzunluk = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
-                            bool isNullable = reader["IS_NULLABLE"].ToString().Equals("YES", StringComparison.OrdinalIgnoreCase);                           
-                            bool isUnique = Convert.ToBoolean(reader["IsUnique"]);
-                            
-                            kolonlar[KolonIsmi] = new KolonBilgisi
-                            {
-                                DataType = tip,
-                                Length = uzunluk,
-                                IsNullable = isNullable,
-                                IsUnique = isUnique // Benzersiz alan
-                            };
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-               
-                MessageBox.Show($"Kolon bilgisi alınamadı: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            return kolonlar;
-        }
-
-
-
-        private void KontrolEt(DataGridViewRow row)
-        {
-            try
-            {
+                // 1. UI DEĞERLERİNİ OKUMA VE BAŞLANGIÇ ONAY MANTIĞI
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
 
-               
-                if (benzersizAlanCheck && row.Cells["Uygunluk"].Style.ForeColor != Color.Red)
-                {
-                    row.Tag = "ONAYLANDI";
-                }
-
-                
-                if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI")
-                {
-                    row.Cells["Uygunluk"].Value = "Uygun";
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
-                    return;
-                }
-
+                // 2. Kolon Adı Kontrolü
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
                 if (string.IsNullOrWhiteSpace(kaynakKolon) || string.IsNullOrWhiteSpace(hedefKolon))
                 {
                     row.Cells["Uygunluk"].Value = "";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+                    row.Tag = null;
                     return;
                 }
 
+                // 3. Kolon Bilgilerini Alma ve Service'e Hazırlama
                 if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
                     !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
                 {
                     row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+                    row.Tag = null;
                     return;
                 }
 
-                List<string> mesajlar = new List<string>();
+                EslestirmeSonucu sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
 
-                bool kritikHata = false;    
-                bool uyariGerekli = false;   
 
-                // 1. Nullable Kontrolü hhedef Null olamaz ama Kaynak Null geliyorsa
-                if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable)
+                if (benzersizAlanCheck && !sonuc.KritikHataVar)
                 {
-                    mesajlar.Add("Hedef NULL kabul etmiyor");
-                    kritikHata = true;
+                    row.Tag = "ONAYLANDI";
                 }
 
-                // 2. Metinsel Dönüşümler (nvarchar <-> char vb.)
-                string[] metinselTipler = { "nvarchar", "nchar", "varchar", "char", "text", "ntext" };
-                bool kaynakMetin = metinselTipler.Contains(KaynakBilgi.DataType.ToLower());
-                bool hedefMetin = metinselTipler.Contains(HedefBilgi.DataType.ToLower());
-
-                if (kaynakMetin && hedefMetin)
+                if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
                 {
-                    // Tip ismi farklıysa (örn: nvarchar -> nchar)
-                    if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        mesajlar.Add($"Tip Dönüşümü ({KaynakBilgi.DataType}->{HedefBilgi.DataType})");
-                        uyariGerekli = true; // Bu bir uyarıd onaylanırsa geçilir
-                    }
-
-                    // Uzunluk Kontrolü
-                    if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue)
-                    {
-                        // -1  değerlerini int.MaxValuee dönüştürerek mantıksal karşılaştırma yapıyoruz
-                        long kaynakLen = KaynakBilgi.Length.Value == -1 ? int.MaxValue : KaynakBilgi.Length.Value;
-                        long hedefLen = HedefBilgi.Length.Value == -1 ? int.MaxValue : HedefBilgi.Length.Value;
-
-                        
-                        if (hedefLen < kaynakLen)
-                        {
-                            // Ekranda kullanıcıya -1 yerine "MAX" göstermek için string hazırlıyoruz
-                            string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
-                            string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
-
-                            mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
-                            uyariGerekli = true; // Onay gerektiren turuncu rengi tetikler.
-                        }
-                        else if (hedefLen > kaynakLen)
-                        {
-                            
-                            string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
-                            string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
-
-                         
-                            mesajlar.Add($" ({kStr}->{hStr})");
-                        }
-                        
-                    }
+                    row.Cells["Uygunluk"].Value = "Uygun";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
+                    return;
                 }
 
-               
-                else if (SayiKontrolu(KaynakBilgi.DataType) && SayiKontrolu(HedefBilgi.DataType))
+                // Loglama gerektiren durumları buraya taşıyoruz (Ondalık -> Tam sayı durumu gibi)
+                if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
-                    bool kaynakOndalik = OndalikliTip(KaynakBilgi.DataType);
-                    bool hedefTam = TamSayiliTip(HedefBilgi.DataType);
-                    bool kaynakTam = TamSayiliTip(KaynakBilgi.DataType);
-                    bool hedefOndalikli = OndalikliTip(HedefBilgi.DataType);
-                    
-                    if (kaynakOndalik && hedefTam)//kaynak ondalıklı ve hedef tam ise uygun değil 
-                    {
-                        
-                        mesajlar.Add("Uygun Değil");
-                        LogEkle("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
-                        kritikHata = true; 
-                        uyariGerekli = false; 
-                    }   
-
-                    //else if (kaynakTam && hedefOndalikli)
-                    //{
-                    //    mesajlar.Add("Tam -> Ondalık");
-                    //    kritikHata = false;
-                    //    uyariGerekli = true;
-                    //}
-                }
-                else
-                {                  
-                    string [] tarihTipleri = { "date", "datetime", "datetime2", "smalldatetime", "time" };
-                    bool kaynakTarih = tarihTipleri.Contains(KaynakBilgi.DataType.ToLower());
-                    bool hedefTarih = tarihTipleri.Contains(HedefBilgi.DataType.ToLower());
-
-                    
-                    if ((SayiKontrolu(KaynakBilgi.DataType) || kaynakTarih) && hedefMetin)
-                    {
-                        //  int varchar veya datetime nvarchar
-                        mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
-                        kritikHata = true;
-                    }
-                    //  Metinsel bir alanın sayısal veya tarihsel bir alana dönüştürülmemesi
-                    else if (kaynakMetin && (SayiKontrolu(HedefBilgi.DataType) || hedefTarih))
-                    {
-                        //  nvarchar  int
-                        mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
-                        kritikHata = true;
-                    }
-                    
-                    else if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        mesajlar.Add($"Alakasız Tip Uyuşmazlığı: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
-                        uyariGerekli = true; 
-                    }
+                    lstLog.Items.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
                 }
 
-                
-                if (kritikHata)
+                if (sonuc.KritikHataVar)
                 {
-                    row.Cells["Uygunluk"].Value = string.Join(", ", mesajlar);
+                    row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    row.Tag = null; 
+                    row.Tag = null; // Kritik hata varsa onay kaldırılır
                 }
-                else if (uyariGerekli)
+                else if (sonuc.UyariGerekli)
                 {
-                   
-                    row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", mesajlar);
+                    row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-                    row.Tag = null; 
+                    row.Tag = null; // Uyarı varsa onay kaldırılır
                 }
                 else
                 {
-                    
+                    // Tamamen uygunsa (Yeşil)
                     row.Cells["Uygunluk"].Value = "Uygun";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
-                    row.Tag = "ONAYLANDI"; 
+                    row.Tag = "ONAYLANDI";
                 }
             }
             catch (Exception ex)
             {
+                // UI Loglama
                 row.Cells["Uygunluk"].Value = "Hata";
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
             }
@@ -502,7 +486,7 @@ namespace DataTransfer
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                KontrolEt(row);
+                GridKontrolEt(row);
 
                 if (row.IsNewRow) continue;
 
@@ -533,9 +517,8 @@ namespace DataTransfer
         }
         #endregion
 
-
-
-
+        #region OtomatikEsle
+       
         private void BtnOtomatikEsle_Click(object sender, EventArgs e) // İsim Bazlı Eşleme (Düzeltilmiş)
         {
             if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
@@ -571,12 +554,12 @@ namespace DataTransfer
                 }
 
                 // Eşleme olsun veya olmasın, uygunluğu kontrol et
-                KontrolEt(row);
+                GridKontrolEt(row);
             }
 
             lstLog.Items.Add("Eşleme tamamlandı.");
         }
-
+        #endregion
 
         private void BtnStrSil_Click(object sender, EventArgs e)
         {
@@ -605,9 +588,10 @@ namespace DataTransfer
             }
 
             string tablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
+
             if (RdoBtnTumSatır.Checked)
             {
-                MessageBox.Show("Tüm satırlar seçili filtre testi için gerekmiyor");
+                MessageBox.Show("Tüm satırlar seçili, filtre testi için gerekmiyor.");
                 return;
             }
 
@@ -619,23 +603,16 @@ namespace DataTransfer
             }
 
             try
-            {
-                string connStr = $"Server={kaynak.Sunucu};Database={kaynak.Veritabani}; User Id={kaynak.Kullanici};Password={kaynak.Sifre};TrustServerCertificate=True;";
-
-                string sql = $"SELECT COUNT(1) FROM [{tablo}] WHERE {where}";
-                using (var conn = new SqlConnection(connStr))
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    await conn.OpenAsync();
-                    var deger = await cmd.ExecuteScalarAsync();//sator degerini döndürüyor
-                    MessageBox.Show($"Filtre testi başarılı: {deger} satır döndü.");
-                    lstLog.Items.Add($"Filtre testi başarılı: {deger} satır döndü. {where}");
-                }
-
+            {               
+                int satırSayısı = await KaynakRepo.SatirSayisiGetirAsync(tablo, where);
+           
+                MessageBox.Show($"Filtre testi başarılı: {satırSayısı} satır döndü.");
+                lstLog.Items.Add($"Filtre testi başarılı: {satırSayısı} satır döndü. WHERE: {where}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Test hatası: {ex.Message}");
+                // Repository'den fırlatılan detaylı hatayı yakala
+                MessageBox.Show($"Test hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 lstLog.Items.Add($"Filtre hatası: {ex.Message}");
             }
         }
@@ -648,24 +625,7 @@ namespace DataTransfer
             $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
 
 
-        private DataTable DataTableGetir(string connStr, string tablo, List<string> kolonlar, string kosul = "")//sql den veri çeker datatable döndürür belirli tablo ve kolonlardan
-        {
-            string kolonListe = string.Join(", ", kolonlar.Select(c => $"[{c}]"));//[ad]
-
-            string sql = $"SELECT {kolonListe} FROM [{tablo}]";
-
-            if (!string.IsNullOrWhiteSpace(kosul)) //eger koşul varsa sornadan ekelem yaparım
-                sql += " WHERE " + kosul;
-
-            var dt = new DataTable();
-
-            using (var conn = new SqlConnection(connStr))
-            using (var da = new SqlDataAdapter(sql, conn))
-            {
-                da.Fill(dt);
-            }
-            return dt;
-        }
+      
 
 
         private void ProgresGuncelle(int islenen, int toplam, int aktarılan, int atlanan)
@@ -703,7 +663,7 @@ namespace DataTransfer
                 return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
-            KontrolEt(row);
+            GridKontrolEt(row);
         }
 
         private async void FrmVeriEslestirme_Load(object sender, EventArgs e)
@@ -717,37 +677,40 @@ namespace DataTransfer
 
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
+          
+
             if (TrwKaynakTablolar.SelectedNode == null || TrwHedefTablolar.SelectedNode == null)
             {
                 MessageBox.Show("Kaynak ve hedef tablo seçin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var eslesmeler = EslestirmeListesi(); //kolon eşleşmeya yapar
+            var eslesmeler = EslestirmeListesi(); // Kolon eşleşmelerini getirir
 
             if (eslesmeler.Count == 0)
             {
                 MessageBox.Show("Uygun kolon eşleşmesi bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
-            string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
 
-
-            foreach (var eslesme in eslesmeler)
+            var benzersizKolonlar = BenzersizKolonlariGetir();
+            if (!benzersizKolonlar.Any())
             {
-                var kaynakBilgi = KaynakKolonlar[eslesme.KaynakKolon];
-                var hedefBilgi = HedefKolonlar[eslesme.HedefKolon];
+                
+                DialogResult result = MessageBox.Show(
+                    "Mükerrer (Benzersiz) kayıt kontrolü için herhangi bir alan seçilmedi. İptal edip benzersiz alan seçmek için 'Evet', kontrolsüz devam etmek için 'Hayır' tuşuna basın.",
+                    "Mükerrer Kontrol Uyarısı",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
-                // Kaynak ondalık, Hedef tam sayı ise tehlike var demektir.
-                if (OndalikliTip(kaynakBilgi.DataType) && TamSayiliTip(hedefBilgi.DataType))
+                
+                if (result == DialogResult.Yes)
                 {
-                   LogEkle($"UYARI: '{eslesme.KaynakKolon}' kolonunda ondalık -> tam sayı dönüşümü var. Veri kaybı olabilir.");
+                    LogEkle("Kullanıcı benzersiz alan seçmek için işlemi iptal etti.");
+                    return;
                 }
+               
             }
-
-
-
             BtnTransferBaslat.Enabled = false;
             prgTransfer.Value = 0;
             prgTransfer.Style = ProgressBarStyle.Continuous;
@@ -755,16 +718,19 @@ namespace DataTransfer
 
             try
             {
-                string kaynakConnStr = ConnectionString(kaynak);
-                string hedefConnStr = ConnectionString(hedef);
+
+                string kaynakTablo = TrwKaynakTablolar.SelectedNode.Tag.ToString();
+                string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
+
                 var kolonlar = eslesmeler.Select(x => x.KaynakKolon).ToList();
+              
+                DataTable kaynakVeri = await Task.Run(() =>
+                {
+          
+                    return KaynakRepo.VeriGetir(kaynakTablo, kolonlar, TxtFiltreleme.Text);
+                });
 
-
-                DataTable kaynakVeri = await Task.Run(() => //kaynak veriyi datatable ile çekiyorum daha sonra bunu onizeme formunda göstericem
-                    DataTableGetir(kaynakConnStr, kaynakTablo, kolonlar, TxtFiltreleme.Text)
-                );
-
-
+             
                 if (kaynakVeri.Rows.Count == 0)
                 {
                     LogEkle("Kaynakta aktarılacak veri bulunamadı.");
@@ -783,6 +749,7 @@ namespace DataTransfer
                     }
                 }
 
+                // Bu metodun da yeni Repository'i kullanacak şekilde güncellenmesi gerekebilir
                 await TransferSatiriKontrolu(kaynak, hedef, kaynakTablo, hedefTablo, eslesmeler, kaynakVeri);
             }
             catch (Exception ex)
@@ -824,7 +791,7 @@ namespace DataTransfer
             return textTypes.Contains(dataType.ToLower());
         }
 
-
+        #region TransferKontrolu
         private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
             List<(string KaynakKolon, string HedefKolon)> eslesmeler,
             DataTable kaynakVeri)
@@ -1035,10 +1002,33 @@ namespace DataTransfer
             MessageBox.Show($"İşlem Tamamlandı.\nAktarılan: {aktarılan}\nAtlanan: {atlanan}", "Sonuç", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        #endregion
 
 
 
+        #region BenzersizKontroluEklemeCikarma
+        private List<string> BenzersizKolonlariGetir()
+        {
+            var benzersizKolon = new List<string>();
 
+            foreach (DataGridViewRow row in GrdEslestirme.Rows)
+            {
+                if (row.Tag?.ToString() != "ONAYLANDI") continue;
+                string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+                if (string.IsNullOrWhiteSpace(hedefKolon)) continue;
+
+                bool benzersizAlan = (row.Cells["IsUnique"] as DataGridViewCheckBoxCell)?.Value as bool? ?? false;
+                bool uniqueTanimlama = HedefKolonlar.ContainsKey(hedefKolon) && HedefKolonlar[hedefKolon].IsUnique;
+
+                if (benzersizAlan || uniqueTanimlama)
+                {
+                    benzersizKolon.Add(hedefKolon);
+                }
+            }
+
+            return benzersizKolon.Distinct().ToList();
+        }
+        #endregion
         private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
@@ -1064,15 +1054,11 @@ namespace DataTransfer
 
                 if (cell != null)
                 {
-                    // ReadOnly olsa bile değerini tersine çeviriyoruz (Manuel seçim)
+                    
                     bool currentValue = (bool)(cell.Value ?? false);
                     cell.Value = !currentValue;
-
-                    // Değişikliği hemen uygula
                     GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
-
-                    // Bu seçim, satırın uygunluk durumunu etkileyebilir, bu yüzden kontrol et
-                    KontrolEt(row);
+                    GridKontrolEt(row);
                 }
                 return; // İşlem bitti
             }
@@ -1106,11 +1092,11 @@ namespace DataTransfer
                 {
                     
                     row.Tag = "ONAYLANDI";
-                    KontrolEt(row); 
+                    GridKontrolEt(row); 
                 }
             }
         }
-
+        #region KaynakSutunEkle
         private async void BtnKynkSutunYkle_Click(object sender, EventArgs e)
         {
             try
@@ -1118,7 +1104,7 @@ namespace DataTransfer
                 if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
                 {
                     lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
-                    KaynakKolonlar = await KolonBilgileriniGetirAsync(kaynak, kaynakTablo);
+                    KaynakKolonlar = await KaynakRepo.KolonBilgileriniGetirAsync(kaynakTablo);
                     KaynakSutunBilgileriGetir(KaynakKolonlar);
                     lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
                 }
@@ -1133,7 +1119,9 @@ namespace DataTransfer
 
             }
         }
+        #endregion
 
+        #region HedefSutunEkle
         private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
         {
             try
@@ -1150,7 +1138,7 @@ namespace DataTransfer
                 if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
                 {
                     lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
-                    HedefKolonlar = await KolonBilgileriniGetirAsync(hedef, hedefTablo);
+                    HedefKolonlar = await HedefRepo.KolonBilgileriniGetirAsync(hedefTablo);
                     HedefKolonDetaylariniGrideDoldur();
 
 
@@ -1168,6 +1156,9 @@ namespace DataTransfer
             }
         }
 
+        #endregion
+
+        #region HedefIsNullable
         private void HedefKolonDetaylariniGrideDoldur()
         {
            
@@ -1186,5 +1177,6 @@ namespace DataTransfer
 
             GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
         }
+        #endregion
     }
 }

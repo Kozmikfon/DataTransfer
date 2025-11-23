@@ -42,6 +42,7 @@
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
             GrdHedefNullable = new DataGridView();
+            label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -52,9 +53,9 @@
             // TrwHedefTablolar
             // 
             TrwHedefTablolar.Dock = DockStyle.Right;
-            TrwHedefTablolar.Location = new Point(0, 19);
+            TrwHedefTablolar.Location = new Point(0, 21);
             TrwHedefTablolar.Name = "TrwHedefTablolar";
-            TrwHedefTablolar.Size = new Size(623, 303);
+            TrwHedefTablolar.Size = new Size(623, 301);
             TrwHedefTablolar.TabIndex = 0;
             TrwHedefTablolar.AfterSelect += TrwHedefTablolar_AfterSelect;
             // 
@@ -62,15 +63,16 @@
             // 
             TrwKaynakTablolar.Dock = DockStyle.Left;
             TrwKaynakTablolar.ItemHeight = 18;
-            TrwKaynakTablolar.Location = new Point(3, 19);
+            TrwKaynakTablolar.Location = new Point(3, 21);
             TrwKaynakTablolar.Name = "TrwKaynakTablolar";
-            TrwKaynakTablolar.Size = new Size(645, 303);
+            TrwKaynakTablolar.Size = new Size(645, 301);
             TrwKaynakTablolar.TabIndex = 0;
             TrwKaynakTablolar.AfterSelect += TrwKaynakTablolar_AfterSelect;
             // 
             // BtnOtomatikEsle
             // 
-            BtnOtomatikEsle.Location = new Point(1124, 370);
+            BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            BtnOtomatikEsle.Location = new Point(1140, 370);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(156, 65);
             BtnOtomatikEsle.TabIndex = 3;
@@ -80,7 +82,8 @@
             // 
             // BtnStrSil
             // 
-            BtnStrSil.Location = new Point(1124, 472);
+            BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            BtnStrSil.Location = new Point(1140, 472);
             BtnStrSil.Name = "BtnStrSil";
             BtnStrSil.Size = new Size(153, 66);
             BtnStrSil.TabIndex = 2;
@@ -102,7 +105,8 @@
             // 
             // BtnTransferBaslat
             // 
-            BtnTransferBaslat.Location = new Point(1124, 580);
+            BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            BtnTransferBaslat.Location = new Point(1140, 580);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
@@ -112,7 +116,7 @@
             // 
             // prgTransfer
             // 
-            prgTransfer.Location = new Point(624, 682);
+            prgTransfer.Location = new Point(645, 682);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -129,9 +133,10 @@
             // 
             // BtnGeri
             // 
+            BtnGeri.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
             BtnGeri.Location = new Point(12, 903);
             BtnGeri.Name = "BtnGeri";
-            BtnGeri.Size = new Size(88, 49);
+            BtnGeri.Size = new Size(105, 49);
             BtnGeri.TabIndex = 11;
             BtnGeri.Text = "Geri";
             BtnGeri.UseVisualStyleBackColor = true;
@@ -140,7 +145,8 @@
             // BtnFiltreTest
             // 
             BtnFiltreTest.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            BtnFiltreTest.Location = new Point(474, 45);
+            BtnFiltreTest.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            BtnFiltreTest.Location = new Point(486, 45);
             BtnFiltreTest.Name = "BtnFiltreTest";
             BtnFiltreTest.Size = new Size(99, 37);
             BtnFiltreTest.TabIndex = 3;
@@ -153,15 +159,16 @@
             TxtFiltreleme.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             TxtFiltreleme.Location = new Point(16, 58);
             TxtFiltreleme.Name = "TxtFiltreleme";
-            TxtFiltreleme.Size = new Size(428, 23);
+            TxtFiltreleme.Size = new Size(440, 23);
             TxtFiltreleme.TabIndex = 2;
             // 
             // RdoBtnFiltre
             // 
             RdoBtnFiltre.AutoSize = true;
-            RdoBtnFiltre.Location = new Point(126, 33);
+            RdoBtnFiltre.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            RdoBtnFiltre.Location = new Point(142, 33);
             RdoBtnFiltre.Name = "RdoBtnFiltre";
-            RdoBtnFiltre.Size = new Size(91, 19);
+            RdoBtnFiltre.Size = new Size(110, 24);
             RdoBtnFiltre.TabIndex = 1;
             RdoBtnFiltre.TabStop = true;
             RdoBtnFiltre.Text = "Filtre Uygula";
@@ -170,9 +177,10 @@
             // RdoBtnTumSatır
             // 
             RdoBtnTumSatır.AutoSize = true;
+            RdoBtnTumSatır.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
             RdoBtnTumSatır.Location = new Point(16, 33);
             RdoBtnTumSatır.Name = "RdoBtnTumSatır";
-            RdoBtnTumSatır.Size = new Size(89, 19);
+            RdoBtnTumSatır.Size = new Size(107, 24);
             RdoBtnTumSatır.TabIndex = 0;
             RdoBtnTumSatır.TabStop = true;
             RdoBtnTumSatır.Text = "Tüm Satırlar";
@@ -186,7 +194,7 @@
             GrbBoxFiltreleme.Controls.Add(BtnFiltreTest);
             GrbBoxFiltreleme.Location = new Point(12, 659);
             GrbBoxFiltreleme.Name = "GrbBoxFiltreleme";
-            GrbBoxFiltreleme.Size = new Size(579, 96);
+            GrbBoxFiltreleme.Size = new Size(591, 96);
             GrbBoxFiltreleme.TabIndex = 2;
             GrbBoxFiltreleme.TabStop = false;
             GrbBoxFiltreleme.Text = "Filtreleme";
@@ -194,15 +202,16 @@
             // lblTransferSayisi
             // 
             lblTransferSayisi.AutoSize = true;
-            lblTransferSayisi.Font = new Font("Segoe UI", 12F);
-            lblTransferSayisi.Location = new Point(1068, 931);
+            lblTransferSayisi.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            lblTransferSayisi.Location = new Point(1073, 916);
             lblTransferSayisi.Name = "lblTransferSayisi";
-            lblTransferSayisi.Size = new Size(111, 21);
+            lblTransferSayisi.Size = new Size(133, 25);
             lblTransferSayisi.TabIndex = 12;
             lblTransferSayisi.Text = "Transfer İslemi";
             // 
             // BtnKynkSutunYkle
             // 
+            BtnKynkSutunYkle.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
             BtnKynkSutunYkle.Location = new Point(491, 278);
             BtnKynkSutunYkle.Name = "BtnKynkSutunYkle";
             BtnKynkSutunYkle.Size = new Size(148, 41);
@@ -213,6 +222,7 @@
             // 
             // BtnHdfSutunYkle
             // 
+            BtnHdfSutunYkle.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
             BtnHdfSutunYkle.Location = new Point(470, 278);
             BtnHdfSutunYkle.Name = "BtnHdfSutunYkle";
             BtnHdfSutunYkle.Size = new Size(148, 41);
@@ -225,6 +235,7 @@
             // 
             groupBox1.Controls.Add(BtnKynkSutunYkle);
             groupBox1.Controls.Add(TrwKaynakTablolar);
+            groupBox1.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
             groupBox1.Location = new Point(0, 4);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(648, 325);
@@ -236,6 +247,7 @@
             // 
             groupBox2.Controls.Add(BtnHdfSutunYkle);
             groupBox2.Controls.Add(TrwHedefTablolar);
+            groupBox2.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
             groupBox2.Location = new Point(654, 4);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(626, 325);
@@ -246,16 +258,27 @@
             // GrdHedefNullable
             // 
             GrdHedefNullable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            GrdHedefNullable.Location = new Point(1292, 23);
+            GrdHedefNullable.Location = new Point(1297, 23);
             GrdHedefNullable.Name = "GrdHedefNullable";
-            GrdHedefNullable.Size = new Size(229, 341);
+            GrdHedefNullable.Size = new Size(252, 342);
             GrdHedefNullable.TabIndex = 20;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            label1.Location = new Point(1301, 4);
+            label1.Name = "label1";
+            label1.Size = new Size(81, 17);
+            label1.TabIndex = 21;
+            label1.Text = "Hedef Kolon";
             // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1584, 961);
+            Controls.Add(label1);
             Controls.Add(GrdHedefNullable);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
@@ -305,6 +328,7 @@
         private GroupBox groupBox1;
         private GroupBox groupBox2;
         private DataGridView GrdHedefNullable;
+        private Label label1;
     }
 
 }

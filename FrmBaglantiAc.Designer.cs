@@ -284,9 +284,9 @@
             // 
             // BtnDevam
             // 
-            BtnDevam.Location = new Point(685, 260);
+            BtnDevam.Location = new Point(682, 347);
             BtnDevam.Name = "BtnDevam";
-            BtnDevam.Size = new Size(95, 52);
+            BtnDevam.Size = new Size(98, 52);
             BtnDevam.TabIndex = 21;
             BtnDevam.Text = "İlerle";
             BtnDevam.UseVisualStyleBackColor = true;

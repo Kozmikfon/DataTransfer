@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DataTransfer.Model;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
 using System.Drawing;
@@ -22,6 +23,18 @@ namespace DataTransfer
 
         private async void BtnBaglantiTest_Click(object sender, EventArgs e)
         {
+            CmbboxKaynakVeritabani.Items.Clear();
+            CmbboxHedefVeriTabani.Items.Clear();
+            CmbboxKaynakVeritabani.Text = "";
+            CmbboxHedefVeriTabani.Text = "";
+            CmbboxKaynakVeritabani.Enabled = false;
+            CmbboxHedefVeriTabani.Enabled = false;
+            BtnDevam.Enabled = false;
+            kaynakTestBasarili = false;
+            hedefTestBasarili = false;
+
+
+
             if (string.IsNullOrWhiteSpace(TxtboxKaynakSunucu.Text) ||
                 string.IsNullOrWhiteSpace(TxtKullanıcı.Text) ||
                 string.IsNullOrWhiteSpace(TxtSifre.Text) ||

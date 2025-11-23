@@ -12,7 +12,7 @@ namespace DataTransfer
 {
     public partial class FrmVeriOnizleme : Form
     {
-        private  DataTable _veri;
+        private DataTable _veri;
 
         public bool Onaylandi { get; private set; } = false;
         public FrmVeriOnizleme(DataTable veri)
