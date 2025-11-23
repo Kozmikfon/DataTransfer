@@ -128,16 +128,16 @@ namespace DataTransfer
 
 
 
-        private async Task TablolarıAgacaYukleAsync() //secilen veritabanındaki tabloları treeview a yükleme
+        private async Task TablolarıAgacaYukleAsync() 
         {
             try
             {
                 // kaynak tablolar
                 var KaynakTablo = await KaynakRepo.TabloGetirAsync();
-                TrwKaynakTablolar.Nodes.Clear(); //treewievdeki düğümleri siler
+                TrwKaynakTablolar.Nodes.Clear(); 
 
                 foreach (var tabloAd in KaynakTablo.OrderBy(x => x))
-                    TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); //treewiew nesnesi kontrolüne ekleme işlemi alfabetik sıraya göre
+                    TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); 
 
 
                 var HedefTablo = await HedefRepo.TabloGetirAsync();
@@ -403,10 +403,10 @@ namespace DataTransfer
         {
             try
             {
-                // 1. UI DEĞERLERİNİ OKUMA VE BAŞLANGIÇ ONAY MANTIĞI
+             
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
 
-                // 2. Kolon Adı Kontrolü
+                
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
@@ -418,7 +418,6 @@ namespace DataTransfer
                     return;
                 }
 
-                // 3. Kolon Bilgilerini Alma ve Service'e Hazırlama
                 if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
                     !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
                 {
@@ -443,7 +442,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // Loglama gerektiren durumları buraya taşıyoruz (Ondalık -> Tam sayı durumu gibi)
+                // Loglama gerektiren durumları buraya taşıy
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
                     lstLog.Items.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
@@ -453,17 +452,17 @@ namespace DataTransfer
                 {
                     row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    row.Tag = null; // Kritik hata varsa onay kaldırılır
+                    row.Tag = null; 
                 }
                 else if (sonuc.UyariGerekli)
                 {
                     row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-                    row.Tag = null; // Uyarı varsa onay kaldırılır
+                    row.Tag = null; 
                 }
                 else
                 {
-                    // Tamamen uygunsa (Yeşil)
+                  
                     row.Cells["Uygunluk"].Value = "Uygun";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
                     row.Tag = "ONAYLANDI";
@@ -471,7 +470,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                // UI Loglama
+                
                 row.Cells["Uygunluk"].Value = "Hata";
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
             }
@@ -1131,6 +1130,7 @@ namespace DataTransfer
                 if (TrwKaynakTablolar.SelectedNode?.Tag is string kaynakTablo && !string.IsNullOrWhiteSpace(kaynakTablo))
                 {
                     lstLog.Items.Add($"Kaynak kolonlar yükleniyor: {kaynakTablo}...");
+                    lblkaynak.Text = kaynakTablo;
                     KaynakKolonlar = await KaynakRepo.KolonBilgileriniGetirAsync(kaynakTablo);
                     KaynakSutunBilgileriGetir(KaynakKolonlar);
                     lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
@@ -1165,6 +1165,7 @@ namespace DataTransfer
                 if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
                 {
                     lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
+                    lblHedef.Text = hedefTablo;
                     HedefKolonlar = await HedefRepo.KolonBilgileriniGetirAsync(hedefTablo);
                     HedefKolonDetaylariniGrideDoldur();
 

@@ -43,6 +43,10 @@
             groupBox2 = new GroupBox();
             GrdHedefNullable = new DataGridView();
             label1 = new Label();
+            lblkaynak = new Label();
+            lblHedef = new Label();
+            label2 = new Label();
+            label3 = new Label();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -273,11 +277,51 @@
             label1.TabIndex = 21;
             label1.Text = "Hedef Kolon";
             // 
+            // lblkaynak
+            // 
+            lblkaynak.AutoSize = true;
+            lblkaynak.Location = new Point(96, 340);
+            lblkaynak.Name = "lblkaynak";
+            lblkaynak.Size = new Size(77, 15);
+            lblkaynak.TabIndex = 22;
+            lblkaynak.Text = "Kaynak Tablo";
+            // 
+            // lblHedef
+            // 
+            lblHedef.AutoSize = true;
+            lblHedef.Location = new Point(919, 339);
+            lblHedef.Name = "lblHedef";
+            lblHedef.Size = new Size(71, 15);
+            lblHedef.TabIndex = 23;
+            lblHedef.Text = "Hedef Tablo";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(836, 339);
+            label2.Name = "label2";
+            label2.Size = new Size(77, 15);
+            label2.TabIndex = 24;
+            label2.Text = "Hedef Tablo :";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(7, 340);
+            label3.Name = "label3";
+            label3.Size = new Size(83, 15);
+            label3.TabIndex = 25;
+            label3.Text = "Kaynak Tablo :";
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1584, 961);
+            Controls.Add(label3);
+            Controls.Add(label2);
+            Controls.Add(lblHedef);
+            Controls.Add(lblkaynak);
             Controls.Add(label1);
             Controls.Add(GrdHedefNullable);
             Controls.Add(groupBox2);
@@ -329,6 +373,10 @@
         private GroupBox groupBox2;
         private DataGridView GrdHedefNullable;
         private Label label1;
+        private Label lblkaynak;
+        private Label lblHedef;
+        private Label label2;
+        private Label label3;
     }
 
 }

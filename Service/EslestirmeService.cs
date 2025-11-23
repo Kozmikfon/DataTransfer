@@ -93,7 +93,7 @@ namespace DataTransfer.Service
 
             else if (IsSayisalTip(kaynakTip) && IsSayisalTip(hedefTip))
             {
-                // Ondalıklı Sayı -> Tam Sayı 
+                // Ondalıklı Sayı Tam Sayı 
                 if (IsOndalikliTip(kaynakTip) && IsTamSayiliTip(hedefTip))
                 {
                     sonuc.Mesajlar.Add("Uygun Değil");
