@@ -13,6 +13,7 @@ namespace DataTransfer.Repository
     {
         private readonly string _connectionString;
         private readonly BaglantiBilgileri _info;
+        
 
         // SQL Sorguları (Constants)
         private const string SQL_GET_TABLES =
@@ -109,11 +110,51 @@ namespace DataTransfer.Repository
         }
 
 
-        public DataTable VeriGetir(string tablo, List<string> kolonlar, string kosul = "")
+        // NOT: Bu metodun çalışması için, çağıran metodun artık List<string> yerine 
+        // List<EslestirmeBilgisi> göndermesi gerekmektedir.
+
+        public DataTable VeriGetir(string tablo, List<EslestirmeBilgisi> eslestirmeler, string kosul = "")
         {
             string connStr = _connectionString;
-            string kolonListe = string.Join(", ", kolonlar.Select(c => $"[{c}]"));
+            var kolonlarinListesi = new List<string>();
 
+            // Kolon listesini oluştururken manuel girişi kontrol et
+            foreach (var eslestirme in eslestirmeler)
+            {
+                if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
+                {
+                    // --- MANUEL GİRİŞ KONTROLÜ ---
+
+                    // Manuel değeri SQL literal'e çevir. Tırnak işaretleri, boşluklar vb. için escape/literal kullanımı önemlidir.
+                    string manuelDeger = eslestirme.ManuelDeger;
+                    string sqlLiteral;
+
+                    // Verinin tipi ne olursa olsun, transferde genellikle string olarak atanır ve hedef tipe çevrilir.
+                    // Bu nedenle, string olarak tırnak içine almak en güvenli yoldur.
+                    if (string.IsNullOrEmpty(manuelDeger))
+                    {
+                        // Değer boşsa veya null ise SQL NULL olarak gönder
+                        sqlLiteral = "NULL";
+                    }
+                    else
+                    {
+                        // Değeri tırnak içine al ve içerideki tek tırnakları çift tırnak (escape) yap
+                        sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
+                    }
+
+                    // Format: SELECT 'sabit_deger' AS [HedefKolon]
+                    kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
+                }
+                else
+                {
+                    // --- NORMAL EŞLEŞME ---
+                    // Format: SELECT [KaynakKolon] AS [HedefKolon]
+                    kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
+                }
+            }
+
+            // SQL sorgusunu oluştur
+            string kolonListe = string.Join(", ", kolonlarinListesi);
             string sql = $"SELECT {kolonListe} FROM [{tablo}]";
 
             if (!string.IsNullOrWhiteSpace(kosul))
@@ -126,13 +167,13 @@ namespace DataTransfer.Repository
                 using (var conn = new SqlConnection(connStr))
                 using (var da = new SqlDataAdapter(sql, conn))
                 {
-                    conn.Open(); 
+                    conn.Open();
                     da.Fill(dt);
                 }
             }
             catch (Exception ex)
             {
-
+                // Hata mesajına SQL sorgusunu dahil etmek hata ayıklama için harika.
                 throw new Exception($"VeriGetir metodu hata: {ex.Message} SQL: {sql}", ex);
             }
 

@@ -18,6 +18,9 @@ namespace DataTransfer
         private SqlTransferRepository KaynakRepo;
         private SqlTransferRepository HedefRepo;
         private EslestirmeService _eslestirmeService;
+        private EslestirmeBilgisi _secilenEslestirme;
+
+        private bool _isNullableSortAscending = true;
 
         private FrmBaglantiAc _oncekiForm;
 
@@ -39,9 +42,12 @@ namespace DataTransfer
             _oncekiForm = oncekiForm;
 
             _eslestirmeService = new EslestirmeService();
+            _secilenEslestirme = new EslestirmeBilgisi();
 
             GridBaslat();
+
             this.Load += FrmVeriEslestirme_Load;
+            GrdEslestirme.DataError += GrdEslestirme_DataError;
         }
 
         private void GridBaslat()
@@ -82,6 +88,13 @@ namespace DataTransfer
                 FlatStyle = FlatStyle.Flat
             };
 
+            var manuelDegerKolon = new DataGridViewTextBoxColumn
+            {
+                Name = "ManuelDeger", // Bu ismi kullanacağız
+                HeaderText = "Manuel Değer (Sabit)",
+                ReadOnly = false, // Kullanıcının düzenlemesi için
+                Width = 150
+            };
             var mukerrerKolon = new DataGridViewCheckBoxColumn
             {
                 Name = "IsUnique",
@@ -97,7 +110,7 @@ namespace DataTransfer
                 ReadOnly = true
             };
             var HedefUzunluk = new DataGridViewTextBoxColumn
-            { 
+            {
                 Name = "HedefUzunluk",
                 HeaderText = "Hedef Uzunluk",
                 ReadOnly = true
@@ -120,7 +133,7 @@ namespace DataTransfer
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
-                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
             });
 
             GrdEslestirme.AllowUserToAddRows = false;
@@ -128,16 +141,16 @@ namespace DataTransfer
 
 
 
-        private async Task TablolarıAgacaYukleAsync() 
+        private async Task TablolarıAgacaYukleAsync()
         {
             try
             {
                 // kaynak tablolar
                 var KaynakTablo = await KaynakRepo.TabloGetirAsync();
-                TrwKaynakTablolar.Nodes.Clear(); 
+                TrwKaynakTablolar.Nodes.Clear();
 
                 foreach (var tabloAd in KaynakTablo.OrderBy(x => x))
-                    TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd }); 
+                    TrwKaynakTablolar.Nodes.Add(new TreeNode(tabloAd) { Tag = tabloAd });
 
 
                 var HedefTablo = await HedefRepo.TabloGetirAsync();
@@ -209,7 +222,7 @@ namespace DataTransfer
         }
         private void HedefSutunBilgileriGetir(Dictionary<string, KolonBilgisi> hedefKolon)//dictionayden gelen kolon bilgilerini gride yükleme hedef kolonları ama
         {
-            
+
         }
 
         private void HedefGuncelle(List<string> hedefKolonIsimleri) //hedef kolon comboxolarına yükleme için kolon adları tutuluyor.
@@ -403,14 +416,18 @@ namespace DataTransfer
         {
             try
             {
-             
+                // 1. Başlangıç Değerlerini Al
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
-
-                
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+                bool isManuelGiris = kaynakKolon == "(MANUEL GİRİŞ)";
 
-                if (string.IsNullOrWhiteSpace(kaynakKolon) || string.IsNullOrWhiteSpace(hedefKolon))
+                // Hata Düzeltme: KaynakBilgi ve HedefBilgi'yi null olarak başlatma
+                KolonBilgisi KaynakBilgi = null;
+                KolonBilgisi HedefBilgi = null;
+
+                // 2. Temel Boşluk Kontrolleri
+                if (string.IsNullOrWhiteSpace(hedefKolon) || (!isManuelGiris && string.IsNullOrWhiteSpace(kaynakKolon)))
                 {
                     row.Cells["Uygunluk"].Value = "";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
@@ -418,8 +435,12 @@ namespace DataTransfer
                     return;
                 }
 
-                if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
-                    !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
+                // 3. Kolon Bilgisi Eksik Kontrolü (Sadece normal eşleşmeler için)
+                // TryGetValue metodu şimdi, değişkenleri null olarak tanımladığımız için 
+                // doğrudan kullanılabiliyor ve KaynakBilgi/HedefBilgi'ye değer atıyor.
+                if (!isManuelGiris &&
+                    (!KaynakKolonlar.TryGetValue(kaynakKolon, out KaynakBilgi) ||
+                     !HedefKolonlar.TryGetValue(hedefKolon, out HedefBilgi)))
                 {
                     row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
@@ -427,14 +448,53 @@ namespace DataTransfer
                     return;
                 }
 
-                EslestirmeSonucu sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
+                EslestirmeSonucu sonuc = new EslestirmeSonucu();
 
+                // 4. Eşleşme Sonucunu Belirleme (Manuel vs. Normal)
+                if (isManuelGiris)
+                {
+                    // --- MANUEL GİRİŞ KONTROLÜ ---
+                    string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
 
-                if (benzersizAlanCheck && !sonuc.KritikHataVar)
+                    if (string.IsNullOrWhiteSpace(manuelDeger))
+                    {
+                        // Değer girilmediyse
+                        sonuc.KritikHataVar = false;
+                        sonuc.UyariGerekli = true;
+                        sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
+                        row.Tag = null;
+                    }
+                    else if (row.Tag?.ToString() != "ONAYLANDI")
+                    {
+                        // Değer girildi ama onaylanmadıysa
+                        sonuc.KritikHataVar = false;
+                        sonuc.UyariGerekli = true;
+                        sonuc.Mesajlar.Add("MANUEL GİRİŞ ONAYI BEKLENİYOR");
+                        row.Tag = null;
+                    }
+                    else
+                    {
+                        // Değer girildi VE onaylandı
+                        sonuc.KritikHataVar = false;
+                        sonuc.UyariGerekli = false;
+                    }
+                }
+                else
+                {
+                    // --- NORMAL EŞLEŞME KONTROLÜ ---
+                    // TryGetValue başarılı olduğu için KaynakBilgi ve HedefBilgi dolu.
+                    sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
+                }
+
+                // 5. ONAY VE DURUM GÜNCELLEMELERİ
+
+                // Benzersiz Alan İşaretlemesi (Normal eşleşmelerde otomatik onay verir)
+                if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
                 {
                     row.Tag = "ONAYLANDI";
                 }
 
+                // Zaten ONAYLANMIŞ durumdayken (Mavi/Yeşil)
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
                 {
                     row.Cells["Uygunluk"].Value = "Uygun";
@@ -442,27 +502,38 @@ namespace DataTransfer
                     return;
                 }
 
-                // Loglama gerektiren durumları buraya taşıy
+                // Loglama gerektiren durumları buraya taşı
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
                     lstLog.Items.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
                 }
 
+                // Kritik Hata (Kırmızı)
                 if (sonuc.KritikHataVar)
                 {
                     row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-                    row.Tag = null; 
+                    row.Tag = null;
                 }
+                // Uyarı Gerekli (Turuncu) veya Manuel Giriş Uyarısı
                 else if (sonuc.UyariGerekli)
                 {
-                    row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
+                    // Manuel giriş durumları da buraya düşer (MANUEL GİRİŞ ONAYI BEKLENİYOR / GİRİLMELİ)
+                    if (isManuelGiris)
+                    {
+                        row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
+                    }
+                    else // Normal eşleşme uyarısı
+                    {
+                        row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
+                    }
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-                    row.Tag = null; 
+                    row.Tag = null;
                 }
+                // Uygun (Yeşil) - Sadece normal eşleşmelerde
                 else
                 {
-                  
                     row.Cells["Uygunluk"].Value = "Uygun";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
                     row.Tag = "ONAYLANDI";
@@ -470,7 +541,6 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                
                 row.Cells["Uygunluk"].Value = "Hata";
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
             }
@@ -479,30 +549,37 @@ namespace DataTransfer
 
 
 
-        private List<(string KaynakKolon, string HedefKolon)> EslestirmeListesi() //kolon eşleşme listesini döndürüyor
+        private List<EslestirmeBilgisi> EslestirmeListesi() // Artık List<EslestirmeBilgisi> döndürüyor
         {
-            var liste = new List<(string KaynakKolon, string HedefKolon)>();
+            var liste = new List<EslestirmeBilgisi>();
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                GridKontrolEt(row);
+                GridKontrolEt(row); // Kontrolü tekrar çalıştır
 
                 if (row.IsNewRow) continue;
 
-                string durum = row.Cells["Uygunluk"].Value?.ToString();
-
-               
+                // Onaylanmış satırları filtrele
                 bool onayli = (row.Tag?.ToString() == "ONAYLANDI");
 
                 if (!onayli)
-                    continue; 
+                    continue;
 
                 string kaynak = row.Cells["KaynakKolon"].Value?.ToString();
                 string hedef = row.Cells["HedefKolon"].Value?.ToString();
 
+                // KRİTİK: Manuel Deger hücresinden bilgiyi oku
+                string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
+
                 if (!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef))
                 {
-                    liste.Add((kaynak, hedef));
+                    // Liste.Add() artık EslestirmeBilgisi nesnesi bekliyor!
+                    liste.Add(new EslestirmeBilgisi
+                    {
+                        KaynakKolon = kaynak,
+                        HedefKolon = hedef,
+                        ManuelDeger = manuelDeger // Manuel giriş için zorunlu bilgi
+                    });
                 }
             }
             return liste;
@@ -517,7 +594,7 @@ namespace DataTransfer
         #endregion
 
         #region OtomatikEsle
-       
+
         private void BtnOtomatikEsle_Click(object sender, EventArgs e) // İsim Bazlı Eşleme (Düzeltilmiş)
         {
             if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
@@ -528,7 +605,7 @@ namespace DataTransfer
 
             var hedefList = HedefKolonlar.Keys.ToList();
 
-            
+
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
                 var sourceName = row.Cells["KaynakKolon"].Value?.ToString();
@@ -536,14 +613,14 @@ namespace DataTransfer
                 if (string.IsNullOrWhiteSpace(sourceName))
                     continue;
 
-                
+
                 var matchName = hedefList.FirstOrDefault(h => h.Equals(sourceName, StringComparison.OrdinalIgnoreCase));
 
                 if (matchName != null)
                 {
-                    
+
                     row.Cells["HedefKolon"].Value = matchName;
-                    
+
                     if (HedefKolonlar.TryGetValue(matchName, out var hInfo))
                     {
                         row.Cells["HedefTip"].Value = hInfo.DataType;
@@ -602,9 +679,9 @@ namespace DataTransfer
             }
 
             try
-            {               
+            {
                 int satırSayısı = await KaynakRepo.SatirSayisiGetirAsync(tablo, where);
-           
+
                 MessageBox.Show($"Filtre testi başarılı: {satırSayısı} satır döndü.");
                 lstLog.Items.Add($"Filtre testi başarılı: {satırSayısı} satır döndü. WHERE: {where}");
             }
@@ -624,7 +701,7 @@ namespace DataTransfer
             $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
 
 
-      
+
 
 
         private void ProgresGuncelle(int islenen, int toplam, int aktarılan, int atlanan)
@@ -671,12 +748,13 @@ namespace DataTransfer
             await TablolarıAgacaYukleAsync();
             lstLog.Items.Add("Tablolar yüklendi");
             RdoBtnTumSatır.Checked = true;
+
         }
 
 
         private async void BtnTransferBaslat_Click(object sender, EventArgs e)
         {
-          
+
 
             if (TrwKaynakTablolar.SelectedNode == null || TrwHedefTablolar.SelectedNode == null)
             {
@@ -695,20 +773,20 @@ namespace DataTransfer
             var benzersizKolonlar = BenzersizKolonlariGetir();
             if (!benzersizKolonlar.Any())
             {
-                
+
                 DialogResult result = MessageBox.Show(
                     "Mükerrer (Benzersiz) kayıt kontrolü için herhangi bir alan seçilmedi. İptal edip benzersiz alan seçmek için 'Evet', kontrolsüz devam etmek için 'Hayır' tuşuna basın.",
                     "Mükerrer Kontrol Uyarısı",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
 
-                
+
                 if (result == DialogResult.Yes)
                 {
                     LogEkle("Kullanıcı benzersiz alan seçmek için işlemi iptal etti.");
                     return;
                 }
-               
+
             }
             BtnTransferBaslat.Enabled = false;
             prgTransfer.Value = 0;
@@ -722,14 +800,14 @@ namespace DataTransfer
                 string hedefTablo = TrwHedefTablolar.SelectedNode.Tag.ToString();
 
                 var kolonlar = eslesmeler.Select(x => x.KaynakKolon).ToList();
-              
+
                 DataTable kaynakVeri = await Task.Run(() =>
                 {
-          
-                    return KaynakRepo.VeriGetir(kaynakTablo, kolonlar, TxtFiltreleme.Text);
+
+                    return KaynakRepo.VeriGetir(kaynakTablo, eslesmeler, TxtFiltreleme.Text);
                 });
 
-             
+
                 if (kaynakVeri.Rows.Count == 0)
                 {
                     LogEkle("Kaynakta aktarılacak veri bulunamadı.");
@@ -748,7 +826,7 @@ namespace DataTransfer
                     }
                 }
 
-                
+
                 await TransferSatiriKontrolu(kaynak, hedef, kaynakTablo, hedefTablo, eslesmeler, kaynakVeri);
             }
             catch (Exception ex)
@@ -791,8 +869,8 @@ namespace DataTransfer
         }
 
         #region TransferKontrolu
-        private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak,BaglantiBilgileri hedef,string kaynakTablo,string hedefTablo,
-            List<(string KaynakKolon, string HedefKolon)> eslesmeler,
+        private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak, BaglantiBilgileri hedef, string kaynakTablo, string hedefTablo,
+            List<EslestirmeBilgisi> eslesmeler,
             DataTable kaynakVeri)
         {
             string hedefConnStr = ConnectionString(hedef);
@@ -801,15 +879,15 @@ namespace DataTransfer
 
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
-                
-                if (row.Tag?.ToString() != "ONAYLANDI") 
+
+                if (row.Tag?.ToString() != "ONAYLANDI")
                     continue;
 
                 string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
-                if (string.IsNullOrWhiteSpace(hedefKolon)) 
+                if (string.IsNullOrWhiteSpace(hedefKolon))
                     continue;
-                
+
                 bool benzersizAlan = false;
 
                 if (row.Cells["IsUnique"] is DataGridViewCheckBoxCell checkCell)
@@ -825,7 +903,7 @@ namespace DataTransfer
                 }
             }
 
-            
+
             benzersizKolon = benzersizKolon.Distinct().ToList();
 
             bool unıqueKontrolu = benzersizKolon.Any();
@@ -851,16 +929,48 @@ namespace DataTransfer
 
                     var hedefDegerEkle = new Dictionary<string, object>();//hedef kolona eklenecek değerler
 
+                    var eslestirmeler = EslestirmeListesi();
 
-                    foreach (var (kaynakKolon, hedefKolon) in eslesmeler) //kolon ciftleri uzeronde donuyorum
+                    foreach (var eslestirme in eslestirmeler) //kolon ciftleri uzeronde donuyorum
                     {
+                        var kaynakKolon = eslestirme.KaynakKolon;
+                        var hedefKolon = eslestirme.HedefKolon;
+                        if (kaynakKolon == "(MANUEL GİRİŞ)")
+                        {
+                            // Hedef kolon bilgisi gerekli (KaynakRepo'dan değil, HedefKolonlar Dictionary'sinden alınmalı)
+                            var hedefBilgi = HedefKolonlar[hedefKolon];
+                            string manuelDeger = eslestirme.ManuelDeger;
+
+                            if (string.IsNullOrWhiteSpace(manuelDeger))
+                            {
+                                // Eğer manuel değer boşsa ve hedef NULL kabul etmiyorsa hata ver (Bu durum zaten GridKontrolEt'te engellenmeli)
+                                if (!hedefBilgi.IsNullable)
+                                {
+                                    LogEkle($"Satır Atlandı: '{hedefKolon}' kolonu (Manuel Giriş) NULL olamaz ve değer boş.");
+                                    satirUyumlu = false;
+                                    break;
+                                }
+                                hedefDegerEkle[hedefKolon] = DBNull.Value;
+                            }
+                            else
+                            {
+                                // Eğer manuel değer varsa, bunu hedef tabloya ekle. 
+                                // Tür dönüşümünü hedef tipine göre yapmalısınız. (Örnek: string'i bool'a çevirme)
+
+                                // Basitçe string olarak ekliyoruz. Hedef repository'nin INSERT'i türü dönüştürmesine güveniyoruz.
+                                hedefDegerEkle[hedefKolon] = manuelDeger;
+                            }
+                            continue; // Manuel giriş işlendi, diğer kontrollere gerek yok.
+                        }
+
+
                         var KaynakBilgi = KaynakKolonlar[kaynakKolon];
                         var HedefBilgi = HedefKolonlar[hedefKolon];
 
                         object val = row[kaynakKolon];
 
-                        
-                        if ((val == null || val == DBNull.Value)) 
+
+                        if ((val == null || val == DBNull.Value))
                         {
                             if (!HedefBilgi.IsNullable)
                             {
@@ -872,7 +982,7 @@ namespace DataTransfer
                             continue;
                         }
 
-                        
+
                         if (MetinselTip(KaynakBilgi.DataType) && MetinselTip(HedefBilgi.DataType))
                         {
                             string sVal = val.ToString();
@@ -883,7 +993,7 @@ namespace DataTransfer
                             }
                             hedefDegerEkle[hedefKolon] = sVal; //kırpılmıs str degeri ekle
                         }
-                        
+
                         else if (SayiKontrolu(KaynakBilgi.DataType) && SayiKontrolu(HedefBilgi.DataType))
                         {
                             if (OndalikliTip(KaynakBilgi.DataType) && TamSayiliTip(HedefBilgi.DataType))
@@ -895,12 +1005,12 @@ namespace DataTransfer
                             {
                                 hedefDegerEkle[hedefKolon] = val;//oldugu gibi ekle
                             }
-                        }                        
+                        }
                         else
                         {
                             hedefDegerEkle[hedefKolon] = val;
                         }
-                    } 
+                    }
                     if (!satirUyumlu)
                     {
                         atlanan++;
@@ -909,7 +1019,7 @@ namespace DataTransfer
                         continue;
                     }
 
-                    
+
                     if (unıqueKontrolu)
                     {
                         var kosulKontrolu = new List<string>();
@@ -928,7 +1038,7 @@ namespace DataTransfer
                                     string parametreAdi = $"@{hedefKolon}_Check";
                                     object sonKontrolDeger = checkValue;
 
-                                    
+
                                     if (checkValue is string s)
                                     {
                                         sonKontrolDeger = s.Trim();
@@ -1004,7 +1114,7 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                
+
                 try
                 {
                     transaction.Rollback();
@@ -1016,7 +1126,7 @@ namespace DataTransfer
                 }
 
                 MessageBox.Show($"Aktarım Commit edilirken KRİTİK HATA oluştu ve işlem geri alındı/başarısız oldu.\n{ex.Message}", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+
                 aktarılan = 0;
                 atlanan = toplam;
             }
@@ -1074,27 +1184,62 @@ namespace DataTransfer
             if (e.RowIndex < 0) return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
+            string durum = row.Cells["Uygunluk"].Value?.ToString();
+            string kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
+            string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+
+            // Satır zaten onaylı (Mavi veya Yeşil) ise, tekrar onay istenmez
+            if (row.Tag?.ToString() == "ONAYLANDI")
+            {
+                return;
+            }
+
+            // 1. IsUnique CheckBox'ına Çift Tıklama İşlemi
             if (e.ColumnIndex == GrdEslestirme.Columns["IsUnique"].Index)
             {
                 var cell = row.Cells["IsUnique"] as DataGridViewCheckBoxCell;
-
                 if (cell != null)
                 {
-                    
                     bool currentValue = (bool)(cell.Value ?? false);
                     cell.Value = !currentValue;
                     GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
                     GridKontrolEt(row);
                 }
-                return; 
+                return;
             }
 
-            string durum = row.Cells["Uygunluk"].Value?.ToString();
-
-            
+            // Bu durumda, sadece onaylanması gereken durumlarla ilgileniyoruz.
             if (string.IsNullOrEmpty(durum) || durum == "Uygun") return;
 
-            
+
+            // 2. MANUEL GİRİŞ ONAYI KONTROLÜ (YENİ EKLENEN/KRİTİK KISIM)
+            if (kaynakKolon == "(MANUEL GİRİŞ)" && durum?.Contains("ONAYI BEKLENİYOR") == true)
+            {
+                string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(manuelDeger))
+                {
+                    MessageBox.Show($"'{hedefKolon}' kolonu için **Manuel Değer** girilmeden onaylayamazsınız.",
+                                    "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
+
+                DialogResult result = MessageBox.Show(
+                    $"'{hedefKolon}' hedef kolonu için sabit değer olarak **'{manuelDeger}'** atanmıştır.\n\n" +
+                    "Bu eşleşmeyi transfer için onaylıyor musunuz?",
+                    "Manuel Giriş Onayı",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    row.Tag = "ONAYLANDI";
+                    GridKontrolEt(row); // Onay sonrası durumu güncelle (Mavi/Uygun yap)
+                }
+                return;
+            }
+
+            // 3. KRİTİK HATA KONTROLÜ
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1102,7 +1247,8 @@ namespace DataTransfer
                 return;
             }
 
-            
+
+            // 4. NORMAL ONAY GEREKEN UYARILAR
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
@@ -1116,9 +1262,8 @@ namespace DataTransfer
 
                 if (result == DialogResult.Yes)
                 {
-                    
                     row.Tag = "ONAYLANDI";
-                    GridKontrolEt(row); 
+                    GridKontrolEt(row);
                 }
             }
         }
@@ -1189,22 +1334,127 @@ namespace DataTransfer
         #region HedefIsNullable
         private void HedefKolonDetaylariniGrideDoldur()
         {
-           
+
             var detayListesi = HedefKolonlar
-                .OrderBy(kvp => kvp.Key) 
+                .OrderBy(kvp => kvp.Key)
                 .Select(kvp => new
                 {
-                    KolonAdi = kvp.Key, 
-                    NullOzelik = kvp.Value.IsNullable ? "YES" : "NO" 
+                    KolonAdi = kvp.Key,
+                    NullOzelik = kvp.Value.IsNullable ? "YES" : "NO"
                 })
                 .ToList();
 
-            
+
             GrdHedefNullable.DataSource = null;
             GrdHedefNullable.DataSource = detayListesi;
 
             GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
         }
         #endregion
+
+        // Bu metot, GrdHedefNullable grid'inde çalışır ve GrdEslestirme'ye satır ekler.
+        private void GrdHedefNullable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // GrdHedefNullable grid'indeki hedef kolona çift tıklama işlemi
+            if (e.RowIndex < 0 || GrdHedefNullable.Columns.Count == 0) return;
+
+            var hedefKolonRow = GrdHedefNullable.Rows[e.RowIndex];
+
+            // (Aşağıdaki "HedefKolonAdi" sizin gridinizdeki hedef kolonun adıyla uyuşmalıdır.)
+            string hedefKolonAdi = hedefKolonRow.Cells["KolonAdi"].Value?.ToString();
+
+            if (string.IsNullOrWhiteSpace(hedefKolonAdi)) return;
+
+            // Aynı Hedef Kolon zaten kullanılıyor mu?
+            if (GrdEslestirme.Rows.Cast<DataGridViewRow>()
+                .Any(r => r.Cells["HedefKolon"].Value?.ToString() == hedefKolonAdi))
+            {
+                MessageBox.Show($"'{hedefKolonAdi}' hedef kolonu zaten eşleştirilmiş.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 1. GrdEslestirme'ye yeni bir satır ekle
+            int newRowIndex = GrdEslestirme.Rows.Add();
+            var newRow = GrdEslestirme.Rows[newRowIndex];
+
+            // 2. Manuel Giriş için kritik değerleri doldur
+            newRow.Cells["KaynakKolon"].Value = "(MANUEL GİRİŞ)"; // Kritik işaretleme
+            newRow.Cells["KaynakTip"].Value = "N/A";
+            newRow.Cells["KaynakUzunluk"].Value = "";
+            newRow.Cells["KaynakNullable"].Value = "YES";
+
+            // Hedef Kolonu ve Detaylarını Doldur
+            newRow.Cells["HedefKolon"].Value = hedefKolonAdi;
+
+            // Hedef kolon bilgilerini HedefKolonlar Dictionary'sinden alır.
+            if (HedefKolonlar.TryGetValue(hedefKolonAdi, out var hedefBilgi))
+            {
+                newRow.Cells["HedefTip"].Value = hedefBilgi.DataType;
+                newRow.Cells["HedefUzunluk"].Value = hedefBilgi.Length?.ToString() ?? "";
+                newRow.Cells["HedefNullable"].Value = hedefBilgi.IsNullable ? "YES" : "NO";
+                newRow.Cells["IsUnique"].Value = hedefBilgi.IsUnique;
+            }
+
+            // 3. Manuel Değer Kolonunu vurgula ve kontrolü tetikle
+            newRow.Cells["ManuelDeger"].Style.BackColor = Color.LightYellow;
+
+            GridKontrolEt(newRow); // Durumu "MANUEL DEĞER GİRİLMELİ" olarak ayarlar
+
+            // Kullanıcıyı direkt girişe yönlendir
+            GrdEslestirme.CurrentCell = newRow.Cells["ManuelDeger"];
+            GrdEslestirme.BeginEdit(true);
+        }
+
+        private void GrdEslestirme_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            // Hatanın ArgumentException ve ComboBox ile ilgili olup olmadığını kontrol edin.
+            if (e.Exception is ArgumentException && e.Exception.Message.Contains("DataGridViewComboBoxCell"))
+            {
+                // 1. Programın çökmesini engelle.
+                e.ThrowException = false;
+
+                // 2. Hata kutusunun (sizin görselde gördüğünüz) gösterilmesini engelle.
+                e.Cancel = true;
+
+                // Manuel Giriş senaryosunda bu durum beklenir, bu yüzden ek bir loglama yapmaya gerek yoktur.
+            }
+        }
+
+        private void GrdHedefNullable_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)//datagrid sutun başlığı
+        {
+
+        }
+
+        private void GrdHedefNullable_ColumnHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (GrdHedefNullable.Columns[e.ColumnIndex].Name == "NullOzelik")
+            {
+                // 1. Veri Kaynağını al (HedefKolonlar Dictionary'sinden)
+                var detayListesi = HedefKolonlar.Select(kvp => new
+                {
+                    KolonAdi = kvp.Key,
+                    NullOzelik = kvp.Value.IsNullable ? "YES" : "NO"
+                });
+
+                // 2. Sıralama yönüne göre LINQ ile sırala
+                if (_isNullableSortAscending)
+                {
+                    // YES'leri önce, NO'ları sonra sırala
+                    detayListesi = detayListesi.OrderBy(d => d.NullOzelik);
+                }
+                else
+                {
+                    // NO'ları önce, YES'leri sonra sırala
+                    detayListesi = detayListesi.OrderByDescending(d => d.NullOzelik);
+                }
+
+                // 3. Sıralama yönünü tersine çevir
+                _isNullableSortAscending = !_isNullableSortAscending;
+
+                // 4. Grid'i güncelle
+                GrdHedefNullable.DataSource = detayListesi.ToList();
+                GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+            }
+        }
     }
 }

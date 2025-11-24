@@ -207,7 +207,7 @@
             // 
             lblTransferSayisi.AutoSize = true;
             lblTransferSayisi.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            lblTransferSayisi.Location = new Point(1073, 916);
+            lblTransferSayisi.Location = new Point(1124, 927);
             lblTransferSayisi.Name = "lblTransferSayisi";
             lblTransferSayisi.Size = new Size(133, 25);
             lblTransferSayisi.TabIndex = 12;
@@ -266,6 +266,9 @@
             GrdHedefNullable.Name = "GrdHedefNullable";
             GrdHedefNullable.Size = new Size(252, 342);
             GrdHedefNullable.TabIndex = 20;
+            GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
+            GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
+            GrdHedefNullable.ColumnHeaderMouseDoubleClick += GrdHedefNullable_ColumnHeaderMouseDoubleClick;
             // 
             // label1
             // 
