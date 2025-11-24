@@ -268,7 +268,7 @@
             GrdHedefNullable.TabIndex = 20;
             GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
             GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
-            GrdHedefNullable.ColumnHeaderMouseDoubleClick += GrdHedefNullable_ColumnHeaderMouseDoubleClick;
+            //GrdHedefNullable.ColumnHeaderMouseDoubleClick += GrdHedefNullable_ColumnHeaderMouseDoubleClick;
             // 
             // label1
             // 
