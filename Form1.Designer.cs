@@ -76,7 +76,7 @@
             // BtnOtomatikEsle
             // 
             BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnOtomatikEsle.Location = new Point(1140, 370);
+            BtnOtomatikEsle.Location = new Point(1377, 400);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(156, 65);
             BtnOtomatikEsle.TabIndex = 3;
@@ -87,7 +87,7 @@
             // BtnStrSil
             // 
             BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnStrSil.Location = new Point(1140, 472);
+            BtnStrSil.Location = new Point(1377, 502);
             BtnStrSil.Name = "BtnStrSil";
             BtnStrSil.Size = new Size(153, 66);
             BtnStrSil.TabIndex = 2;
@@ -100,7 +100,7 @@
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Location = new Point(0, 370);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(1118, 283);
+            GrdEslestirme.Size = new Size(1280, 283);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
@@ -111,7 +111,7 @@
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnTransferBaslat.Location = new Point(1140, 580);
+            BtnTransferBaslat.Location = new Point(1377, 610);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(156, 73);
             BtnTransferBaslat.TabIndex = 7;
