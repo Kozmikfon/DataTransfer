@@ -18,7 +18,7 @@ namespace DataTransfer
         private SqlTransferRepository KaynakRepo;
         private SqlTransferRepository HedefRepo;
         private EslestirmeService _eslestirmeService;
-        //private EslestirmeBilgisi _secilenEslestirme;
+        private EslestirmeBilgisi _secilenEslestirme;
 
         private bool _isNullableSortAscending = true;
 
@@ -42,7 +42,7 @@ namespace DataTransfer
             _oncekiForm = oncekiForm;
 
             _eslestirmeService = new EslestirmeService();
-            //_secilenEslestirme = new EslestirmeBilgisi();
+            _secilenEslestirme = new EslestirmeBilgisi();
 
             GridBaslat();
 
@@ -454,12 +454,12 @@ namespace DataTransfer
                 // 4. Eşleşme Sonucunu Belirleme (Manuel vs. Normal)
                 if (isManuelGiris)
                 {
-                   
+
                     string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
 
                     if (string.IsNullOrWhiteSpace(manuelDeger))
                     {
-                        
+
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = true;
                         sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
@@ -467,7 +467,7 @@ namespace DataTransfer
                     }
                     else if (row.Tag?.ToString() != "ONAYLANDI")
                     {
-                        
+
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = true;
                         sonuc.Mesajlar.Add("MANUEL GİRİŞ ONAYI BEKLENİYOR");
@@ -475,24 +475,24 @@ namespace DataTransfer
                     }
                     else
                     {
-                      
+
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = false;
                     }
                 }
                 else
                 {
-                   
+
                     sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
                 }
 
-                
+
                 if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
                 {
                     row.Tag = "ONAYLANDI";
                 }
 
-                
+
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
                 {
                     row.Cells["Uygunluk"].Value = "Uygun";
@@ -500,28 +500,28 @@ namespace DataTransfer
                     return;
                 }
 
-                
+
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
                     lstLog.Items.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
                 }
 
-                
+
                 if (sonuc.KritikHataVar)
                 {
                     row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     row.Tag = null;
                 }
-               
+
                 else if (sonuc.UyariGerekli)
                 {
-                    
+
                     if (isManuelGiris)
                     {
                         row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     }
-                    else 
+                    else
                     {
                         row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
                     }
@@ -529,7 +529,7 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
                     row.Tag = null;
                 }
-                
+
                 else
                 {
                     row.Cells["Uygunluk"].Value = "Uygun";
@@ -547,7 +547,7 @@ namespace DataTransfer
 
 
 
-        private List<EslestirmeBilgisi> EslestirmeListesi() 
+        private List<EslestirmeBilgisi> EslestirmeListesi()
         {
             var liste = new List<EslestirmeBilgisi>();
 
@@ -566,12 +566,12 @@ namespace DataTransfer
                 string kaynak = row.Cells["KaynakKolon"].Value?.ToString();
                 string hedef = row.Cells["HedefKolon"].Value?.ToString();
 
-               
+
                 string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
 
                 if (!string.IsNullOrWhiteSpace(kaynak) && !string.IsNullOrWhiteSpace(hedef))
                 {
-                    
+
                     liste.Add(new EslestirmeBilgisi
                     {
                         KaynakKolon = kaynak,
@@ -941,7 +941,7 @@ namespace DataTransfer
 
                             if (string.IsNullOrWhiteSpace(manuelDeger))
                             {
-                               
+
                                 if (!hedefBilgi.IsNullable)
                                 {
                                     LogEkle($"Satır Atlandı: '{hedefKolon}' kolonu (Manuel Giriş) NULL olamaz ve değer boş.");
@@ -952,7 +952,7 @@ namespace DataTransfer
                             }
                             else
                             {
-                                
+
                                 hedefDegerEkle[hedefKolon] = manuelDeger;
                             }
                             continue;
@@ -1293,22 +1293,33 @@ namespace DataTransfer
         {
             try
             {
-                foreach (DataGridViewRow row in GrdEslestirme.Rows)
-                {
-                    if (row.Cells["HedefKolon"] is DataGridViewComboBoxCell combo)
-                    {
-                        combo.Items.Clear();
-                        combo.Value = null;
-                    }
-                }
+                // ... (Mevcut ComboBox temizleme döngüsü) ...
 
                 if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
                 {
                     lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
                     lblHedef.Text = hedefTablo;
+
+                    // Hedef Kolonlar yükleniyor ve HedefKolonlar Dictionary'si DOLUYOR
                     HedefKolonlar = await HedefRepo.KolonBilgileriniGetirAsync(hedefTablo);
+
+                    // GrdHedefNullable dolduruluyor
                     HedefKolonDetaylariniGrideDoldur();
 
+
+                    // *******************************************************************
+                    // !!! KRİTİK EKLEME: Hedef Kolon ComboBox'ını Hazırlama !!!
+                    // *******************************************************************
+                    if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
+                    {
+                        // Mevcut öğeleri temizle
+                        comboCol.Items.Clear();
+
+                        // Hedef kolon adlarını ComboBox'ın Items listesine ekle
+                        // Bu, manuel atama yapılırken değerlerin gösterilebilmesi için şarttır.
+                        comboCol.Items.AddRange(HedefKolonlar.Keys.ToArray());
+                    }
+                    // *******************************************************************
 
                     HedefGuncelle(HedefKolonlar.Keys.ToList());
                     lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
@@ -1350,15 +1361,17 @@ namespace DataTransfer
         // Bu metot, GrdHedefNullable grid'inde çalışır ve GrdEslestirme'ye satır ekler.
         private void GrdHedefNullable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            // GrdHedefNullable grid'indeki hedef kolona çift tıklama işlemi
-            if (e.RowIndex < 0 || GrdHedefNullable.Columns.Count == 0) return;
+
+            if (e.RowIndex < 0 || GrdHedefNullable.Columns.Count == 0)
+                return;
 
             var hedefKolonRow = GrdHedefNullable.Rows[e.RowIndex];
 
-            // (Aşağıdaki "HedefKolonAdi" sizin gridinizdeki hedef kolonun adıyla uyuşmalıdır.)
+
             string hedefKolonAdi = hedefKolonRow.Cells["KolonAdi"].Value?.ToString();
 
-            if (string.IsNullOrWhiteSpace(hedefKolonAdi)) return;
+            if (string.IsNullOrWhiteSpace(hedefKolonAdi))
+                return;
 
             // Aynı Hedef Kolon zaten kullanılıyor mu?
             if (GrdEslestirme.Rows.Cast<DataGridViewRow>()
@@ -1378,8 +1391,11 @@ namespace DataTransfer
             newRow.Cells["KaynakUzunluk"].Value = "";
             newRow.Cells["KaynakNullable"].Value = "YES";
 
+
             // Hedef Kolonu ve Detaylarını Doldur
             newRow.Cells["HedefKolon"].Value = hedefKolonAdi;
+
+            GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
 
             // Hedef kolon bilgilerini HedefKolonlar Dictionary'sinden alır.
             if (HedefKolonlar.TryGetValue(hedefKolonAdi, out var hedefBilgi))
@@ -1419,14 +1435,14 @@ namespace DataTransfer
         {
             if (GrdHedefNullable.Columns[e.ColumnIndex].Name == "NullOzelik")
             {
-               
+
                 var detayListesi = HedefKolonlar.Select(kvp => new
                 {
                     KolonAdi = kvp.Key,
                     NullOzelik = kvp.Value.IsNullable ? "YES" : "NO"
                 });
 
-                
+
                 if (_isNullableSortAscending)
                 {
                     detayListesi = detayListesi.OrderBy(d => d.NullOzelik);
@@ -1443,6 +1459,9 @@ namespace DataTransfer
             }
         }
 
-        
+        private void GrdHedefNullable_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
     }
 }

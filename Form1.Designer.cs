@@ -266,9 +266,9 @@
             GrdHedefNullable.Name = "GrdHedefNullable";
             GrdHedefNullable.Size = new Size(252, 342);
             GrdHedefNullable.TabIndex = 20;
+            GrdHedefNullable.CellContentClick += GrdHedefNullable_CellContentClick;
             GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
             GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
-            //GrdHedefNullable.ColumnHeaderMouseDoubleClick += GrdHedefNullable_ColumnHeaderMouseDoubleClick;
             // 
             // label1
             // 
