@@ -104,6 +104,7 @@
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
+            GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 

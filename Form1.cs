@@ -423,11 +423,10 @@ namespace DataTransfer
 
                 bool isManuelGiris = kaynakKolon == "(MANUEL GİRİŞ)";
 
-                // Hata Düzeltme: KaynakBilgi ve HedefBilgi'yi null olarak başlatma
+
                 KolonBilgisi KaynakBilgi = null;
                 KolonBilgisi HedefBilgi = null;
 
-                // 2. Temel Boşluk Kontrolleri
                 if (string.IsNullOrWhiteSpace(hedefKolon) || (!isManuelGiris && string.IsNullOrWhiteSpace(kaynakKolon)))
                 {
                     row.Cells["Uygunluk"].Value = "";
@@ -436,9 +435,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // 3. Kolon Bilgisi Eksik Kontrolü (Sadece normal eşleşmeler için)
-                // TryGetValue metodu şimdi, değişkenleri null olarak tanımladığımız için 
-                // doğrudan kullanılabiliyor ve KaynakBilgi/HedefBilgi'ye değer atıyor.
+
                 if (!isManuelGiris &&
                     (!KaynakKolonlar.TryGetValue(kaynakKolon, out KaynakBilgi) ||
                      !HedefKolonlar.TryGetValue(hedefKolon, out HedefBilgi)))
@@ -933,6 +930,7 @@ namespace DataTransfer
                     {
                         var kaynakKolon = eslestirme.KaynakKolon;
                         var hedefKolon = eslestirme.HedefKolon;
+
                         if (kaynakKolon == "(MANUEL GİRİŞ)")
                         {
                             // Hedef kolon bilgisi gerekli
@@ -1289,51 +1287,7 @@ namespace DataTransfer
         #endregion
 
         #region HedefSutunEkle
-        private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // ... (Mevcut ComboBox temizleme döngüsü) ...
 
-                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
-                {
-                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
-                    lblHedef.Text = hedefTablo;
-
-                    // Hedef Kolonlar yükleniyor ve HedefKolonlar Dictionary'si DOLUYOR
-                    HedefKolonlar = await HedefRepo.KolonBilgileriniGetirAsync(hedefTablo);
-
-                    // GrdHedefNullable dolduruluyor
-                    HedefKolonDetaylariniGrideDoldur();
-
-
-                    // *******************************************************************
-                    // !!! KRİTİK EKLEME: Hedef Kolon ComboBox'ını Hazırlama !!!
-                    // *******************************************************************
-                    if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
-                    {
-                        // Mevcut öğeleri temizle
-                        comboCol.Items.Clear();
-
-                        // Hedef kolon adlarını ComboBox'ın Items listesine ekle
-                        // Bu, manuel atama yapılırken değerlerin gösterilebilmesi için şarttır.
-                        comboCol.Items.AddRange(HedefKolonlar.Keys.ToArray());
-                    }
-                    // *******************************************************************
-
-                    HedefGuncelle(HedefKolonlar.Keys.ToList());
-                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
-                }
-                else
-                {
-                    lstLog.Items.Add("Hedef tablo seçilmedi.");
-                }
-            }
-            catch (Exception ex)
-            {
-                lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
-            }
-        }
 
         #endregion
 
@@ -1358,7 +1312,7 @@ namespace DataTransfer
         }
         #endregion
 
-        // Bu metot, GrdHedefNullable grid'inde çalışır ve GrdEslestirme'ye satır ekler.
+
         private void GrdHedefNullable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -1373,7 +1327,7 @@ namespace DataTransfer
             if (string.IsNullOrWhiteSpace(hedefKolonAdi))
                 return;
 
-            // Aynı Hedef Kolon zaten kullanılıyor mu?
+
             if (GrdEslestirme.Rows.Cast<DataGridViewRow>()
                 .Any(r => r.Cells["HedefKolon"].Value?.ToString() == hedefKolonAdi))
             {
@@ -1381,23 +1335,21 @@ namespace DataTransfer
                 return;
             }
 
-            // 1. GrdEslestirme'ye yeni bir satır ekle
+
             int newRowIndex = GrdEslestirme.Rows.Add();
             var newRow = GrdEslestirme.Rows[newRowIndex];
 
-            // 2. Manuel Giriş için kritik değerleri doldur
-            newRow.Cells["KaynakKolon"].Value = "(MANUEL GİRİŞ)"; // Kritik işaretleme
-            newRow.Cells["KaynakTip"].Value = "N/A";
+            newRow.Cells["KaynakKolon"].Value = "Manuel Giris";
+            newRow.Cells["KaynakTip"].Value = "manueltip";
             newRow.Cells["KaynakUzunluk"].Value = "";
             newRow.Cells["KaynakNullable"].Value = "YES";
 
 
-            // Hedef Kolonu ve Detaylarını Doldur
+
             newRow.Cells["HedefKolon"].Value = hedefKolonAdi;
 
             GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
 
-            // Hedef kolon bilgilerini HedefKolonlar Dictionary'sinden alır.
             if (HedefKolonlar.TryGetValue(hedefKolonAdi, out var hedefBilgi))
             {
                 newRow.Cells["HedefTip"].Value = hedefBilgi.DataType;
@@ -1406,12 +1358,11 @@ namespace DataTransfer
                 newRow.Cells["IsUnique"].Value = hedefBilgi.IsUnique;
             }
 
-            // 3. Manuel Değer Kolonunu vurgula ve kontrolü tetikle
             newRow.Cells["ManuelDeger"].Style.BackColor = Color.LightYellow;
 
-            GridKontrolEt(newRow); // Durumu "MANUEL DEĞER GİRİLMELİ" olarak ayarlar
+            GridKontrolEt(newRow);
 
-            // Kullanıcıyı direkt girişe yönlendir
+
             GrdEslestirme.CurrentCell = newRow.Cells["ManuelDeger"];
             GrdEslestirme.BeginEdit(true);
         }
@@ -1421,13 +1372,10 @@ namespace DataTransfer
             // Hatanın ArgumentException ve ComboBox ile ilgili olup olmadığını kontrol edin.
             if (e.Exception is ArgumentException && e.Exception.Message.Contains("DataGridViewComboBoxCell"))
             {
-                // 1. Programın çökmesini engelle.
-                e.ThrowException = false;
 
-                // 2. Hata kutusunun (sizin görselde gördüğünüz) gösterilmesini engelle.
+                e.ThrowException = false;
                 e.Cancel = true;
 
-                // Manuel Giriş senaryosunda bu durum beklenir, bu yüzden ek bir loglama yapmaya gerek yoktur.
             }
         }
 
@@ -1460,6 +1408,73 @@ namespace DataTransfer
         }
 
         private void GrdHedefNullable_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+
+
+                if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
+                {
+                    lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
+                    lblHedef.Text = hedefTablo;
+
+
+                    HedefKolonlar = await HedefRepo.KolonBilgileriniGetirAsync(hedefTablo);
+
+                    HedefKolonDetaylariniGrideDoldur();
+
+
+                    if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
+                    {
+
+                        comboCol.Items.Clear();
+                        comboCol.Items.AddRange(HedefKolonlar.Keys.ToArray());
+                    }
+
+
+                    HedefGuncelle(HedefKolonlar.Keys.ToList());
+                    lstLog.Items.Add($"Hedef kolonlar yüklendi ({HedefKolonlar.Count} adet).");
+                }
+                else
+                {
+                    lstLog.Items.Add("Hedef tablo seçilmedi.");
+                }
+            }
+            catch (Exception ex)
+            {
+                lstLog.Items.Add($"Hedef kolon yükleme hatası: {ex.Message}");
+            }
+        }
+
+        //private string GetManuelDegerTip(string deger)
+        //{
+        //    if (string.IsNullOrWhiteSpace(deger))
+        //    {
+        //        return "System.String";
+        //    }
+        //    if (bool.TryParse(deger, out _))
+        //        return "System.Boolean";
+
+        //    if (int.TryParse(deger, out _))
+        //        return "System.Int32";
+
+
+        //    if (decimal.TryParse(deger, out _))
+        //        return "System.Decimal";
+
+        //    if (DateTime.TryParse(deger, out _))
+        //        return "System.DateTime";
+
+        //    return "System.String";
+
+        //}
+
+        private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
 
         }
