@@ -104,7 +104,7 @@
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
-            GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
+//            GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 
@@ -267,7 +267,7 @@
             GrdHedefNullable.Name = "GrdHedefNullable";
             GrdHedefNullable.Size = new Size(252, 342);
             GrdHedefNullable.TabIndex = 20;
-            GrdHedefNullable.CellContentClick += GrdHedefNullable_CellContentClick;
+           // GrdHedefNullable.CellContentClick += GrdHedefNullable_CellContentClick;
             GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
             GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
             // 

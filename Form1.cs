@@ -20,7 +20,7 @@ namespace DataTransfer
         private EslestirmeService _eslestirmeService;
         private EslestirmeBilgisi _secilenEslestirme;
 
-        private bool _isNullableSortAscending = true;
+        private bool _siralamaYonDurumu = true;
 
         private FrmBaglantiAc _oncekiForm;
 
@@ -951,7 +951,7 @@ namespace DataTransfer
             }
         }
 
-        // TİP KONOTROLÜ
+       
         private bool SayiKontrolu(string dataType)
         {
             string[] numericTypes = { "int", "bigint", "smallint", "tinyint", "decimal", "numeric", "float", "real" };
@@ -1294,13 +1294,12 @@ namespace DataTransfer
             string kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
             string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
-            // Satır zaten onaylı (Mavi veya Yeşil) ise, tekrar onay istenmez
+            
             if (row.Tag?.ToString() == "ONAYLANDI")
             {
                 return;
             }
-
-            // 1. IsUnique CheckBox'ına Çift Tıklama İşlemi
+            
             if (e.ColumnIndex == GrdEslestirme.Columns["IsUnique"].Index)
             {
                 var cell = row.Cells["IsUnique"] as DataGridViewCheckBoxCell;
@@ -1314,11 +1313,12 @@ namespace DataTransfer
                 return;
             }
 
-            // Bu durumda, sadece onaylanması gereken durumlarla ilgileniyoruz.
-            if (string.IsNullOrEmpty(durum) || durum == "Uygun") return;
+            
+            if (string.IsNullOrEmpty(durum) || durum == "Uygun")
+                return;
 
 
-            // 2. MANUEL GİRİŞ ONAYI KONTROLÜ (YENİ EKLENEN/KRİTİK KISIM)
+            
             if (kaynakKolon == "(MANUEL GİRİŞ)" && durum?.Contains("ONAYI BEKLENİYOR") == true)
             {
                 string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
@@ -1340,12 +1340,12 @@ namespace DataTransfer
                 if (result == DialogResult.Yes)
                 {
                     row.Tag = "ONAYLANDI";
-                    GridKontrolEt(row); // Onay sonrası durumu güncelle (Mavi/Uygun yap)
+                    GridKontrolEt(row); 
                 }
                 return;
             }
 
-            // 3. KRİTİK HATA KONTROLÜ
+          
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1354,7 +1354,7 @@ namespace DataTransfer
             }
 
 
-            // 4. NORMAL ONAY GEREKEN UYARILAR
+           
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
@@ -1372,7 +1372,10 @@ namespace DataTransfer
                     GridKontrolEt(row);
                 }
             }
+            
         }
+
+
         #region KaynakSutunEkle
         private async void BtnKynkSutunYkle_Click(object sender, EventArgs e)
         {
@@ -1399,10 +1402,7 @@ namespace DataTransfer
         }
         #endregion
 
-        #region HedefSutunEkle
-
-
-        #endregion
+        
 
         #region HedefIsNullable
         private void HedefKolonDetaylariniGrideDoldur()
@@ -1426,6 +1426,7 @@ namespace DataTransfer
         #endregion
 
 
+        #region GrdHedefNullable_CellDoubleClick
         private void GrdHedefNullable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -1479,7 +1480,11 @@ namespace DataTransfer
             GrdEslestirme.CurrentCell = newRow.Cells["ManuelDeger"];
             GrdEslestirme.BeginEdit(true);
         }
+        #endregion
 
+
+
+        #region GrdEslestirme_DataError
         private void GrdEslestirme_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             // Hatanın ArgumentException ve ComboBox ile ilgili olup olmadığını kontrol edin.
@@ -1491,6 +1496,9 @@ namespace DataTransfer
 
             }
         }
+        #endregion
+
+
 
         private void GrdHedefNullable_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)//datagrid sutun başlığı
         {
@@ -1504,7 +1512,7 @@ namespace DataTransfer
                 });
 
 
-                if (_isNullableSortAscending)
+                if (_siralamaYonDurumu)
                 {
                     detayListesi = detayListesi.OrderBy(d => d.NullOzelik);
                 }
@@ -1513,17 +1521,13 @@ namespace DataTransfer
                     detayListesi = detayListesi.OrderByDescending(d => d.NullOzelik);
                 }
 
-                _isNullableSortAscending = !_isNullableSortAscending;
+                _siralamaYonDurumu = !_siralamaYonDurumu;
 
                 GrdHedefNullable.DataSource = detayListesi.ToList();
                 GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
             }
         }
-
-        private void GrdHedefNullable_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+       
 
         private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
         {
@@ -1566,9 +1570,6 @@ namespace DataTransfer
 
      
 
-        private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+        
     }
 }
