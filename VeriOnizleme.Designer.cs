@@ -46,6 +46,7 @@
             // 
             // BtnOnayla
             // 
+            BtnOnayla.Font = new Font("Segoe UI", 9.75F);
             BtnOnayla.Location = new Point(122, 660);
             BtnOnayla.Name = "BtnOnayla";
             BtnOnayla.Size = new Size(88, 39);
@@ -56,6 +57,7 @@
             // 
             // BtnIptal
             // 
+            BtnIptal.Font = new Font("Segoe UI", 9.75F);
             BtnIptal.Location = new Point(226, 660);
             BtnIptal.Name = "BtnIptal";
             BtnIptal.Size = new Size(88, 39);
@@ -67,9 +69,10 @@
             // LblBilgi
             // 
             LblBilgi.AutoSize = true;
-            LblBilgi.Location = new Point(1042, 624);
+            LblBilgi.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            LblBilgi.Location = new Point(997, 628);
             LblBilgi.Name = "LblBilgi";
-            LblBilgi.Size = new Size(38, 15);
+            LblBilgi.Size = new Size(52, 21);
             LblBilgi.TabIndex = 3;
             LblBilgi.Text = "label1";
             // 
