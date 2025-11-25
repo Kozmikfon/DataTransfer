@@ -414,131 +414,244 @@ namespace DataTransfer
 
         private void GridKontrolEt(DataGridViewRow row)
         {
-            try
+           try
             {
-                // 1. Başlangıç Değerlerini Al
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
+
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
+
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
                 bool isManuelGiris = kaynakKolon == "(MANUEL GİRİŞ)";
 
 
                 KolonBilgisi KaynakBilgi = null;
+
                 KolonBilgisi HedefBilgi = null;
 
+
+
                 if (string.IsNullOrWhiteSpace(hedefKolon) || (!isManuelGiris && string.IsNullOrWhiteSpace(kaynakKolon)))
+
                 {
+
                     row.Cells["Uygunluk"].Value = "";
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+
                     row.Tag = null;
+
                     return;
+
                 }
 
 
                 if (!isManuelGiris &&
+
                     (!KaynakKolonlar.TryGetValue(kaynakKolon, out KaynakBilgi) ||
+
                      !HedefKolonlar.TryGetValue(hedefKolon, out HedefBilgi)))
+
                 {
+
                     row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+
                     row.Tag = null;
+
                     return;
+
                 }
+
+
 
                 EslestirmeSonucu sonuc = new EslestirmeSonucu();
 
+
+
                 // 4. Eşleşme Sonucunu Belirleme (Manuel vs. Normal)
+
                 if (isManuelGiris)
+
                 {
+
+
 
                     string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
 
+
+
                     if (string.IsNullOrWhiteSpace(manuelDeger))
+
                     {
 
+
+
                         sonuc.KritikHataVar = false;
+
                         sonuc.UyariGerekli = true;
+
                         sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
+
                         row.Tag = null;
+
                     }
+
                     else if (row.Tag?.ToString() != "ONAYLANDI")
+
                     {
 
+
+
                         sonuc.KritikHataVar = false;
+
                         sonuc.UyariGerekli = true;
+
                         sonuc.Mesajlar.Add("MANUEL GİRİŞ ONAYI BEKLENİYOR");
+
                         row.Tag = null;
+
                     }
+
                     else
+
                     {
 
+
+
                         sonuc.KritikHataVar = false;
+
                         sonuc.UyariGerekli = false;
+
                     }
+
                 }
+
                 else
+
                 {
 
+
+
                     sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
+
                 }
+
+
+
 
 
                 if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
+
                 {
+
                     row.Tag = "ONAYLANDI";
+
                 }
+
+
+
 
 
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
+
                 {
+
                     row.Cells["Uygunluk"].Value = "Uygun";
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
+
                     return;
+
                 }
+
+
+
 
 
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
+
                 {
+
                     lstLog.Items.Add("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
+
                 }
+
+
+
 
 
                 if (sonuc.KritikHataVar)
+
                 {
+
                     row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
+
                     row.Tag = null;
+
                 }
+
+
 
                 else if (sonuc.UyariGerekli)
+
                 {
+
+
 
                     if (isManuelGiris)
+
                     {
+
                         row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
+
                     }
+
                     else
+
                     {
+
                         row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
+
                     }
+
+
 
                     row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
+
                     row.Tag = null;
+
                 }
 
+
+
                 else
+
                 {
+
                     row.Cells["Uygunluk"].Value = "Uygun";
+
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
+
                     row.Tag = "ONAYLANDI";
+
                 }
+
             }
+
             catch (Exception ex)
+
             {
+
                 row.Cells["Uygunluk"].Value = "Hata";
+
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
+
             }
+
         }
 
 
@@ -1339,7 +1452,7 @@ namespace DataTransfer
             int newRowIndex = GrdEslestirme.Rows.Add();
             var newRow = GrdEslestirme.Rows[newRowIndex];
 
-            newRow.Cells["KaynakKolon"].Value = "Manuel Giris";
+            newRow.Cells["KaynakKolon"].Value = "(MANUEL GİRİŞ)";
             newRow.Cells["KaynakTip"].Value = "manueltip";
             newRow.Cells["KaynakUzunluk"].Value = "";
             newRow.Cells["KaynakNullable"].Value = "YES";
@@ -1451,28 +1564,7 @@ namespace DataTransfer
             }
         }
 
-        //private string GetManuelDegerTip(string deger)
-        //{
-        //    if (string.IsNullOrWhiteSpace(deger))
-        //    {
-        //        return "System.String";
-        //    }
-        //    if (bool.TryParse(deger, out _))
-        //        return "System.Boolean";
-
-        //    if (int.TryParse(deger, out _))
-        //        return "System.Int32";
-
-
-        //    if (decimal.TryParse(deger, out _))
-        //        return "System.Decimal";
-
-        //    if (DateTime.TryParse(deger, out _))
-        //        return "System.DateTime";
-
-        //    return "System.String";
-
-        //}
+     
 
         private void GrdEslestirme_CellValidated(object sender, DataGridViewCellEventArgs e)
         {
