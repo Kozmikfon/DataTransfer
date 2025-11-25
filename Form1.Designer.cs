@@ -76,9 +76,9 @@
             // BtnOtomatikEsle
             // 
             BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnOtomatikEsle.Location = new Point(1377, 400);
+            BtnOtomatikEsle.Location = new Point(1343, 382);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(156, 65);
+            BtnOtomatikEsle.Size = new Size(177, 65);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -87,9 +87,9 @@
             // BtnStrSil
             // 
             BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnStrSil.Location = new Point(1377, 502);
+            BtnStrSil.Location = new Point(1343, 484);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(153, 66);
+            BtnStrSil.Size = new Size(174, 66);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -104,16 +104,15 @@
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
-//            GrdEslestirme.CellValidated += GrdEslestirme_CellValidated;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnTransferBaslat.Location = new Point(1377, 610);
+            BtnTransferBaslat.Location = new Point(1343, 592);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
-            BtnTransferBaslat.Size = new Size(156, 73);
+            BtnTransferBaslat.Size = new Size(177, 73);
             BtnTransferBaslat.TabIndex = 7;
             BtnTransferBaslat.Text = "Transferi Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
@@ -121,7 +120,7 @@
             // 
             // prgTransfer
             // 
-            prgTransfer.Location = new Point(645, 682);
+            prgTransfer.Location = new Point(665, 677);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -151,7 +150,7 @@
             // 
             BtnFiltreTest.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             BtnFiltreTest.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnFiltreTest.Location = new Point(486, 45);
+            BtnFiltreTest.Location = new Point(489, 54);
             BtnFiltreTest.Name = "BtnFiltreTest";
             BtnFiltreTest.Size = new Size(99, 37);
             BtnFiltreTest.TabIndex = 3;
@@ -162,9 +161,9 @@
             // TxtFiltreleme
             // 
             TxtFiltreleme.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            TxtFiltreleme.Location = new Point(16, 58);
+            TxtFiltreleme.Location = new Point(16, 62);
             TxtFiltreleme.Name = "TxtFiltreleme";
-            TxtFiltreleme.Size = new Size(440, 23);
+            TxtFiltreleme.Size = new Size(443, 23);
             TxtFiltreleme.TabIndex = 2;
             // 
             // RdoBtnFiltre
@@ -199,7 +198,7 @@
             GrbBoxFiltreleme.Controls.Add(BtnFiltreTest);
             GrbBoxFiltreleme.Location = new Point(12, 659);
             GrbBoxFiltreleme.Name = "GrbBoxFiltreleme";
-            GrbBoxFiltreleme.Size = new Size(591, 96);
+            GrbBoxFiltreleme.Size = new Size(594, 105);
             GrbBoxFiltreleme.TabIndex = 2;
             GrbBoxFiltreleme.TabStop = false;
             GrbBoxFiltreleme.Text = "Filtreleme";
@@ -208,7 +207,7 @@
             // 
             lblTransferSayisi.AutoSize = true;
             lblTransferSayisi.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            lblTransferSayisi.Location = new Point(1124, 927);
+            lblTransferSayisi.Location = new Point(1124, 913);
             lblTransferSayisi.Name = "lblTransferSayisi";
             lblTransferSayisi.Size = new Size(133, 25);
             lblTransferSayisi.TabIndex = 12;
@@ -267,7 +266,6 @@
             GrdHedefNullable.Name = "GrdHedefNullable";
             GrdHedefNullable.Size = new Size(252, 342);
             GrdHedefNullable.TabIndex = 20;
-           // GrdHedefNullable.CellContentClick += GrdHedefNullable_CellContentClick;
             GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
             GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
             // 
@@ -284,36 +282,40 @@
             // lblkaynak
             // 
             lblkaynak.AutoSize = true;
-            lblkaynak.Location = new Point(96, 340);
+            lblkaynak.Font = new Font("Segoe UI", 11.25F);
+            lblkaynak.Location = new Point(129, 344);
             lblkaynak.Name = "lblkaynak";
-            lblkaynak.Size = new Size(77, 15);
+            lblkaynak.Size = new Size(96, 20);
             lblkaynak.TabIndex = 22;
             lblkaynak.Text = "Kaynak Tablo";
             // 
             // lblHedef
             // 
             lblHedef.AutoSize = true;
-            lblHedef.Location = new Point(919, 339);
+            lblHedef.Font = new Font("Segoe UI", 11.25F);
+            lblHedef.Location = new Point(1155, 344);
             lblHedef.Name = "lblHedef";
-            lblHedef.Size = new Size(71, 15);
+            lblHedef.Size = new Size(90, 20);
             lblHedef.TabIndex = 23;
             lblHedef.Text = "Hedef Tablo";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(836, 339);
+            label2.Font = new Font("Segoe UI", 11.25F);
+            label2.Location = new Point(1052, 344);
             label2.Name = "label2";
-            label2.Size = new Size(77, 15);
+            label2.Size = new Size(97, 20);
             label2.TabIndex = 24;
             label2.Text = "Hedef Tablo :";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(7, 340);
+            label3.Font = new Font("Segoe UI", 11.25F);
+            label3.Location = new Point(10, 344);
             label3.Name = "label3";
-            label3.Size = new Size(83, 15);
+            label3.Size = new Size(103, 20);
             label3.TabIndex = 25;
             label3.Text = "Kaynak Tablo :";
             // 

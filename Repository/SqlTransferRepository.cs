@@ -15,6 +15,7 @@ namespace DataTransfer.Repository
         private readonly BaglantiBilgileri _info;
         
 
+        // SQL Sorguları (Constants)
         private const string SQL_GET_TABLES =
             "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
 
@@ -109,44 +110,50 @@ namespace DataTransfer.Repository
         }
 
 
-      
+        // NOT: Bu metodun çalışması için, çağıran metodun artık List<string> yerine 
+        // List<EslestirmeBilgisi> göndermesi gerekmektedir.
+
         public DataTable VeriGetir(string tablo, List<EslestirmeBilgisi> eslestirmeler, string kosul = "")
         {
             string connStr = _connectionString;
             var kolonlarinListesi = new List<string>();
 
-         
+            // Kolon listesini oluştururken manuel girişi kontrol et
             foreach (var eslestirme in eslestirmeler)
             {
                 if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
                 {
-                
+                    // --- MANUEL GİRİŞ KONTROLÜ ---
+
+                    // Manuel değeri SQL literal'e çevir. Tırnak işaretleri, boşluklar vb. için escape/literal kullanımı önemlidir.
                     string manuelDeger = eslestirme.ManuelDeger;
                     string sqlLiteral;
 
-                 
+                    // Verinin tipi ne olursa olsun, transferde genellikle string olarak atanır ve hedef tipe çevrilir.
+                    // Bu nedenle, string olarak tırnak içine almak en güvenli yoldur.
                     if (string.IsNullOrEmpty(manuelDeger))
                     {
-                       
+                        // Değer boşsa veya null ise SQL NULL olarak gönder
                         sqlLiteral = "NULL";
                     }
                     else
                     {
-                        
+                        // Değeri tırnak içine al ve içerideki tek tırnakları çift tırnak (escape) yap
                         sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
                     }
 
-                    
+                    // Format: SELECT 'sabit_deger' AS [HedefKolon]
                     kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
                 }
                 else
                 {
-                    
+                    // --- NORMAL EŞLEŞME ---
+                    // Format: SELECT [KaynakKolon] AS [HedefKolon]
                     kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
                 }
             }
 
-            
+            // SQL sorgusunu oluştur
             string kolonListe = string.Join(", ", kolonlarinListesi);
             string sql = $"SELECT {kolonListe} FROM [{tablo}]";
 
@@ -166,12 +173,14 @@ namespace DataTransfer.Repository
             }
             catch (Exception ex)
             {
+                // Hata mesajına SQL sorgusunu dahil etmek hata ayıklama için harika.
                 throw new Exception($"VeriGetir metodu hata: {ex.Message} SQL: {sql}", ex);
             }
 
             return dt;
         }
 
+        //filtre testi
         public async Task<int> SatirSayisiGetirAsync(string tablo, string kosul)
         {
             string sql = $"SELECT COUNT(1) FROM [{tablo}] WHERE {kosul}";
