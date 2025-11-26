@@ -200,7 +200,7 @@ namespace DataTransfer
 
                 // Uygunluk kontrolünü güncelle
                 GridKontrolEt(row);
-                
+
             }
         }
 
@@ -222,7 +222,7 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Value = "";
             }
         }
-        
+
 
         private void HedefGuncelle(List<string> hedefKolonIsimleri) //hedef kolon comboxolarına yükleme için kolon adları tutuluyor.
         {
@@ -413,12 +413,12 @@ namespace DataTransfer
 
         private void GridKontrolEt(DataGridViewRow row)
         {
-           try
+            try
             {
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
-
                 var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
                 var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
+                string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
 
                 bool isManuelGiris = kaynakKolon == "(MANUEL GİRİŞ)";
 
@@ -446,11 +446,10 @@ namespace DataTransfer
                 }
 
                 EslestirmeSonucu sonuc = new EslestirmeSonucu();
-                
+
                 if (isManuelGiris)
                 {
-                    string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
-
+                    // MANUEL GİRİŞ KONTROLÜ (Değişiklik yapılmadı)
                     if (string.IsNullOrWhiteSpace(manuelDeger))
                     {
                         sonuc.KritikHataVar = false;
@@ -458,7 +457,6 @@ namespace DataTransfer
                         sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
                         row.Tag = null;
                     }
-
                     else if (row.Tag?.ToString() != "ONAYLANDI")
                     {
                         sonuc.KritikHataVar = false;
@@ -466,7 +464,6 @@ namespace DataTransfer
                         sonuc.Mesajlar.Add("MANUEL GİRİŞ ONAYI BEKLENİYOR");
                         row.Tag = null;
                     }
-
                     else
                     {
                         sonuc.KritikHataVar = false;
@@ -474,15 +471,42 @@ namespace DataTransfer
                     }
                 }
 
-                else
+                else // NORMAL EŞLEŞME
                 {
+                    // Hedef bilgisi normal eşleşme için bu blokta da alınmalı:
+                    if (HedefBilgi == null) // isManuelGiris kontrolü yukarıdaki blokta yapıldığı için buraya normal eşleşme gelir.
+                    {
+                        HedefKolonlar.TryGetValue(hedefKolon, out HedefBilgi);
+                    }
+
                     sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
+
+                    bool isNullHata = sonuc.KritikHataVar && sonuc.Mesajlar.Any(m => m.Contains("Hedef NULL kabul etmiyor"));
+                    // 🌟 YENİ EKLEME BAŞLANGICI: Hedef NULL kuralını Manuel Değer ile esnekleştirme
+                    if (isNullHata)
+                    {
+                        // Hedef NULL kabul etmiyor hatası varsa ve Manuel Değer girilmişse
+                        if (HedefBilgi != null && !HedefBilgi.IsNullable && !string.IsNullOrWhiteSpace(manuelDeger))
+                        {
+                            // Hata durumunu düşür: Kritik Hata olmaktan çıkar ve Onay Gerekiyor olarak işaretlenir.
+                            sonuc.KritikHataVar = false;
+                            sonuc.UyariGerekli = true;
+                            sonuc.Mesajlar.RemoveAll(m => m.Contains("Hedef NULL kabul etmiyor"));
+                            sonuc.Mesajlar.Add("Kaynaktaki NULL değerler için Manuel Değer ('" + manuelDeger + "') kullanılacaktır.");
+
+                            if (row.Tag?.ToString() != "ONAYLANDI")
+                            {
+                                row.Tag = null; // Yalnızca onaylanmamışsa sıfırla.
+                            }
+                        }
+                    }
+                    // 🌟 YENİ EKLEME BİTİŞİ
                 }
 
-                if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
-                {
-                    row.Tag = "ONAYLANDI";
-                }
+                //if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
+                //{
+                //    row.Tag = "ONAYLANDI";
+                //}
 
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
                 {
@@ -490,6 +514,7 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
                     return;
                 }
+                //sonuc.Mesajlar.RemoveAll(m => m.Contains("ONAY GEREKİYOR:"));
 
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
@@ -502,22 +527,30 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
                     row.Tag = null;
                 }
+
                 else if (sonuc.UyariGerekli)
                 {
-
-                    if (isManuelGiris)
+                    if (row.Tag?.ToString() == "ONAYLANDI")
                     {
-                        row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
+                        row.Cells["Uygunluk"].Value = "Uygun";
+                        row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
                     }
                     else
                     {
-                        row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
-                    }
+                        if (isManuelGiris)
+                        {
+                            row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
+                        }
+                        else
+                        {
+                            row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
+                        }
 
-                    row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-                    row.Tag = null;
+                        row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
+
+                    }
                 }
-               else
+                else
                 {
                     row.Cells["Uygunluk"].Value = "Uygun";
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
@@ -525,13 +558,13 @@ namespace DataTransfer
                 }
             }
 
-           catch (Exception ex)
-           {
+            catch (Exception ex)
+            {
 
                 row.Cells["Uygunluk"].Value = "Hata";
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
 
-           }         
+            }
         }
 
 
@@ -545,7 +578,7 @@ namespace DataTransfer
             {
                 GridKontrolEt(row); // Kontrolü tekrar çalıştır
 
-                if (row.IsNewRow) 
+                if (row.IsNewRow)
                     continue;
 
                 // Onaylanmış satırları filtrele
@@ -639,10 +672,7 @@ namespace DataTransfer
             }
         }
 
-        private void GrdEslestirme_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
 
-        }
 
         private async void BtnFiltreTest_Click(object sender, EventArgs e)
         {
@@ -728,7 +758,34 @@ namespace DataTransfer
                 return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
-            GridKontrolEt(row);
+
+            // --- Kolon Seçimleri Değişirse ---
+            if (e.ColumnIndex == GrdEslestirme.Columns["KaynakKolon"].Index ||
+                e.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
+            {
+                // 1. Tag'i sıfırla (Yeni eşleşme, yeni onay gerekli)
+                row.Tag = null;
+
+                // 2. Uygunluk bilgisini sıfırla
+                row.Cells["Uygunluk"].Value = "";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+
+                // 3. Manuel değeri sıfırla (Kolonlar değişince manuel değerin anlamı kalmaz)
+                row.Cells["ManuelDeger"].Value = DBNull.Value;
+
+                // 4. Kontrolü çalıştır
+                GridKontrolEt(row);
+            }
+
+            // --- Manuel Değer Değişirse ---
+            else if (e.ColumnIndex == GrdEslestirme.Columns["ManuelDeger"].Index)
+            {
+                // 🚨 KRİTİK DÜZELTME: Manuel değer değiştiyse, önceki onay geçersizdir.
+                row.Tag = null;
+
+                // Kontrolü çalıştır (Yeni manuel değer, yeni kontrol gerektirir)
+                GridKontrolEt(row);
+            }
         }
 
         private async void FrmVeriEslestirme_Load(object sender, EventArgs e)
@@ -832,7 +889,7 @@ namespace DataTransfer
             }
         }
 
-       
+
         private bool SayiKontrolu(string dataType)
         {
             string[] numericTypes = { "int", "bigint", "smallint", "tinyint", "decimal", "numeric", "float", "real" };
@@ -856,6 +913,7 @@ namespace DataTransfer
             string[] textTypes = { "nvarchar", "varchar", "nchar", "char" };
             return textTypes.Contains(dataType.ToLower());
         }
+
 
         #region TransferKontrolu
         private async Task TransferSatiriKontrolu(BaglantiBilgileri kaynak, BaglantiBilgileri hedef, string kaynakTablo, string hedefTablo,
@@ -959,14 +1017,28 @@ namespace DataTransfer
 
                         if ((val == null || val == DBNull.Value))
                         {
-                            if (!HedefBilgi.IsNullable)
+                            // 1. Hedef NULL kabul etmiyorsa VE Manuel Değer tanımlanmışsa
+                            if (!HedefBilgi.IsNullable && !string.IsNullOrWhiteSpace(eslestirme.ManuelDeger))
                             {
-                                LogEkle($"Satır Atlandı: '{hedefKolon}' kolonu NULL olamaz.");
+                                // Manuel değeri varsayılan olarak ata
+                                val = eslestirme.ManuelDeger;
+                                LogEkle($"Bilgi: '{hedefKolon}' kolonu (Kaynak: {kaynakKolon}) NULL geldi, Hedef NULL kabul etmediği için manuel değer ('{eslestirme.ManuelDeger}') atandı.");
+                            }
+                            // 2. Hedef NULL kabul etmiyorsa VE Manuel Değer TANIMLANMAMIŞSA
+                            else if (!HedefBilgi.IsNullable)
+                            {
+                                // Hala NULL olamaz ve varsayılan değer yok, satırı atla
+                                LogEkle($"Satır Atlandı: '{hedefKolon}' kolonu NULL olamaz ve manuel varsayılan değer tanımlanmamış.");
                                 satirUyumlu = false;
                                 break;
                             }
-                            hedefDegerEkle[hedefKolon] = DBNull.Value;
-                            continue;
+                            // 3. Hedef NULL kabul ediyorsa
+                            else
+                            {
+                                // NULL olarak devam et
+                                hedefDegerEkle[hedefKolon] = DBNull.Value;
+                                continue;
+                            }
                         }
 
 
@@ -1170,19 +1242,14 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0)
+                return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
             string durum = row.Cells["Uygunluk"].Value?.ToString();
             string kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
             string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
-            
-            if (row.Tag?.ToString() == "ONAYLANDI")
-            {
-                return;
-            }
-            
             if (e.ColumnIndex == GrdEslestirme.Columns["IsUnique"].Index)
             {
                 var cell = row.Cells["IsUnique"] as DataGridViewCheckBoxCell;
@@ -1196,12 +1263,18 @@ namespace DataTransfer
                 return;
             }
 
-            
+
+            if (row.Tag?.ToString() == "ONAYLANDI")
+            {
+                return;
+            }            
+
+
             if (string.IsNullOrEmpty(durum) || durum == "Uygun")
                 return;
 
 
-            
+
             if (kaynakKolon == "(MANUEL GİRİŞ)" && durum?.Contains("ONAYI BEKLENİYOR") == true)
             {
                 string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
@@ -1223,12 +1296,12 @@ namespace DataTransfer
                 if (result == DialogResult.Yes)
                 {
                     row.Tag = "ONAYLANDI";
-                    GridKontrolEt(row); 
+                    GridKontrolEt(row);
                 }
                 return;
             }
 
-          
+
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1237,7 +1310,7 @@ namespace DataTransfer
             }
 
 
-           
+
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
@@ -1255,7 +1328,7 @@ namespace DataTransfer
                     GridKontrolEt(row);
                 }
             }
-            
+
         }
 
 
@@ -1285,7 +1358,7 @@ namespace DataTransfer
         }
         #endregion
 
-        
+
 
         #region HedefIsNullable
         private void HedefKolonDetaylariniGrideDoldur()
@@ -1411,7 +1484,7 @@ namespace DataTransfer
                 GrdHedefNullable.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
             }
         }
-       
+
 
         private async void BtnHdfSutunYkle_Click(object sender, EventArgs e)
         {
@@ -1452,8 +1525,9 @@ namespace DataTransfer
             }
         }
 
-     
+        private void GrdEslestirme_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
 
-        
+        }
     }
 }
