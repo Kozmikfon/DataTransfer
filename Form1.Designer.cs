@@ -47,6 +47,7 @@
             lblHedef = new Label();
             label2 = new Label();
             label3 = new Label();
+            BtnFormatDegistir = new Button();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -76,9 +77,9 @@
             // BtnOtomatikEsle
             // 
             BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnOtomatikEsle.Location = new Point(1343, 382);
+            BtnOtomatikEsle.Location = new Point(1313, 382);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(177, 65);
+            BtnOtomatikEsle.Size = new Size(207, 82);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -87,9 +88,9 @@
             // BtnStrSil
             // 
             BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnStrSil.Location = new Point(1343, 484);
+            BtnStrSil.Location = new Point(1313, 470);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(174, 66);
+            BtnStrSil.Size = new Size(204, 75);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -110,9 +111,9 @@
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnTransferBaslat.Location = new Point(1343, 592);
+            BtnTransferBaslat.Location = new Point(1313, 563);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
-            BtnTransferBaslat.Size = new Size(177, 73);
+            BtnTransferBaslat.Size = new Size(207, 75);
             BtnTransferBaslat.TabIndex = 7;
             BtnTransferBaslat.Text = "Transferi Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
@@ -319,11 +320,23 @@
             label3.TabIndex = 25;
             label3.Text = "Kaynak Tablo :";
             // 
+            // BtnFormatDegistir
+            // 
+            BtnFormatDegistir.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 162);
+            BtnFormatDegistir.Location = new Point(1313, 659);
+            BtnFormatDegistir.Name = "BtnFormatDegistir";
+            BtnFormatDegistir.Size = new Size(204, 85);
+            BtnFormatDegistir.TabIndex = 26;
+            BtnFormatDegistir.Text = "Format değiştir";
+            BtnFormatDegistir.UseVisualStyleBackColor = true;
+            BtnFormatDegistir.Click += BtnFormatDegistir_Click;
+            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1584, 961);
+            Controls.Add(BtnFormatDegistir);
             Controls.Add(label3);
             Controls.Add(label2);
             Controls.Add(lblHedef);
@@ -383,6 +396,7 @@
         private Label lblHedef;
         private Label label2;
         private Label label3;
+        private Button BtnFormatDegistir;
     }
 
 }

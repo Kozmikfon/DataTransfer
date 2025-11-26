@@ -1267,7 +1267,7 @@ namespace DataTransfer
             if (row.Tag?.ToString() == "ONAYLANDI")
             {
                 return;
-            }            
+            }
 
 
             if (string.IsNullOrEmpty(durum) || durum == "Uygun")
@@ -1328,7 +1328,6 @@ namespace DataTransfer
                     GridKontrolEt(row);
                 }
             }
-
         }
 
 
@@ -1357,7 +1356,6 @@ namespace DataTransfer
             }
         }
         #endregion
-
 
 
         #region HedefIsNullable
@@ -1528,6 +1526,13 @@ namespace DataTransfer
         private void GrdEslestirme_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void BtnFormatDegistir_Click(object sender, EventArgs e)
+        {
+            DonusumEkrani donusumEkrani = new DonusumEkrani();
+            donusumEkrani.ShowDialog();
+            this.Hide();
         }
     }
 }
