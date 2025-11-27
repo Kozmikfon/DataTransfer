@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTransfer.Model;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,9 +13,28 @@ namespace DataTransfer
 {
     public partial class DonusumEkrani : Form
     {
+
+        private readonly string _kaynakKolonAdi;
+        private readonly string _aramaTablo;
+        private readonly string _aramaDegerKolon;
+        private readonly string _aramaIdKolon;
+
+        public Dictionary<string, object> DonusumSozlugu { get; private set; }
+
+        private List<DonusumSatiri> _donusumListesi;
+
+
         public DonusumEkrani()
         {
             InitializeComponent();
+
+            _kaynakKolonAdi=_kaynakKolonAdi;
+            _aramaTablo=_aramaTablo;
+            _aramaDegerKolon=_aramaDegerKolon;
+            _aramaIdKolon=_aramaIdKolon;
+
+            DonusumSozlugu = new Dictionary<string, object>();
+            GridBaslat();
         }
 
         private void GridBaslat()
@@ -59,6 +79,8 @@ namespace DataTransfer
                 durum,
                 islem
             });
+            _donusumListesi = new List<DonusumSatiri>();
+            GrdDonusum.DataSource = _donusumListesi;
         }
         private void DonusumEkrani_Load(object sender, EventArgs e)
         {
