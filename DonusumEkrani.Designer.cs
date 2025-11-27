@@ -44,6 +44,7 @@
             BtnDonusumKaydet.TabIndex = 0;
             BtnDonusumKaydet.Text = "Kaydet";
             BtnDonusumKaydet.UseVisualStyleBackColor = true;
+            BtnDonusumKaydet.Click += BtnDonusumKaydet_Click;
             // 
             // BtnDonusumIptal
             // 
@@ -53,6 +54,7 @@
             BtnDonusumIptal.TabIndex = 1;
             BtnDonusumIptal.Text = "İptal";
             BtnDonusumIptal.UseVisualStyleBackColor = true;
+            BtnDonusumIptal.Click += BtnDonusumIptal_Click;
             // 
             // lblBilgi
             // 
@@ -80,6 +82,7 @@
             GrdDonusum.Name = "GrdDonusum";
             GrdDonusum.Size = new Size(799, 450);
             GrdDonusum.TabIndex = 4;
+            GrdDonusum.CellContentClick += GrdDonusum_CellContentClick;
             // 
             // DonusumEkrani
             // 

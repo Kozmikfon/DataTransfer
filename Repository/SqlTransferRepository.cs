@@ -37,6 +37,29 @@ namespace DataTransfer.Repository
             return list;
         }
 
+        public async Task<List<string>> KolonAdlariniGetirAsync(string tableName)
+        {
+            var list = new List<string>();
+            // SQL sorgusu sadece kolon isimlerini çekecek.
+            string sql = $"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @TableName ORDER BY ORDINAL_POSITION";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@TableName", tableName);
+                await conn.OpenAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        list.Add(reader.GetString(0));
+                    }
+                }
+            }
+            return list;
+        }
+
+
 
         public async Task<Dictionary<string, KolonBilgisi>> KolonBilgileriniGetirAsync(string tabloAdi)
         {
@@ -194,6 +217,62 @@ namespace DataTransfer.Repository
             {
                 throw new Exception($"Filtre Testi SQL Hatası: {ex.Message}. SQL: {sql}", ex);
             }
+        }
+
+        public DataTable DataTableCalistir(string sqlCommand)
+        {
+            var dt = new DataTable();
+            string connStr = _connectionString; // Repository'nin constructor'da oluşturduğu bağlantı dizesi
+
+            try
+            {
+                using (var conn = new SqlConnection(connStr))
+                using (var da = new SqlDataAdapter(sqlCommand, conn))
+                {
+                    conn.Open();
+                    da.Fill(dt);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata ayıklama için SQL sorgusunu hata mesajına dahil et.
+                throw new Exception($"DataTable metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
+            }
+
+            return dt;
+        }
+        public object ExecuteScalar(string sqlCommand, Dictionary<string, object> parameters)
+        {
+            object result = null;
+            string connStr = _connectionString; // Repository'nin constructor'da oluşturduğu bağlantı dizesi
+
+            try
+            {
+                using (var conn = new SqlConnection(connStr))
+                using (var cmd = new SqlCommand(sqlCommand, conn))
+                {
+                    conn.Open();
+
+                    // Parametreleri komuta ekle
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            // Parametre değeri null ise DBNull.Value olarak ayarla
+                            cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+                        }
+                    }
+
+                    // Sorguyu çalıştır ve ilk satırın ilk kolonundaki değeri al
+                    result = cmd.ExecuteScalar();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"ExecuteScalar metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
+            }
+
+            return result;
         }
 
         public void Dispose()

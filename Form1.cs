@@ -137,6 +137,16 @@ namespace DataTransfer
                 ReadOnly = false,
                 Width = 120,
             };
+
+            var donusumIslem = new DataGridViewButtonColumn
+            {
+                Name = "DonusumIslem",
+                HeaderText = "Dönüşüm",
+                Text = "Ayarla",
+                UseColumnTextForButtonValue = true,
+                Width = 80
+            };
+
             //aramatablo
             var aramaTablo = new DataGridViewComboBoxColumn
             {
@@ -145,27 +155,29 @@ namespace DataTransfer
                 ReadOnly = false,
                 Width = 100,
             };
-            //var aranandeger
-            var arananDegerKolon = new DataGridViewTextBoxColumn
+
+            var arananDegerKolon = new DataGridViewComboBoxColumn 
             {
                 Name = "AramaDegerKolon",
                 HeaderText = "Arama Değer Kolonu",
                 ReadOnly = false,
                 Width = 150,
+                FlatStyle = FlatStyle.Flat
             };
-            //aramaIdKolon birimId gibi
-            var aramaIdKolon = new DataGridViewTextBoxColumn
+
+            var aramaIdKolon = new DataGridViewComboBoxColumn 
             {
                 Name = "AramaIdKolon",
                 HeaderText = "Arama ID Kolon",
                 ReadOnly = false,
                 Width = 150,
+                FlatStyle = FlatStyle.Flat
             };
 
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
-                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk,kolonDonusumGerekli,aramaTablo,arananDegerKolon,aramaIdKolon
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk,kolonDonusumGerekli,donusumIslem,aramaTablo,arananDegerKolon,aramaIdKolon
             });
 
             GrdEslestirme.AllowUserToAddRows = false;
@@ -269,179 +281,7 @@ namespace DataTransfer
         }
 
 
-        //private void KontrolEt(DataGridViewRow row)
-        //{
-        //    try
-        //    {
-        //        bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
-
-
-        //        if (benzersizAlanCheck && row.Cells["Uygunluk"].Style.ForeColor != Color.Red)
-        //        {
-        //            row.Tag = "ONAYLANDI";
-        //        }
-
-
-        //        if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI")
-        //        {
-        //            row.Cells["Uygunluk"].Value = "Uygun";
-        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
-        //            return;
-        //        }
-
-        //        var kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
-        //        var hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
-
-        //        if (string.IsNullOrWhiteSpace(kaynakKolon) || string.IsNullOrWhiteSpace(hedefKolon))
-        //        {
-        //            row.Cells["Uygunluk"].Value = "";
-        //            return;
-        //        }
-
-        //        if (!KaynakKolonlar.TryGetValue(kaynakKolon, out var KaynakBilgi) ||
-        //            !HedefKolonlar.TryGetValue(hedefKolon, out var HedefBilgi))
-        //        {
-        //            row.Cells["Uygunluk"].Value = "Kolon Bilgisi Eksik";
-        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-        //            return;
-        //        }
-
-        //        List<string> mesajlar = new List<string>();
-
-        //        bool kritikHata = false;    
-        //        bool uyariGerekli = false;   
-
-        //        // 1. Nullable Kontrolü hhedef Null olamaz ama Kaynak Null geliyorsa
-        //        if (!HedefBilgi.IsNullable && KaynakBilgi.IsNullable)
-        //        {
-        //            mesajlar.Add("Hedef NULL kabul etmiyor");
-        //            kritikHata = true;
-        //        }
-
-        //        // 2. Metinsel Dönüşümler (nvarchar <-> char vb.)
-        //        string[] metinselTipler = { "nvarchar", "nchar", "varchar", "char", "text", "ntext" };
-        //        bool kaynakMetin = metinselTipler.Contains(KaynakBilgi.DataType.ToLower());
-        //        bool hedefMetin = metinselTipler.Contains(HedefBilgi.DataType.ToLower());
-
-        //        if (kaynakMetin && hedefMetin)
-        //        {
-        //            // Tip ismi farklıysa (örn: nvarchar -> nchar)
-        //            if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
-        //            {
-        //                mesajlar.Add($"Tip Dönüşümü ({KaynakBilgi.DataType}->{HedefBilgi.DataType})");
-        //                uyariGerekli = true; // Bu bir uyarıd onaylanırsa geçilir
-        //            }
-
-        //            // Uzunluk Kontrolü
-        //            if (KaynakBilgi.Length.HasValue && HedefBilgi.Length.HasValue)
-        //            {
-        //                // -1  değerlerini int.MaxValuee dönüştürerek mantıksal karşılaştırma yapıyoruz
-        //                long kaynakLen = KaynakBilgi.Length.Value == -1 ? int.MaxValue : KaynakBilgi.Length.Value;
-        //                long hedefLen = HedefBilgi.Length.Value == -1 ? int.MaxValue : HedefBilgi.Length.Value;
-
-
-        //                if (hedefLen < kaynakLen)
-        //                {
-        //                    // Ekranda kullanıcıya -1 yerine "MAX" göstermek için string hazırlıyoruz
-        //                    string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
-        //                    string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
-
-        //                    mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
-        //                    uyariGerekli = true; // Onay gerektiren turuncu rengi tetikler.
-        //                }
-        //                else if (hedefLen > kaynakLen)
-        //                {
-
-        //                    string kStr = KaynakBilgi.Length.Value == -1 ? "MAX" : KaynakBilgi.Length.Value.ToString();
-        //                    string hStr = HedefBilgi.Length.Value == -1 ? "MAX" : HedefBilgi.Length.Value.ToString();
-
-
-        //                    mesajlar.Add($" ({kStr}->{hStr})");
-        //                }
-
-        //            }
-        //        }
-
-
-        //        else if (SayiKontrolu(KaynakBilgi.DataType) && SayiKontrolu(HedefBilgi.DataType))
-        //        {
-        //            bool kaynakOndalik = OndalikliTip(KaynakBilgi.DataType);
-        //            bool hedefTam = TamSayiliTip(HedefBilgi.DataType);
-        //            bool kaynakTam = TamSayiliTip(KaynakBilgi.DataType);
-        //            bool hedefOndalikli = OndalikliTip(HedefBilgi.DataType);
-
-        //            if (kaynakOndalik && hedefTam)//kaynak ondalıklı ve hedef tam ise uygun değil 
-        //            {
-
-        //                mesajlar.Add("Uygun Değil");
-        //                LogEkle("Ondalık -> Tam Sayı (Veri Kaybı Riski)");
-        //                kritikHata = true; 
-        //                uyariGerekli = false; 
-        //            }   
-
-        //            //else if (kaynakTam && hedefOndalikli)
-        //            //{
-        //            //    mesajlar.Add("Tam -> Ondalık");
-        //            //    kritikHata = false;
-        //            //    uyariGerekli = true;
-        //            //}
-        //        }
-        //        else
-        //        {                  
-        //            string [] tarihTipleri = { "date", "datetime", "datetime2", "smalldatetime", "time" };
-        //            bool kaynakTarih = tarihTipleri.Contains(KaynakBilgi.DataType.ToLower());
-        //            bool hedefTarih = tarihTipleri.Contains(HedefBilgi.DataType.ToLower());
-
-
-        //            if ((SayiKontrolu(KaynakBilgi.DataType) || kaynakTarih) && hedefMetin)
-        //            {
-        //                //  int varchar veya datetime nvarchar
-        //                mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
-        //                kritikHata = true;
-        //            }
-        //            //  Metinsel bir alanın sayısal veya tarihsel bir alana dönüştürülmemesi
-        //            else if (kaynakMetin && (SayiKontrolu(HedefBilgi.DataType) || hedefTarih))
-        //            {
-        //                //  nvarchar  int
-        //                mesajlar.Add($"UYUŞMAZLIK: {KaynakBilgi.DataType} -> {HedefBilgi.DataType} (Tip Çakışması)");
-        //                kritikHata = true;
-        //            }
-
-        //            else if (!string.Equals(KaynakBilgi.DataType, HedefBilgi.DataType, StringComparison.OrdinalIgnoreCase))
-        //            {
-        //                mesajlar.Add($"Alakasız Tip Uyuşmazlığı: {KaynakBilgi.DataType} -> {HedefBilgi.DataType}");
-        //                uyariGerekli = true; 
-        //            }
-        //        }
-
-
-        //        if (kritikHata)
-        //        {
-        //            row.Cells["Uygunluk"].Value = string.Join(", ", mesajlar);
-        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Red;
-        //            row.Tag = null; 
-        //        }
-        //        else if (uyariGerekli)
-        //        {
-
-        //            row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", mesajlar);
-        //            row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-        //            row.Tag = null; 
-        //        }
-        //        else
-        //        {
-
-        //            row.Cells["Uygunluk"].Value = "Uygun";
-        //            row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
-        //            row.Tag = "ONAYLANDI"; 
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        row.Cells["Uygunluk"].Value = "Hata";
-        //        lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
-        //    }
-        //}
+       
 
         private void GridKontrolEt(DataGridViewRow row)
         {
@@ -826,6 +666,7 @@ namespace DataTransfer
             await TablolarıAgacaYukleAsync();
             lstLog.Items.Add("Tablolar yüklendi");
             RdoBtnTumSatır.Checked = true;
+            GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
 
         }
 
@@ -1260,17 +1101,55 @@ namespace DataTransfer
 
         private void GrdEslestirme_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
-            if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
+            if (e.Control is ComboBox combo)
             {
-                if (e.Control is ComboBox combo)
+                combo.SelectedIndexChanged -= HedefKolonSecildi;
+                combo.SelectedIndexChanged -= AramaTablosu_SelectedIndexChanged; 
+
+                var currentColumnName = GrdEslestirme.CurrentCell.OwningColumn.Name;
+
+                // 1. Hedef Kolon Seçimi Kontrolü
+                if (currentColumnName == "HedefKolon")
                 {
-                    combo.SelectedIndexChanged -= HedefKolonSecildi;
                     combo.SelectedIndexChanged += HedefKolonSecildi;
                 }
+                else if (currentColumnName == "AramaTablo")
+                {
+                    combo.SelectedIndexChanged += AramaTablosu_SelectedIndexChanged;
+                }
+
             }
         }
 
+        private async void AramaTablosu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var comboBox = sender as ComboBox;
+            if (comboBox == null) return;
 
+            
+            var currentRow = GrdEslestirme.CurrentRow;
+            string secilenTabloAdi = comboBox.SelectedItem.ToString();
+
+           
+            List<string> kolonAdlari = await HedefRepo.KolonAdlariniGetirAsync(secilenTabloAdi);
+
+           
+            if (currentRow.Cells["AramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
+            {
+                degerKolonCell.Items.Clear();
+                degerKolonCell.Items.AddRange(kolonAdlari.ToArray());
+            }
+
+            if (currentRow.Cells["AramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
+            {
+                idKolonCell.Items.Clear();
+                idKolonCell.Items.AddRange(kolonAdlari.ToArray());
+            }
+            currentRow.Cells["AramaTablo"].Value = secilenTabloAdi;
+
+           
+            lstLog.Items.Add($"{secilenTabloAdi} tablosunun kolonları Arama Kolonlarına yüklendi.");
+        }
 
         private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -1520,8 +1399,6 @@ namespace DataTransfer
         {
             try
             {
-
-
                 if (TrwHedefTablolar.SelectedNode?.Tag is string hedefTablo && !string.IsNullOrWhiteSpace(hedefTablo))
                 {
                     lstLog.Items.Add($"Hedef kolonlar yükleniyor: {hedefTablo}...");
@@ -1532,12 +1409,24 @@ namespace DataTransfer
 
                     HedefKolonDetaylariniGrideDoldur();
 
-
                     if (GrdEslestirme.Columns["HedefKolon"] is DataGridViewComboBoxColumn comboCol)
                     {
 
                         comboCol.Items.Clear();
                         comboCol.Items.AddRange(HedefKolonlar.Keys.ToArray());
+                    }
+
+                    var hedefTablolar = await HedefRepo.TabloGetirAsync();
+
+                    if (GrdEslestirme.Columns["AramaTablo"] is DataGridViewComboBoxColumn aramaTabloComboCol)
+                    {
+                        aramaTabloComboCol.Items.Clear();
+
+                        if (hedefTablolar.Any())
+                        {
+                            aramaTabloComboCol.Items.AddRange(hedefTablolar.ToArray());
+                            lstLog.Items.Add($"Arama tabloları yüklendi ({hedefTablolar.Count} adet).");
+                        }
                     }
 
 
@@ -1557,14 +1446,79 @@ namespace DataTransfer
 
         private void GrdEslestirme_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
+            if (e.ColumnIndex == GrdEslestirme.Columns["DonusumIslem"].Index&&e.RowIndex>=0)
+            {
+                DonusumEkraniAc(e.RowIndex);
+            }
         }
 
         private void BtnFormatDegistir_Click(object sender, EventArgs e)
         {
-            DonusumEkrani donusumEkrani = new DonusumEkrani();
-            donusumEkrani.ShowDialog();
-            this.Hide();
+            
+
+        }
+
+        private void DonusumEkraniAc(int rowIndex)
+        {
+            if (TrwKaynakTablolar.SelectedNode?.Tag is not string kaynakTabloAdi || string.IsNullOrWhiteSpace(kaynakTabloAdi))
+            {
+                MessageBox.Show("Önce kaynak tablo seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (TrwHedefTablolar.SelectedNode?.Tag is not string hedefTabloadi || string.IsNullOrWhiteSpace(hedefTabloadi))
+            {
+                MessageBox.Show("Önce hedef tablo seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            var row = GrdEslestirme.Rows[rowIndex]; 
+
+            string kaynakKolonAdi = row.Cells["KaynakKolon"].Value?.ToString();
+            string hedefKolonAdi = row.Cells["HedefKolon"].Value?.ToString();
+            string aramaTablo=row.Cells["AramaTablo"].Value?.ToString();
+            string aramaDegerKolon=row.Cells["AramaDegerKolon"].Value?.ToString();
+            string aramaIdKolon=row.Cells["AramaIdKolon"].Value?.ToString();
+
+            bool donusumGerekli = (bool)(row.Cells["DonusumGerekli"].Value ?? false);
+
+            if (!donusumGerekli)
+            {
+                MessageBox.Show("Bu kolon için Dönüşüm Gerekli kutucuğunu işaretlemelisiniz.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(hedefTabloadi))
+            {
+                MessageBox.Show("Önce bir Hedef Kolon seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var donusumForm = new DonusumEkrani(
+                    kaynakKolonAdi: kaynakKolonAdi,
+                    kaynakTabloAdi: kaynakTabloAdi,
+                    aramaTablo: aramaTablo ?? hedefTabloadi,
+                    aramaDegerKolon: aramaDegerKolon,
+                    aramaIdKolon: aramaIdKolon,
+                    kaynakBaglanti: kaynak,
+                    hedefBaglanti: hedef
+                    );
+
+                var eslesmeBilgisi = new EslestirmeBilgisi
+                {
+                    KaynakKolon = kaynakKolonAdi,
+                    HedefKolon = hedefKolonAdi
+                };
+
+                if (donusumForm.ShowDialog()==DialogResult.OK)
+                {
+                    MessageBox.Show("Dönüşüm ayarları kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Dönüşüm ekranı açılırken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
         }
     }
 }
