@@ -313,6 +313,7 @@
             Controls.Add(GrbboxHedef);
             Controls.Add(GrbboxKaynak);
             Name = "FrmBaglantiAc";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Bağlan";
             Load += FrmBaglantiAc_Load;
             GrbboxKaynak.ResumeLayout(false);

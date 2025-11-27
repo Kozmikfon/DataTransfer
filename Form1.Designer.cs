@@ -77,9 +77,9 @@
             // BtnOtomatikEsle
             // 
             BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnOtomatikEsle.Location = new Point(1313, 382);
+            BtnOtomatikEsle.Location = new Point(1564, 334);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
-            BtnOtomatikEsle.Size = new Size(207, 82);
+            BtnOtomatikEsle.Size = new Size(191, 90);
             BtnOtomatikEsle.TabIndex = 3;
             BtnOtomatikEsle.Text = "Otomatik eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
@@ -88,9 +88,9 @@
             // BtnStrSil
             // 
             BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnStrSil.Location = new Point(1313, 470);
+            BtnStrSil.Location = new Point(1564, 448);
             BtnStrSil.Name = "BtnStrSil";
-            BtnStrSil.Size = new Size(204, 75);
+            BtnStrSil.Size = new Size(191, 87);
             BtnStrSil.TabIndex = 2;
             BtnStrSil.Text = "Satır Sil";
             BtnStrSil.UseVisualStyleBackColor = true;
@@ -101,7 +101,7 @@
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Location = new Point(0, 370);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(1280, 283);
+            GrdEslestirme.Size = new Size(1531, 283);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
@@ -111,9 +111,9 @@
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnTransferBaslat.Location = new Point(1313, 563);
+            BtnTransferBaslat.Location = new Point(1559, 677);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
-            BtnTransferBaslat.Size = new Size(207, 75);
+            BtnTransferBaslat.Size = new Size(196, 87);
             BtnTransferBaslat.TabIndex = 7;
             BtnTransferBaslat.Text = "Transferi Başlat";
             BtnTransferBaslat.UseVisualStyleBackColor = true;
@@ -121,7 +121,7 @@
             // 
             // prgTransfer
             // 
-            prgTransfer.Location = new Point(665, 677);
+            prgTransfer.Location = new Point(654, 698);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -131,15 +131,15 @@
             lstLog.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lstLog.FormattingEnabled = true;
             lstLog.ItemHeight = 15;
-            lstLog.Location = new Point(12, 770);
+            lstLog.Location = new Point(10, 805);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(1560, 124);
+            lstLog.Size = new Size(1743, 139);
             lstLog.TabIndex = 9;
             // 
             // BtnGeri
             // 
             BtnGeri.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnGeri.Location = new Point(12, 903);
+            BtnGeri.Location = new Point(12, 950);
             BtnGeri.Name = "BtnGeri";
             BtnGeri.Size = new Size(105, 49);
             BtnGeri.TabIndex = 11;
@@ -151,7 +151,7 @@
             // 
             BtnFiltreTest.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             BtnFiltreTest.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnFiltreTest.Location = new Point(489, 54);
+            BtnFiltreTest.Location = new Point(489, 71);
             BtnFiltreTest.Name = "BtnFiltreTest";
             BtnFiltreTest.Size = new Size(99, 37);
             BtnFiltreTest.TabIndex = 3;
@@ -162,7 +162,7 @@
             // TxtFiltreleme
             // 
             TxtFiltreleme.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            TxtFiltreleme.Location = new Point(16, 62);
+            TxtFiltreleme.Location = new Point(16, 71);
             TxtFiltreleme.Name = "TxtFiltreleme";
             TxtFiltreleme.Size = new Size(443, 23);
             TxtFiltreleme.TabIndex = 2;
@@ -197,9 +197,9 @@
             GrbBoxFiltreleme.Controls.Add(RdoBtnFiltre);
             GrbBoxFiltreleme.Controls.Add(TxtFiltreleme);
             GrbBoxFiltreleme.Controls.Add(BtnFiltreTest);
-            GrbBoxFiltreleme.Location = new Point(12, 659);
+            GrbBoxFiltreleme.Location = new Point(12, 677);
             GrbBoxFiltreleme.Name = "GrbBoxFiltreleme";
-            GrbBoxFiltreleme.Size = new Size(594, 105);
+            GrbBoxFiltreleme.Size = new Size(594, 122);
             GrbBoxFiltreleme.TabIndex = 2;
             GrbBoxFiltreleme.TabStop = false;
             GrbBoxFiltreleme.Text = "Filtreleme";
@@ -208,7 +208,7 @@
             // 
             lblTransferSayisi.AutoSize = true;
             lblTransferSayisi.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            lblTransferSayisi.Location = new Point(1124, 913);
+            lblTransferSayisi.Location = new Point(1258, 974);
             lblTransferSayisi.Name = "lblTransferSayisi";
             lblTransferSayisi.Size = new Size(133, 25);
             lblTransferSayisi.TabIndex = 12;
@@ -265,7 +265,7 @@
             GrdHedefNullable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdHedefNullable.Location = new Point(1297, 23);
             GrdHedefNullable.Name = "GrdHedefNullable";
-            GrdHedefNullable.Size = new Size(252, 342);
+            GrdHedefNullable.Size = new Size(234, 306);
             GrdHedefNullable.TabIndex = 20;
             GrdHedefNullable.CellDoubleClick += GrdHedefNullable_CellDoubleClick;
             GrdHedefNullable.ColumnHeaderMouseClick += GrdHedefNullable_ColumnHeaderMouseClick;
@@ -323,9 +323,9 @@
             // BtnFormatDegistir
             // 
             BtnFormatDegistir.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnFormatDegistir.Location = new Point(1313, 659);
+            BtnFormatDegistir.Location = new Point(1559, 564);
             BtnFormatDegistir.Name = "BtnFormatDegistir";
-            BtnFormatDegistir.Size = new Size(204, 85);
+            BtnFormatDegistir.Size = new Size(196, 89);
             BtnFormatDegistir.TabIndex = 26;
             BtnFormatDegistir.Text = "Format değiştir";
             BtnFormatDegistir.UseVisualStyleBackColor = true;
@@ -335,7 +335,7 @@
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
-            ClientSize = new Size(1584, 961);
+            ClientSize = new Size(1784, 1011);
             Controls.Add(BtnFormatDegistir);
             Controls.Add(label3);
             Controls.Add(label2);

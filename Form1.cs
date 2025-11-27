@@ -129,11 +129,43 @@ namespace DataTransfer
                 HeaderText = "Uygunluk",
                 ReadOnly = true,
             };
+            //donusumgerekli
+            var kolonDonusumGerekli = new DataGridViewCheckBoxColumn
+            {
+                Name = "DonusumGerekli",
+                HeaderText = "Dönüşüm Gerekli",
+                ReadOnly = false,
+                Width = 120,
+            };
+            //aramatablo
+            var aramaTablo = new DataGridViewComboBoxColumn
+            {
+                Name = "AramaTablo",
+                HeaderText = "Arama Tablosu",
+                ReadOnly = false,
+                Width = 100,
+            };
+            //var aranandeger
+            var arananDegerKolon = new DataGridViewTextBoxColumn
+            {
+                Name = "AramaDegerKolon",
+                HeaderText = "Arama Değer Kolonu",
+                ReadOnly = false,
+                Width = 150,
+            };
+            //aramaIdKolon birimId gibi
+            var aramaIdKolon = new DataGridViewTextBoxColumn
+            {
+                Name = "AramaIdKolon",
+                HeaderText = "Arama ID Kolon",
+                ReadOnly = false,
+                Width = 150,
+            };
 
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
-                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk,kolonDonusumGerekli,aramaTablo,arananDegerKolon,aramaIdKolon
             });
 
             GrdEslestirme.AllowUserToAddRows = false;
