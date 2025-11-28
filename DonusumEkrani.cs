@@ -1,5 +1,6 @@
 ﻿using DataTransfer.Model;
 using DataTransfer.Repository;
+using DataTransfer.Service;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,13 +24,15 @@ namespace DataTransfer
         private readonly string _aramaTablo;
         private readonly string _aramaDegerKolon;
         private readonly string _aramaIdKolon;
+        private string _hedefKolonAdi;
+        private DonusumTuru _donusumTipi;
 
         public Dictionary<string, object> DonusumSozlugu { get; private set; }
 
         private List<DonusumSatiri> _donusumListesi;
 
 
-        public DonusumEkrani(string kaynakKolonAdi, string kaynakTabloAdi, string aramaTablo, string aramaDegerKolon, string aramaIdKolon, BaglantiBilgileri kaynakBaglanti, BaglantiBilgileri hedefBaglanti)
+        public DonusumEkrani(string kaynakKolonAdi, string kaynakTabloAdi, string aramaTablo, string aramaDegerKolon, string aramaIdKolon, BaglantiBilgileri kaynakBaglanti, BaglantiBilgileri hedefBaglanti,string hedefKolonAdi,DonusumTuru donusumTipi)
         {
             InitializeComponent();
 
@@ -41,6 +44,9 @@ namespace DataTransfer
             _hedefBaglanti = hedefBaglanti;
             _kaynakTabloadi = kaynakTabloAdi;
             _kaynakRepo = new SqlTransferRepository(_kaynakBaglanti);
+
+            this._hedefKolonAdi = _hedefKolonAdi;
+            this._donusumTipi= donusumTipi;
 
             DonusumSozlugu = new Dictionary<string, object>();
             GridBaslat();
@@ -93,34 +99,7 @@ namespace DataTransfer
         }
 
 
-        private async void DonusumEkrani_Load(object sender, EventArgs e)
-        {
-            DataTable kaynakdegerler = KaynakDegerleriCek(_kaynakKolonAdi);
 
-            if (kaynakdegerler != null && kaynakdegerler.Rows.Count > 0)
-            {
-                _donusumListesi.Clear();
-                foreach (DataRow row in kaynakdegerler.Rows)
-                {
-                    object kaynakDeger = row[0] ?? DBNull.Value;
-
-                    var donusumSatiri = new DonusumSatiri
-                    {
-                        KaynakDeger = kaynakDeger.ToString(),
-                        HedefAtanacakDeger = null,
-                        Durum = "Beklemede"
-                    };
-                    _donusumListesi.Add(donusumSatiri);
-                }
-                GrdDonusum.DataSource = null;
-                GrdDonusum.DataSource = _donusumListesi;
-            }
-            else
-            {
-                MessageBox.Show("Kaynak kolonda eşleştirilecek benzersiz değer bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            OtomatikAramaVeGuncelle();
-        }
         private DataTable KaynakDegerleriCek(string kolonadi)
         {
             try
@@ -130,7 +109,6 @@ namespace DataTransfer
 
                 string sql = $"SELECT DISTINCT [{kolonadi}] FROM [{kaynakTabloAdi}]";
 
-                // 🌟 GÜNCELLEME: DbHelper yerine Repository kullanıldı
                 return _kaynakRepo.DataTableCalistir(sql);
             }
             catch (Exception ex)
@@ -145,7 +123,6 @@ namespace DataTransfer
             try
             {
                 string sql = $"SELECT TOP 1 [{_aramaIdKolon}] FROM [{_aramaTablo}] WHERE [{_aramaDegerKolon}] = @kaynakDeger";
-
                 using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
 
                 var parameters = new Dictionary<string, object>
@@ -161,7 +138,7 @@ namespace DataTransfer
             }
         }
 
-        
+
 
         private void OtomatikAramaVeGuncelle()
         {
@@ -180,7 +157,7 @@ namespace DataTransfer
                 else
                 {
                     satır.HedefAtanacakDeger = null;
-                    satır.Durum = "Eşleşme Bulunamadı"; 
+                    satır.Durum = "Eşleşme Bulunamadı";
                 }
             }
 
@@ -189,32 +166,7 @@ namespace DataTransfer
             GrdDonusum.Refresh();
         }
 
-        private void GrdDonusum_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.ColumnIndex == 3 && e.RowIndex >= 0)
-            {
-                var satir = _donusumListesi[e.RowIndex];
-                string yeniDeger = Microsoft.VisualBasic.Interaction.InputBox(
-                     $"Kaynak Değer: '{satir.KaynakDeger}' için Hedef ID'yi girin.",
-                     "Manuel Eşleme",
-                     satir.HedefAtanacakDeger?.ToString() ?? string.Empty);
 
-                if (!string.IsNullOrWhiteSpace(yeniDeger))
-                {
-                    if (long.TryParse(yeniDeger, out long idDegeri))
-                    {
-                        satir.HedefAtanacakDeger = idDegeri;
-                        satir.Durum = "Manuel eşleşti";
-                        GrdDonusum.RefreshEdit();
-
-                    }
-                    else
-                    {
-                        MessageBox.Show("Lütfen geçerli bir sayısal ID değeri girin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
 
         private void BtnDonusumKaydet_Click(object sender, EventArgs e)
         {
@@ -242,6 +194,142 @@ namespace DataTransfer
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        private int YeniKayitEkleVeIDDon(string yeniDeger)
+        {
+            try
+            {
+                string insertSql = $"INSERT INTO [{_aramaTablo}] ([{_aramaDegerKolon}]) VALUES (@yeniDeger); SELECT SCOPE_IDENTITY();";
+
+                using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+
+                var parameters = new Dictionary<string, object>
+        {
+            { "@yeniDeger", yeniDeger }
+        };
+
+                object newId = hedefRepo.ExecuteScalar(insertSql, parameters);
+
+                if (newId != null && newId != DBNull.Value)
+                {
+                    return Convert.ToInt32(newId);
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Yeni kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 0;
+            }
+        }
+
+        private void GrdDonusum_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 3 && e.RowIndex >= 0)
+            {
+                // 🚨 KRİTİK GÜNCELLEME: Listenin sınırları dışında bir indekse erişimi engelle.
+                // Ayrıca, GrdDonusum.AllowUserToAddRows = true ise, en alttaki boş satırı atla.
+                if (e.RowIndex >= _donusumListesi.Count || e.RowIndex == GrdDonusum.NewRowIndex)
+                {
+                    return; // Geçersiz satıra tıklandı, işlemi sonlandır.
+                }
+
+                // Artık 'e.RowIndex' kesinlikle _donusumListesi'nin sınırları içindedir.
+                var satir = _donusumListesi[e.RowIndex];
+
+                // Sadece "Eşleşme Bulunamadı" durumları için ek seçenek sun
+                if (satir.Durum == "Eşleşme Bulunamadı")
+                {
+                    DialogResult secim = MessageBox.Show(
+                        $"Kaynak Değer: '{satir.KaynakDeger}' için eşleşme bulunamadı.\n\n" +
+                        $"Hedef Tablo ({_aramaTablo})'ya bu değeri kullanarak yeni kayıt eklemek ister misiniz?",
+                        "Eşleşme Seçeneği",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question);
+
+                    if (secim == DialogResult.Yes)
+                    {
+                        // YENİ KAYIT EKLEME İŞLEMİ
+                        int yeniID = YeniKayitEkleVeIDDon(satir.KaynakDeger);
+
+                        if (yeniID > 0)
+                        {
+                            satir.HedefAtanacakDeger = yeniID;
+                            satir.Durum = "Yeni Kayıt Eklendi";
+                        }
+                        else
+                        {
+                            MessageBox.Show("Kayıt ekleme başarısız oldu. Manuel eşlemeye geçiliyor.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                    else if (secim == DialogResult.Cancel)
+                    {
+                        return;
+                    }
+                }
+
+                // MANUEL ID GİRİŞİ (Mevcut mantık)
+                string yeniDeger = Microsoft.VisualBasic.Interaction.InputBox(
+                    $"Kaynak Değer: '{satir.KaynakDeger}' için Hedef ID'yi girin.\n" +
+                    $"(Yeni kayıt eklenmediyse veya ID'yi değiştirmek istiyorsanız)",
+                    "Manuel Eşleme",
+                    satir.HedefAtanacakDeger?.ToString() ?? string.Empty);
+
+                if (!string.IsNullOrWhiteSpace(yeniDeger))
+                {
+                    if (long.TryParse(yeniDeger, out long idDegeri))
+                    {
+                        satir.HedefAtanacakDeger = idDegeri;
+                        satir.Durum = "Manuel Eşleşti";
+                    }
+                    else
+                    {
+                        MessageBox.Show("Lütfen geçerli bir sayısal ID değeri girin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
+                // Grid'i güncelle
+                GrdDonusum.RefreshEdit();
+            }
+        }
+
+        private void DonusumEkrani_Load(object sender, EventArgs e)
+        {
+            DataTable kaynakdegerler = KaynakDegerleriCek(_kaynakKolonAdi);
+
+            if (kaynakdegerler != null && kaynakdegerler.Rows.Count > 0)
+            {
+                if (kaynakdegerler.Columns.Count == 0)
+                {
+                    MessageBox.Show("Kaynak değerler çekilirken bir hata oluştu veya tablo boş sütun döndürdü. Lütfen seçilen tablo ve kolon adlarını (özellikle 'space' gibi karakterleri) kontrol edin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                _donusumListesi.Clear();
+                foreach (DataRow row in kaynakdegerler.Rows)
+                {
+                    // Bu satır artık güvenlidir:
+                    object kaynakDeger = row[0] ?? DBNull.Value;
+
+                    var donusumSatiri = new DonusumSatiri
+                    {
+                        KaynakDeger = kaynakDeger.ToString(),
+                        HedefAtanacakDeger = null,
+                        Durum = "Beklemede"
+                    };
+                    _donusumListesi.Add(donusumSatiri);
+                }
+
+                GrdDonusum.DataSource = null;
+                GrdDonusum.DataSource = _donusumListesi;
+            }
+            else
+            {
+                MessageBox.Show("Kaynak kolonda eşleştirilecek benzersiz değer bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            OtomatikAramaVeGuncelle();
         }
     }
 }

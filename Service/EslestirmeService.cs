@@ -36,10 +36,11 @@ namespace DataTransfer.Service
         }
 
 
-        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi)
+        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi,bool aramaTanimLiMi)
         {
             var sonuc = new EslestirmeSonucu();
             sonuc.Mesajlar = new List<string>();
+            sonuc.DonusumTipi = DonusumTuru.Yok;
 
             if (kaynak == null || hedef == null)
             {
@@ -67,6 +68,7 @@ namespace DataTransfer.Service
                 {
                     sonuc.Mesajlar.Add($"Tip Dönüşümü ({kaynakTip}->{hedefTip})");
                     sonuc.UyariGerekli = true;
+                    sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
 
                 if (kaynak.Length.HasValue && hedef.Length.HasValue)
@@ -113,17 +115,51 @@ namespace DataTransfer.Service
                     sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip}");
                     sonuc.KritikHataVar = true;
                 }
-                
+
+                // Güncellenmiş Metin -> Sayısal/Tarih BLOKU
                 else if (kaynakMetin && (IsSayisalTip(hedefTip) || hedefTarih))
                 {
-                    sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip} (Tip Çakışması)");
-                    sonuc.KritikHataVar = true;
+                    bool isLookup = aramaTanimLiMi && IsSayisalTip(hedefTip);
+                    bool isMetinToTarih = !isLookup && hedefTarih; // Yeni kontrol
+
+                    if (isLookup)
+                    {
+                        // Lookup durumu (Metin -> ID), Kritik hata sıfırlanır.
+                        sonuc.Mesajlar.Add($"Dönüşüm Gerekli: {kaynakTip} -> ID ({hedefTip})");
+                        sonuc.UyariGerekli = true;
+                        sonuc.DonusumTipi = DonusumTuru.LookupEslestirme;
+
+                        if (sonuc.KritikHataVar)
+                        {
+                            sonuc.KritikHataVar = false;
+                        }
+                    }
+
+                    else if (isMetinToTarih)
+                    {
+                       
+                        sonuc.Mesajlar.Add($"Format Dönüşümü Gerekli: {kaynakTip} -> {hedefTip}");
+                        sonuc.UyariGerekli = true;
+                        sonuc.DonusumTipi = DonusumTuru.FormatDonusumu;
+
+                        if (sonuc.KritikHataVar)
+                        {
+                            sonuc.KritikHataVar = false;
+                        }
+                    }
+                    else
+                    {
+                        // Buraya sadece Metin -> Sayısal (Lookup Tanımsız) eşleşmesi düşer.
+                        sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip} (Kritik Tip Çakışması)");
+                        sonuc.KritikHataVar = true;
+                    }
                 }
-              
+
                 else if (!string.Equals(kaynakTip, hedefTip, StringComparison.OrdinalIgnoreCase))
                 {
                     sonuc.Mesajlar.Add($"Alakasız Tip Uyuşmazlığı: {kaynakTip} -> {hedefTip}");
                     sonuc.UyariGerekli = true;
+                    sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
             }
            

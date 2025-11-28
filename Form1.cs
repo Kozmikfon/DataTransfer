@@ -321,7 +321,7 @@ namespace DataTransfer
 
                 if (isManuelGiris)
                 {
-                    // MANUEL GİRİŞ KONTROLÜ (Değişiklik yapılmadı)
+                    
                     if (string.IsNullOrWhiteSpace(manuelDeger))
                     {
                         sonuc.KritikHataVar = false;
@@ -343,24 +343,30 @@ namespace DataTransfer
                     }
                 }
 
+
                 else // NORMAL EŞLEŞME
                 {
-                    // Hedef bilgisi normal eşleşme için bu blokta da alınmalı:
-                    if (HedefBilgi == null) // isManuelGiris kontrolü yukarıdaki blokta yapıldığı için buraya normal eşleşme gelir.
+                    
+                    if (HedefBilgi == null) 
                     {
                         HedefKolonlar.TryGetValue(hedefKolon, out HedefBilgi);
                     }
 
-                    sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon);
+                    string aramaTablosuAdi = row.Cells["AramaTablo"].Value?.ToString();
+
+                    bool aramaTanimliMi = !string.IsNullOrWhiteSpace(aramaTablosuAdi);
+
+                    sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon,aramaTanimliMi);
+                    row.Tag = sonuc;
 
                     bool isNullHata = sonuc.KritikHataVar && sonuc.Mesajlar.Any(m => m.Contains("Hedef NULL kabul etmiyor"));
-                    // 🌟 YENİ EKLEME BAŞLANGICI: Hedef NULL kuralını Manuel Değer ile esnekleştirme
+                    
                     if (isNullHata)
                     {
-                        // Hedef NULL kabul etmiyor hatası varsa ve Manuel Değer girilmişse
+                        
                         if (HedefBilgi != null && !HedefBilgi.IsNullable && !string.IsNullOrWhiteSpace(manuelDeger))
                         {
-                            // Hata durumunu düşür: Kritik Hata olmaktan çıkar ve Onay Gerekiyor olarak işaretlenir.
+                            
                             sonuc.KritikHataVar = false;
                             sonuc.UyariGerekli = true;
                             sonuc.Mesajlar.RemoveAll(m => m.Contains("Hedef NULL kabul etmiyor"));
@@ -368,11 +374,11 @@ namespace DataTransfer
 
                             if (row.Tag?.ToString() != "ONAYLANDI")
                             {
-                                row.Tag = null; // Yalnızca onaylanmamışsa sıfırla.
+                                row.Tag = null;
                             }
                         }
                     }
-                    // 🌟 YENİ EKLEME BİTİŞİ
+                   
                 }
 
                 //if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
@@ -631,31 +637,36 @@ namespace DataTransfer
 
             var row = GrdEslestirme.Rows[e.RowIndex];
 
-            // --- Kolon Seçimleri Değişirse ---
+            
             if (e.ColumnIndex == GrdEslestirme.Columns["KaynakKolon"].Index ||
                 e.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
             {
-                // 1. Tag'i sıfırla (Yeni eşleşme, yeni onay gerekli)
+              
                 row.Tag = null;
-
-                // 2. Uygunluk bilgisini sıfırla
                 row.Cells["Uygunluk"].Value = "";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
-
-                // 3. Manuel değeri sıfırla (Kolonlar değişince manuel değerin anlamı kalmaz)
                 row.Cells["ManuelDeger"].Value = DBNull.Value;
 
                 // 4. Kontrolü çalıştır
                 GridKontrolEt(row);
             }
 
-            // --- Manuel Değer Değişirse ---
+            
             else if (e.ColumnIndex == GrdEslestirme.Columns["ManuelDeger"].Index)
             {
-                // 🚨 KRİTİK DÜZELTME: Manuel değer değiştiyse, önceki onay geçersizdir.
+                
                 row.Tag = null;
+                GridKontrolEt(row);
+            }
 
-                // Kontrolü çalıştır (Yeni manuel değer, yeni kontrol gerektirir)
+            
+            else if (e.ColumnIndex == GrdEslestirme.Columns["AramaTablo"].Index)
+            {
+               
+                row.Tag = null;
+                row.Cells["Uygunluk"].Value = "";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+
                 GridKontrolEt(row);
             }
         }
@@ -1161,6 +1172,7 @@ namespace DataTransfer
             string kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
             string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
 
+            // IsUnique sütununda çift tıklama mantığı aynı kalır.
             if (e.ColumnIndex == GrdEslestirme.Columns["IsUnique"].Index)
             {
                 var cell = row.Cells["IsUnique"] as DataGridViewCheckBoxCell;
@@ -1174,18 +1186,17 @@ namespace DataTransfer
                 return;
             }
 
-
+            // Onaylanmış satırlar için çıkış
             if (row.Tag?.ToString() == "ONAYLANDI")
             {
                 return;
             }
 
-
+            // Boş veya Uygun durumlar için çıkış
             if (string.IsNullOrEmpty(durum) || durum == "Uygun")
                 return;
 
-
-
+            // Manuel Giriş Onayı mantığı aynı kalır.
             if (kaynakKolon == "(MANUEL GİRİŞ)" && durum?.Contains("ONAYI BEKLENİYOR") == true)
             {
                 string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
@@ -1193,10 +1204,11 @@ namespace DataTransfer
                 if (string.IsNullOrWhiteSpace(manuelDeger))
                 {
                     MessageBox.Show($"'{hedefKolon}' kolonu için **Manuel Değer** girilmeden onaylayamazsınız.",
-                                    "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                      "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
 
+                // ... (MessageBox ve onay mantığı aynı kalır) ...
                 DialogResult result = MessageBox.Show(
                     $"'{hedefKolon}' hedef kolonu için sabit değer olarak **'{manuelDeger}'** atanmıştır.\n\n" +
                     "Bu eşleşmeyi transfer için onaylıyor musunuz?",
@@ -1212,20 +1224,32 @@ namespace DataTransfer
                 return;
             }
 
-
+            // Kritik Hata mantığı aynı kalır.
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
-                                "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                  "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-
-
+            // Uyarı (ONAY GEREKİYOR) durumlarının ayrıştırılması
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
 
+                // --- KRİTİK GÜNCELLEME: Dönüşüm Gerekiyorsa Formu Aç ---
+                // Sizin KontrolEt metodunuz, Lookup ve Format dönüşümlerinde mesajı
+                // "Dönüşüm Gerekli" veya "Format Dönüşümü Gerekli" gibi içerikler içeriyor olmalı.
+                if (uyariMesaji.Contains("Dönüşüm Gerekli") || uyariMesaji.Contains("Format Dönüşümü Gerekli"))
+                {
+                    // Eğer Dönüşüm Gerekliyse, Ayarların yapılacağı formu aç
+                    // DonusumEkraniAc metodu, DonusumGerekli checkbox'ının işaretli olmasını kontrol edecektir.
+                    DonusumEkraniAc(e.RowIndex);
+                    return;
+                }
+                // --------------------------------------------------------
+
+                // Basit Uyarılar (Kırpılma Riski, Tip Dönüşümü) için eski onay mantığı
                 DialogResult result = MessageBox.Show(
                     $"Bu eşleşmede şu uyarılar var:\n\n{uyariMesaji}\n\n" +
                     "Aktarım sırasında veri kaybı veya kırpılma olabilir. Bunu kabul edip onaylıyor musunuz?",
@@ -1460,32 +1484,48 @@ namespace DataTransfer
 
         private void DonusumEkraniAc(int rowIndex)
         {
-            if (TrwKaynakTablolar.SelectedNode?.Tag is not string kaynakTabloAdi || string.IsNullOrWhiteSpace(kaynakTabloAdi))
+             
+            string kaynakTabloAdi = TrwKaynakTablolar.SelectedNode?.Tag as string;
+            string hedefTabloAdi = TrwHedefTablolar.SelectedNode?.Tag as string;
+
+            
+            if (string.IsNullOrWhiteSpace(kaynakTabloAdi))
             {
                 MessageBox.Show("Önce kaynak tablo seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            if (TrwHedefTablolar.SelectedNode?.Tag is not string hedefTabloadi || string.IsNullOrWhiteSpace(hedefTabloadi))
+            if (string.IsNullOrWhiteSpace(hedefTabloAdi))
             {
                 MessageBox.Show("Önce hedef tablo seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            var row = GrdEslestirme.Rows[rowIndex]; 
+
+            var row = GrdEslestirme.Rows[rowIndex];
+
+            
+            if (row.Tag is not EslestirmeSonucu sonuc)
+            {
+                MessageBox.Show("Önce eşleştirme kontrolünü yapın (GridKontrolEt çalıştırılmalı).", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             string kaynakKolonAdi = row.Cells["KaynakKolon"].Value?.ToString();
             string hedefKolonAdi = row.Cells["HedefKolon"].Value?.ToString();
-            string aramaTablo=row.Cells["AramaTablo"].Value?.ToString();
-            string aramaDegerKolon=row.Cells["AramaDegerKolon"].Value?.ToString();
-            string aramaIdKolon=row.Cells["AramaIdKolon"].Value?.ToString();
+            string aramaTablo = row.Cells["AramaTablo"].Value?.ToString();
+            string aramaDegerKolon = row.Cells["AramaDegerKolon"].Value?.ToString();
+            string aramaIdKolon = row.Cells["AramaIdKolon"].Value?.ToString();
 
             bool donusumGerekli = (bool)(row.Cells["DonusumGerekli"].Value ?? false);
 
+          
             if (!donusumGerekli)
             {
                 MessageBox.Show("Bu kolon için Dönüşüm Gerekli kutucuğunu işaretlemelisiniz.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            if (string.IsNullOrWhiteSpace(hedefTabloadi))
+
+          
+            if (string.IsNullOrWhiteSpace(hedefKolonAdi))
             {
                 MessageBox.Show("Önce bir Hedef Kolon seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -1493,31 +1533,35 @@ namespace DataTransfer
 
             try
             {
+                
                 var donusumForm = new DonusumEkrani(
                     kaynakKolonAdi: kaynakKolonAdi,
                     kaynakTabloAdi: kaynakTabloAdi,
-                    aramaTablo: aramaTablo ?? hedefTabloadi,
+                    hedefKolonAdi: hedefKolonAdi, 
+                    aramaTablo: aramaTablo ?? hedefTabloAdi,
                     aramaDegerKolon: aramaDegerKolon,
                     aramaIdKolon: aramaIdKolon,
                     kaynakBaglanti: kaynak,
-                    hedefBaglanti: hedef
+                    hedefBaglanti: hedef,
+                  
+                    donusumTipi: sonuc.DonusumTipi 
                     );
 
-                var eslesmeBilgisi = new EslestirmeBilgisi
-                {
-                    KaynakKolon = kaynakKolonAdi,
-                    HedefKolon = hedefKolonAdi
-                };
+            
 
-                if (donusumForm.ShowDialog()==DialogResult.OK)
+                if (donusumForm.ShowDialog() == DialogResult.OK)
                 {
+                    
+                    row.Cells["DonusumGerekli"].Value = true;
+                    row.Cells["Uygunluk"].Value = "Uygun (Dönüşümlü)";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.DarkGreen;
+                    row.Tag = "ONAYLANDI"; 
                     MessageBox.Show("Dönüşüm ayarları kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Dönüşüm ekranı açılırken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
             }
         }
     }

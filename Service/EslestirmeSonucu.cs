@@ -12,5 +12,14 @@ namespace DataTransfer.Service
         public List<string> Mesajlar { get; set; } = new List<string>();     
         public bool KritikHataVar { get; set; } = false;
         public bool UyariGerekli { get; set; } = false;
+        public DonusumTuru DonusumTipi { get; set; }
+    }
+
+    public enum DonusumTuru
+    {
+        Yok,
+        BasitTipDonusumu, 
+        FormatDonusumu,  
+        LookupEslestirme 
     }
 }
