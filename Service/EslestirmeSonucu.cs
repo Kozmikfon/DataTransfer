@@ -13,6 +13,8 @@ namespace DataTransfer.Service
         public bool KritikHataVar { get; set; } = false;
         public bool UyariGerekli { get; set; } = false;
         public DonusumTuru DonusumTipi { get; set; }
+
+        public Dictionary<string,object> DonusumSozlugu { get; set; } = new Dictionary<string, object>(); //yeni ekledim
     }
 
     public enum DonusumTuru

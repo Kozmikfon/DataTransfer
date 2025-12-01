@@ -1,4 +1,5 @@
 ﻿using DataTransfer.Model;
+using DataTransfer.Service;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -140,9 +141,17 @@ namespace DataTransfer.Repository
 
             foreach (var eslestirme in eslestirmeler)
             {
-                if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
+                // YENİ 1. KONTROL: Lookup Eşleştirme Kontrolü (En Yüksek Öncelik)
+                // EslestirmeBilgisi modelinizdeki Sonuc alanının dolu olduğunu varsayıyoruz.
+                if (eslestirme.Sonuc != null && eslestirme.Sonuc.DonusumTipi == DonusumTuru.LookupEslestirme)
                 {
-
+                    // Dönüşüm varsa, CASE WHEN ifadesini kullan
+                    string caseWhen = sqlIfadesiOlustur(eslestirme);
+                    kolonlarinListesi.Add(caseWhen);
+                }
+                // MEVCUT 2. KONTROL: Manuel Giriş
+                else if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
+                {
                     string manuelDeger = eslestirme.ManuelDeger;
                     string sqlLiteral;
 
@@ -152,19 +161,21 @@ namespace DataTransfer.Repository
                     }
                     else
                     {
+                        // Mevcut tırnak kaçırma mantığı
                         sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
                     }
 
                     kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
                 }
+                // MEVCUT 3. KONTROL: Direkt Kolon Eşleşmesi veya Diğer Dönüşüm Tipleri
                 else
                 {
-                   
+                    // Dönüşüm gerektirmeyen veya basit tip dönüşümü olan kolonlar
                     kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
                 }
             }
 
-            // SQL sorgusunu oluştur
+            // SQL sorgusunun geri kalanı aynı kalır
             string kolonListe = string.Join(", ", kolonlarinListesi);
             string sql = $"SELECT {kolonListe} FROM [{tablo}]";
 
@@ -184,12 +195,54 @@ namespace DataTransfer.Repository
             }
             catch (Exception ex)
             {
-                // Hata mesajına SQL sorgusunu dahil etmek hata ayıklama için harika.
                 throw new Exception($"VeriGetir metodu hata: {ex.Message} SQL: {sql}", ex);
             }
 
             return dt;
         }
+
+
+
+        // KaynakRepo sınıfı içinde (VeriGetir metodunun yanında)
+
+        private string sqlIfadesiOlustur(EslestirmeBilgisi eslesme)
+        {
+            // Sözlük boşsa veya null ise, dönüştürmeye gerek yok.
+            var sozluk = eslesme.Sonuc?.DonusumSozlugu;
+            if (sozluk == null || sozluk.Count == 0)
+            {
+                // Dönüşüm yoksa, orijinal kolon/hedef kolon eşleşmesini döndürürüz.
+                return $"[{eslesme.KaynakKolon}] AS [{eslesme.HedefKolon}]";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("CASE");
+
+            foreach (var kvp in sozluk)
+            {
+                string kaynakDeger = kvp.Key;
+                object hedefDeger = kvp.Value;
+
+                // 1. Kaynak değeri SQL String Literal olarak tırnak içine al (Tırnak kaçırma dahil)
+                string kaynakDegerSQL = $"'{kaynakDeger.Replace("'", "''")}'";
+
+                // 2. Hedef değeri (ID) tırnak içine alma (genelde sayısal ID'dir)
+                string hedefDegerSQL = hedefDeger.ToString();
+
+                // SQL'de: WHEN KaynakKolon = 'KaynakDeger' THEN HedefID
+                sb.AppendLine($"  WHEN [{eslesme.KaynakKolon}] = {kaynakDegerSQL} THEN {hedefDegerSQL}");
+            }
+
+            // 3. Eşleşmeyenler için son ELSE kuralı
+            sb.AppendLine($"  ELSE NULL");
+
+            // 4. Hedef kolonu olarak alias verme
+            sb.Append($"END AS [{eslesme.HedefKolon}]");
+
+            return sb.ToString();
+        }
+
+
 
         //filtre testi
         public async Task<int> SatirSayisiGetirAsync(string tablo, string kosul)
@@ -275,6 +328,63 @@ namespace DataTransfer.Repository
             return result;
         }
 
+        //hedeftabloya veri girme
+
+        // DataTransfer.Repository / SqlTransferRepository.cs
+
+        // Metot İmzasını Değiştir
+        // public DataTable ZorunluKolonlariCek(string tabloAdi, string idKolonAdi) { ... } yerine:
+        public List<ZorunluKolonBilgisi> ZorunluKolonlariCek(string tabloAdi, string idKolonAdi)
+        {
+            // ... (SQL sorgusu aynı kalır, OBJECT_ID kullanılan sağlam sorgu)
+
+            string sql = $@"
+        SELECT 
+            c.name AS COLUMN_NAME, 
+            t.name AS DATA_TYPE
+        FROM 
+            sys.columns c
+        INNER JOIN
+            sys.types t ON t.user_type_id = c.user_type_id
+        WHERE 
+            c.object_id = OBJECT_ID(@tabloAdi) AND 
+            c.is_nullable = 0 AND 
+            c.is_identity = 0 AND 
+            c.default_object_id = 0 AND 
+            c.name != @idKolonAdi";
+
+            var zorunluKolonlar = new List<ZorunluKolonBilgisi>();
+
+            try
+            {
+                // ... (Bağlantı ve Command nesneleri)
+                using (var conn = new SqlConnection(_connectionString))
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@tabloAdi", tabloAdi);
+                    cmd.Parameters.AddWithValue("@idKolonAdi", idKolonAdi);
+
+                    conn.Open();
+                    // DataReader ile dönerek listeyi dolduruyoruz
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            zorunluKolonlar.Add(new ZorunluKolonBilgisi
+                            {
+                                KolonAdi = reader["COLUMN_NAME"].ToString(),
+                                veriTipi = reader["DATA_TYPE"].ToString()
+                            });
+                        }
+                    }
+                    return zorunluKolonlar; // Listeyi döndür
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Zorunlu Kolon Metadata Sorgusu Hatası: {ex.Message} SQL: {sql}", ex);
+            }
+        }
         public void Dispose()
         {
            

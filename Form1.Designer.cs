@@ -47,7 +47,6 @@
             lblHedef = new Label();
             label2 = new Label();
             label3 = new Label();
-            BtnFormatDegistir = new Button();
             ((System.ComponentModel.ISupportInitialize)GrdEslestirme).BeginInit();
             GrbBoxFiltreleme.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -77,7 +76,7 @@
             // BtnOtomatikEsle
             // 
             BtnOtomatikEsle.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnOtomatikEsle.Location = new Point(1564, 334);
+            BtnOtomatikEsle.Location = new Point(968, 677);
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(191, 90);
             BtnOtomatikEsle.TabIndex = 3;
@@ -88,7 +87,7 @@
             // BtnStrSil
             // 
             BtnStrSil.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnStrSil.Location = new Point(1564, 448);
+            BtnStrSil.Location = new Point(1258, 677);
             BtnStrSil.Name = "BtnStrSil";
             BtnStrSil.Size = new Size(191, 87);
             BtnStrSil.TabIndex = 2;
@@ -101,9 +100,9 @@
             GrdEslestirme.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdEslestirme.Location = new Point(0, 370);
             GrdEslestirme.Name = "GrdEslestirme";
-            GrdEslestirme.Size = new Size(1531, 283);
+            GrdEslestirme.Size = new Size(1781, 265);
             GrdEslestirme.TabIndex = 1;
-            GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
+            GrdEslestirme.CellClick += GrdEslestirme_CellClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
@@ -111,7 +110,7 @@
             // BtnTransferBaslat
             // 
             BtnTransferBaslat.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnTransferBaslat.Location = new Point(1559, 677);
+            BtnTransferBaslat.Location = new Point(1542, 679);
             BtnTransferBaslat.Name = "BtnTransferBaslat";
             BtnTransferBaslat.Size = new Size(196, 87);
             BtnTransferBaslat.TabIndex = 7;
@@ -121,7 +120,7 @@
             // 
             // prgTransfer
             // 
-            prgTransfer.Location = new Point(654, 698);
+            prgTransfer.Location = new Point(673, 694);
             prgTransfer.Name = "prgTransfer";
             prgTransfer.Size = new Size(200, 73);
             prgTransfer.TabIndex = 8;
@@ -197,7 +196,7 @@
             GrbBoxFiltreleme.Controls.Add(RdoBtnFiltre);
             GrbBoxFiltreleme.Controls.Add(TxtFiltreleme);
             GrbBoxFiltreleme.Controls.Add(BtnFiltreTest);
-            GrbBoxFiltreleme.Location = new Point(12, 677);
+            GrbBoxFiltreleme.Location = new Point(12, 666);
             GrbBoxFiltreleme.Name = "GrbBoxFiltreleme";
             GrbBoxFiltreleme.Size = new Size(594, 122);
             GrbBoxFiltreleme.TabIndex = 2;
@@ -217,7 +216,7 @@
             // BtnKynkSutunYkle
             // 
             BtnKynkSutunYkle.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnKynkSutunYkle.Location = new Point(491, 278);
+            BtnKynkSutunYkle.Location = new Point(494, 278);
             BtnKynkSutunYkle.Name = "BtnKynkSutunYkle";
             BtnKynkSutunYkle.Size = new Size(148, 41);
             BtnKynkSutunYkle.TabIndex = 16;
@@ -320,23 +319,11 @@
             label3.TabIndex = 25;
             label3.Text = "Kaynak Tablo :";
             // 
-            // BtnFormatDegistir
-            // 
-            BtnFormatDegistir.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            BtnFormatDegistir.Location = new Point(1559, 564);
-            BtnFormatDegistir.Name = "BtnFormatDegistir";
-            BtnFormatDegistir.Size = new Size(196, 89);
-            BtnFormatDegistir.TabIndex = 26;
-            BtnFormatDegistir.Text = "Format değiştir";
-            BtnFormatDegistir.UseVisualStyleBackColor = true;
-            BtnFormatDegistir.Click += BtnFormatDegistir_Click;
-            // 
             // FrmVeriEslestirme
             // 
             AutoScaleMode = AutoScaleMode.Inherit;
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1784, 1011);
-            Controls.Add(BtnFormatDegistir);
             Controls.Add(label3);
             Controls.Add(label2);
             Controls.Add(lblHedef);
@@ -396,7 +383,6 @@
         private Label lblHedef;
         private Label label2;
         private Label label3;
-        private Button BtnFormatDegistir;
     }
 
 }

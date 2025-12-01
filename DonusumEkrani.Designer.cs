@@ -28,12 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             BtnDonusumKaydet = new Button();
             BtnDonusumIptal = new Button();
             lblBilgi = new Label();
             BtnEkle = new Button();
             GrdDonusum = new DataGridView();
+            donusumSatiriBindingSource = new BindingSource(components);
             ((System.ComponentModel.ISupportInitialize)GrdDonusum).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)donusumSatiriBindingSource).BeginInit();
             SuspendLayout();
             // 
             // BtnDonusumKaydet
@@ -80,9 +83,10 @@
             GrdDonusum.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             GrdDonusum.Location = new Point(95, 83);
             GrdDonusum.Name = "GrdDonusum";
-            GrdDonusum.Size = new Size(799, 450);
+            GrdDonusum.Size = new Size(817, 437);
             GrdDonusum.TabIndex = 4;
-            GrdDonusum.CellContentClick += GrdDonusum_CellContentClick;
+            GrdDonusum.CellClick += GrdDonusum_CellClick;
+            GrdDonusum.CellFormatting += GrdDonusum_CellFormatting;
             // 
             // DonusumEkrani
             // 
@@ -98,6 +102,7 @@
             Text = "Veri Dönüşüm Ekranı";
             Load += DonusumEkrani_Load;
             ((System.ComponentModel.ISupportInitialize)GrdDonusum).EndInit();
+            ((System.ComponentModel.ISupportInitialize)donusumSatiriBindingSource).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -109,5 +114,6 @@
         private Label lblBilgi;
         private Button BtnEkle;
         private DataGridView GrdDonusum;
+        private BindingSource donusumSatiriBindingSource;
     }
 }
