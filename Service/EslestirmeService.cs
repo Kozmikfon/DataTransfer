@@ -84,12 +84,12 @@ namespace DataTransfer.Service
                         sonuc.Mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
                         sonuc.UyariGerekli = true;
                     }
-                    else if (hedefLen > kaynakLen)
-                    {
-                        string kStr = kaynak.Length.Value == -1 ? "MAX" : kaynak.Length.Value.ToString();
-                        string hStr = hedef.Length.Value == -1 ? "MAX" : hedef.Length.Value.ToString();
-                        sonuc.Mesajlar.Add($" ({kStr}->{hStr})");
-                    }
+                    //else if (hedefLen > kaynakLen)
+                    //{
+                    //    string kStr = kaynak.Length.Value == -1 ? "MAX" : kaynak.Length.Value.ToString();
+                    //    string hStr = hedef.Length.Value == -1 ? "MAX" : hedef.Length.Value.ToString();
+                    //    sonuc.Mesajlar.Add($" ({kStr}->{hStr})");
+                    //}
                 }
             }
 
@@ -112,8 +112,9 @@ namespace DataTransfer.Service
                 
                 if ((IsSayisalTip(kaynakTip) || kaynakTarih) && hedefMetin)
                 {
-                    sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip}");
-                    sonuc.KritikHataVar = true;
+                    sonuc.Mesajlar.Add($"Tip Dönüşümü Gerekli: {kaynakTip} -> {hedefTip}");
+                    sonuc.UyariGerekli = true;
+                    sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
 
                 // Güncellenmiş Metin -> Sayısal/Tarih BLOKU
@@ -129,10 +130,10 @@ namespace DataTransfer.Service
                         sonuc.UyariGerekli = true;
                         sonuc.DonusumTipi = DonusumTuru.LookupEslestirme;
 
-                        if (sonuc.KritikHataVar)
-                        {
-                            sonuc.KritikHataVar = false;
-                        }
+                        //if (sonuc.KritikHataVar)
+                        //{
+                        //    sonuc.KritikHataVar = false;
+                        //}
                     }
 
                     else if (isMetinToTarih)
@@ -142,10 +143,10 @@ namespace DataTransfer.Service
                         sonuc.UyariGerekli = true;
                         sonuc.DonusumTipi = DonusumTuru.FormatDonusumu;
 
-                        if (sonuc.KritikHataVar)
-                        {
-                            sonuc.KritikHataVar = false;
-                        }
+                        //if (sonuc.KritikHataVar)
+                        //{
+                        //    sonuc.KritikHataVar = false;
+                        //}
                     }
                     else
                     {

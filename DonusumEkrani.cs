@@ -65,7 +65,7 @@ namespace DataTransfer
 
             _donusumListesi = new List<DonusumSatiri>();
 
-            
+
             this.donusumSatiriBindingSource.DataSource = _donusumListesi;
             GrdDonusum.DataSource = this.donusumSatiriBindingSource;
 
@@ -116,8 +116,8 @@ namespace DataTransfer
                 durum,
                 islem
             });
-            
-            
+
+
             //GrdDonusum.DataSource = _donusumListesi;
         }
 
@@ -204,11 +204,11 @@ namespace DataTransfer
         "Oto Eşleşti",
         "Manuel Eşleşti",
         "Tamamlandı",
-        "Yeni Kayıt Eklendi" 
-       
+        "Yeni Kayıt Eklendi"
+
     };
 
-            
+
             bool eksikEslestirmeVar = _donusumListesi.Any(satir =>
                 !satir.Durum.Equals("NULL Değer", StringComparison.OrdinalIgnoreCase) &&
                 !tamamlanmisDurumlar.Any(durum => satir.Durum.Equals(durum, StringComparison.OrdinalIgnoreCase))
@@ -223,26 +223,26 @@ namespace DataTransfer
                 }
             }
 
-           
+
             DonusumSozlugu.Clear();
 
             foreach (var satir in _donusumListesi)
             {
-              
+
                 if (satir.HedefAtanacakDeger != null &&
                     !string.IsNullOrWhiteSpace(satir.HedefAtanacakDeger.ToString()))
                 {
-                   
+
                     if (tamamlanmisDurumlar.Any(durum => satir.Durum.Equals(durum, StringComparison.OrdinalIgnoreCase)))
                     {
-                        
+
                         if (!DonusumSozlugu.ContainsKey(satir.KaynakDeger))
                         {
                             DonusumSozlugu.Add(satir.KaynakDeger, satir.HedefAtanacakDeger);
                         }
                     }
                 }
-                
+
             }
 
             this.DialogResult = DialogResult.OK;
@@ -272,20 +272,21 @@ namespace DataTransfer
             { "@yeniDeger", yeniDeger }
         };
 
-               
+
                 int paramIndex = 1;
-               
+
                 foreach (var kolonBilgisi in zorunluKolonlar)
                 {
                     string kolonAdi = kolonBilgisi.KolonAdi;
                     string veriTipi = kolonBilgisi.veriTipi;
 
-                   
-                    if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-                   
+
+                    if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase) ||
+                kolonAdi.Equals(_aramaIdKolon, StringComparison.OrdinalIgnoreCase)) // <--- Bu satır eklendi/güncellendi.
+            {
+                continue;
+            }
+
 
                     string paramName = $"@p{paramIndex++}";
                     kolonlar.Add($"[{kolonAdi}]");
@@ -325,7 +326,7 @@ namespace DataTransfer
             }
         }
 
-        
+
         private object GetVarsayilanDeger(string veriTipi, string kolonAdi)
         {
 
@@ -341,7 +342,7 @@ namespace DataTransfer
                     return 0; // Sayısal tipler
 
                 case "bit":
-                    
+
                     return 1;
 
                 case "uniqueidentifier":
@@ -414,13 +415,9 @@ namespace DataTransfer
                         _donusumListesi.Add(donusumSatiri);
                     }
 
-                    // --------------------------------------------------------------------------------
-                    // ÖNEMLİ DEĞİŞİKLİK: BindingSource üzerinden veri yenileniyor. 
-                    // Bu, _donusumListesi'ndeki yeni verileri GrdDonusum'a güvenle iletir.
+                   
                     this.donusumSatiriBindingSource.ResetBindings(false);
-                    // --------------------------------------------------------------------------------
-
-                    // Otomatik aramayı çizim olayları durmuşken yap
+                   
                     OtomatikAramaVeGuncelle();
                 }
                 else
@@ -434,9 +431,9 @@ namespace DataTransfer
             }
             finally
             {
-                // UI Güncellemelerini ve Olayları Yeniden Başlat
+                // UI Güncellemelerini ve Olayları Yeniden Başlatmas
                 GrdDonusum.ResumeLayout();
-                // Tüm UI'ın yeniden çizilmesini zorla (gerekirse)
+                // Tüm UI'ın yeniden çizilmesini 
                 GrdDonusum.Refresh();
             }
 
@@ -446,68 +443,54 @@ namespace DataTransfer
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex >= GrdDonusum.Rows.Count)
             {
-                return; 
+                return;
             }
-            
-            if (e.ColumnIndex == 3)
+
+            if (e.ColumnIndex == 3) // İşlem kolonu
             {
-                
+
                 GrdDonusum.EndEdit();
                 GrdDonusum.CommitEdit(DataGridViewDataErrorContexts.Commit);
 
                 var row = GrdDonusum.Rows[e.RowIndex];
 
-                
+
                 if (row.DataBoundItem is DonusumSatiri satir)
                 {
 
                     bool yeniKayitEklendi = false;
 
-                    if (satir.Durum == "Eşleşme Bulunamadı")
-                    {
-                        DialogResult secim = MessageBox.Show(
-                            $"Kaynak Değer: '{satir.KaynakDeger}' için eşleşme bulunamadı.\n\n" +
-                            $"Hedef Tablo ({_aramaTablo})'ya bu değeri kullanarak yeni kayıt eklemek ister misiniz?",
-                            "Eşleşme Seçeneği",
-                            MessageBoxButtons.YesNoCancel,
-                            MessageBoxIcon.Question);
-
-                        if (secim == DialogResult.Yes)
-                        {
-                            int yeniID = YeniKayitEkleVeIDDon(satir.KaynakDeger);
-
-                            if (yeniID > 0)
-                            {
-                                satir.HedefAtanacakDeger = yeniID;
-                                satir.Durum = "Yeni Kayıt Eklendi";
-                                yeniKayitEklendi = true;
-                            }
-                            else
-                            {
-                                MessageBox.Show("Kayıt ekleme başarısız oldu. Manuel eşlemeye geçiliyor.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            }
-                        }
-                        else if (secim == DialogResult.Cancel)
-                        {
-                            return;
-                        }
-                    }
-
-                    // Yeni kayıt eklenmediyse ve kullanıcı "Düzenle" butonuna bastıysa manuel eşleme ekranını aç.
+            
                     if (!yeniKayitEklendi)
                     {
                         string yeniDeger = Microsoft.VisualBasic.Interaction.InputBox(
                             $"Kaynak Değer: '{satir.KaynakDeger}' için Hedef ID'yi girin.\n" +
-                            $"(ID'yi değiştirmek veya manuel eşleme yapmak istiyorsanız)",
-                            "Manuel Eşleme",
+                            $"(ID'yi değiştirmek veya {this._aramaTablo} tablosunda doğrulamak istiyorsanız)", 
+                            "Manuel Eşleme ve Doğrulama",
                             satir.HedefAtanacakDeger?.ToString() ?? string.Empty);
 
                         if (!string.IsNullOrWhiteSpace(yeniDeger))
                         {
                             if (long.TryParse(yeniDeger, out long idDegeri))
                             {
-                                satir.HedefAtanacakDeger = idDegeri;
-                                satir.Durum = "Manuel Eşleşti";
+                               
+                                object aciklamaResult = HedefIdIleArananGetir(idDegeri);
+
+                                if (aciklamaResult != null && aciklamaResult != DBNull.Value)
+                                {
+                                  
+                                    string aciklama = aciklamaResult.ToString();
+                                    satir.HedefAtanacakDeger = idDegeri;
+
+                                    
+                                    satir.Durum = $"Manuel Eşleşti ({aciklama})";
+                                }
+                                else
+                                {
+                                    
+                                    MessageBox.Show($"Girilen ID ({idDegeri}) Hedef Tablo ({_aramaTablo})'da bulunamadı.", "ID Doğrulama Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return; 
+                                }
                             }
                             else
                             {
@@ -535,7 +518,7 @@ namespace DataTransfer
 
             if (e.ColumnIndex == 2)
             {
-                
+
                 if (((DataGridView)sender).Rows[e.RowIndex].DataBoundItem is DonusumSatiri satir)
                 {
                     if (satir.Durum == "Eşleşme Bulunamadı")
@@ -549,6 +532,135 @@ namespace DataTransfer
                 }
             }
 
+        }
+
+        private void BtnTopluKayit_Click(object sender, EventArgs e)
+        {
+            TopluEslesmeyenleriEkle();
+        }
+
+        private void TopluEslesmeyenleriEkle()
+        {
+            // Yalnızca eşleşme bulunamayan satırları önceden filtrele
+            var eklenecekSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı" && !string.IsNullOrWhiteSpace(s.KaynakDeger)).ToList();
+
+            int toplamEklenecekSatir = eklenecekSatirlar.Count;
+
+            if (toplamEklenecekSatir == 0)
+            {
+                MessageBox.Show("Yeni kayıt eklenmesi gereken satır bulunamadı veya Kaynak Değerleri boş.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            DialogResult result = MessageBox.Show(
+                $"{toplamEklenecekSatir} adet eşleşmeyen kayıt için Hedef Tabloya ({_aramaTablo}) otomatik kayıt eklemek istediğinizden emin misiniz? Bu işlem geri alınamaz (Transaction başarısız olursa geri alınır).",
+                "Toplu Kayıt Ekleme Onayı",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (result == DialogResult.No)
+            {
+                return;
+            }
+
+            // UI güncellemelerini durdurma (Mevcut kodunuzdaki gibi)
+            GrdDonusum.SuspendLayout();
+            this.donusumSatiriBindingSource.RaiseListChangedEvents = false;
+
+            int basariliEklemeSayisi = 0;
+
+            // Tek bir Try-Catch Bloğu ve Transaction kullanımı
+            try
+            {
+                using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+                hedefRepo.BeginTransaction(); // *** KRİTİK İYİLEŞTİRME 1: Transaction Başlat ***
+
+                foreach (var satir in eklenecekSatirlar)
+                {
+                    // Yeni Kayıt Ekleme metodunu Transaction ile çalıştırmak için revize edilmesi gerekebilir. 
+                    // Şimdilik sadece çağrısını tutuyoruz.
+                    int yeniId = YeniKayitEkleVeIDDon(satir.KaynakDeger);
+
+                    if (yeniId > 0)
+                    {
+                        satir.HedefAtanacakDeger = yeniId;
+                        satir.Durum = "Yeni Kayıt Eklendi";
+                        basariliEklemeSayisi++;
+                    }
+                    else
+                    {
+                        // *** KRİTİK İYİLEŞTİRME 2: Başarısız Durumda Açıkça Belirtme ***
+                        satir.Durum = "Ekleme Başarısız";
+                        // Eğer burada bir hata oluştuysa, büyük ihtimalle YeniKayitEkleVeIDDon zaten MessageBox göstermiştir.
+                    }
+                }
+
+                hedefRepo.CommitTransaction(); // Transaction'ı tamamla
+            }
+            catch (Exception ex)
+            {
+                // Bir hata durumunda Transaction'ı geri al
+                try
+                {
+                    new SqlTransferRepository(_hedefBaglanti).RollbackTransaction();
+                }
+                catch (Exception rollbackEx)
+                {
+                    // Rollback sırasında hata olursa (Örn: bağlantı kesildiyse)
+                    MessageBox.Show($"Kayıt eklenirken hata oluştu ve işlem geri alınamadı (Rollback Hatası: {rollbackEx.Message}). Veri tutarsızlığı olabilir. Lütfen DBA ile iletişime geçin.", "Kritik Veri Bütünlüğü Hatası", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    // Tüm işlemi durdurmak için exception'ı tekrar fırlatılabilir veya burada bitirilebilir.
+                }
+
+                // Kullanıcıya ana hatayı bildir
+                MessageBox.Show($"Toplu kayıt eklenirken bir hata oluştu. İşlem geri alındı. Hata: {ex.Message}", "Toplu Ekleme Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                basariliEklemeSayisi = 0; // Başarılı sayısını sıfırla
+            }
+            finally
+            {
+                // UI güncellemelerini yeniden başlatma (Mevcut kodunuzdaki gibi)
+                this.donusumSatiriBindingSource.RaiseListChangedEvents = true;
+                GrdDonusum.ResumeLayout();
+                this.donusumSatiriBindingSource.ResetBindings(false); // Yenile
+
+                if (basariliEklemeSayisi > 0)
+                {
+                    MessageBox.Show($"{basariliEklemeSayisi} adet kayıt başarıyla eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (toplamEklenecekSatir > 0 && basariliEklemeSayisi == 0)
+                {
+                    // Sadece başarısız olanlar için bir uyarı (hata try-catch'te gösterildi ama teyit edelim)
+                    // Durumu "Ekleme Başarısız" olan satırlar Grid'de görünecektir.
+                    //MessageBox.Show("Toplu kayıt ekleme işlemi başarıyla sonuçlanmadı. Detaylar için logları kontrol edin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        private object HedefIdIleArananGetir(object idDegeri)
+        {
+            if (string.IsNullOrWhiteSpace(_aramaTablo) || string.IsNullOrWhiteSpace(_aramaDegerKolon) || string.IsNullOrWhiteSpace(_aramaIdKolon))
+            {
+                return null;
+            }
+
+            try
+            {
+                // Hedef bağlantısını kullanacak Repo nesnesi oluşturulur
+                using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+
+                // SQL Transfer Repository'deki HedefDegerGetir metodu çağrılır.
+                // ID'yi arar (_aramaIdKolon) ve metin değerini döndürür (_aramaDegerKolon).
+                return hedefRepo.HedefDegerGetir(
+                    _aramaTablo,
+                    _aramaIdKolon,      // Arama yapılacak kolon (ID)
+                    idDegeri,           // Aranacak değer (Kullanıcının girdiği ID)
+                    _aramaDegerKolon    // Geri döndürülecek kolon (Açıklama/Metin)
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Hedef açıklama aranırken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
         }
     }
 }

@@ -4,9 +4,11 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace DataTransfer.Repository
 {
@@ -14,7 +16,18 @@ namespace DataTransfer.Repository
     {
         private readonly string _connectionString;
         private readonly BaglantiBilgileri _info;
-        
+
+        private SqlConnection _connection;
+        private SqlTransaction _transaction;
+
+
+        public SqlTransferRepository(BaglantiBilgileri info)
+        {
+            _info = info;
+            _connectionString = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
+
+            _connection = new SqlConnection(_connectionString);
+        }
 
         private const string SQL_GET_TABLES =
             "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
@@ -126,11 +139,7 @@ namespace DataTransfer.Repository
         ORDER BY C.ORDINAL_POSITION";
 
 
-        public SqlTransferRepository(BaglantiBilgileri info)
-        {
-            _info = info;
-            _connectionString = $"Server={info.Sunucu};Database={info.Veritabani};User Id={info.Kullanici};Password={info.Sifre};TrustServerCertificate=True;";
-        }
+       
 
 
 
@@ -202,16 +211,12 @@ namespace DataTransfer.Repository
         }
 
 
-
-        // KaynakRepo sınıfı içinde (VeriGetir metodunun yanında)
-
         private string sqlIfadesiOlustur(EslestirmeBilgisi eslesme)
         {
-            // Sözlük boşsa veya null ise, dönüştürmeye gerek yok.
+            // ... (başlangıç kısmı aynı) ...
             var sozluk = eslesme.Sonuc?.DonusumSozlugu;
             if (sozluk == null || sozluk.Count == 0)
             {
-                // Dönüşüm yoksa, orijinal kolon/hedef kolon eşleşmesini döndürürüz.
                 return $"[{eslesme.KaynakKolon}] AS [{eslesme.HedefKolon}]";
             }
 
@@ -223,26 +228,80 @@ namespace DataTransfer.Repository
                 string kaynakDeger = kvp.Key;
                 object hedefDeger = kvp.Value;
 
-                // 1. Kaynak değeri SQL String Literal olarak tırnak içine al (Tırnak kaçırma dahil)
+                // 1. Kaynak değeri tırnak içine al (Örn: '1' veya 'MAHMUT')
                 string kaynakDegerSQL = $"'{kaynakDeger.Replace("'", "''")}'";
 
-                // 2. Hedef değeri (ID) tırnak içine alma (genelde sayısal ID'dir)
-                string hedefDegerSQL = hedefDeger.ToString();
+                // 2. KRİTİK DÜZELTME: Hedef değeri işleme
+                string hedefDegerString = hedefDeger.ToString();
+                string hedefDegerSQL;
 
-                // SQL'de: WHEN KaynakKolon = 'KaynakDeger' THEN HedefID
+                // Varsayım: Eğer hedef değer sayısal değilse (yani string ise), tırnak içine alınmalıdır.
+                // En basit kontrol: Sayısal bir değer mi? (Daha kapsamlı kontrol yapılabilir)
+                if (int.TryParse(hedefDegerString, out int _))
+                {
+                    // Sayısal ID ise tırnak yok (Örn: 101)
+                    hedefDegerSQL = hedefDegerString;
+                }
+                else
+                {
+                    // String ise tırnak içine al (Örn: 'musteri')
+                    hedefDegerSQL = $"'{hedefDegerString.Replace("'", "''")}'";
+                }
+
+                // SQL'de: WHEN KaynakKolon = 'KaynakDeger' THEN HedefDeger
                 sb.AppendLine($"  WHEN [{eslesme.KaynakKolon}] = {kaynakDegerSQL} THEN {hedefDegerSQL}");
             }
 
-            // 3. Eşleşmeyenler için son ELSE kuralı
+            // ... (ELSE NULL ve END AS aynı) ...
             sb.AppendLine($"  ELSE NULL");
-
-            // 4. Hedef kolonu olarak alias verme
             sb.Append($"END AS [{eslesme.HedefKolon}]");
 
             return sb.ToString();
         }
 
+        // SqlTransferRepository sınıfında (Hedef bağlantısını kullandığını varsayıyorum)
 
+        // Bu metot, herhangi bir kolonda arama yapıp, başka bir kolondan sonuç döndürebilir.
+        public object HedefDegerGetir(
+            string tabloAdi,
+            string aramaKolonu,
+            object arananDeger,
+            string donenKolon)
+        {
+            // SQL sorgusu: Aranan değere göre dönen kolonu getir
+            string sql = $@"
+        SELECT TOP 1 [{donenKolon}] 
+        FROM [{tabloAdi}] 
+        WHERE [{aramaKolonu}] = @ArananDeger";
+
+            try
+            {
+                // KRİTİK 3: Command, Repository'nin bağlantı ve Transaction'ını kullanır.
+                using (var cmd = new SqlCommand(sql, _connection, _transaction))
+                {
+                    cmd.Parameters.AddWithValue("@ArananDeger", arananDeger);
+
+                    if (_connection.State != ConnectionState.Open)
+                    {
+                        _connection.Open();
+                    }
+
+                    object result = cmd.ExecuteScalar();
+
+                    if (result != null && result != DBNull.Value)
+                    {
+                        return result;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata durumunda null veya özel bir hata fırlatılabilir.
+                throw new Exception($"Hedef sistemde dinamik arama hatası: {ex.Message} SQL: {sql}", ex);
+            }
+
+            return null;
+        }
 
         //filtre testi
         public async Task<int> SatirSayisiGetirAsync(string tablo, string kosul)
@@ -297,28 +356,26 @@ namespace DataTransfer.Repository
         public object ExecuteScalar(string sqlCommand, Dictionary<string, object> parameters)
         {
             object result = null;
-            string connStr = _connectionString; // Repository'nin constructor'da oluşturduğu bağlantı dizesi
-
+            
             try
-            {
-                using (var conn = new SqlConnection(connStr))
-                using (var cmd = new SqlCommand(sqlCommand, conn))
-                {
-                    conn.Open();
-
-                    // Parametreleri komuta ekle
+            {           
+                using (var cmd = new SqlCommand(sqlCommand, _connection, _transaction))
+                {                  
+                    if (_connection.State != ConnectionState.Open)
+                    {
+                        _connection.Open();
+                    }                   
                     if (parameters != null)
                     {
                         foreach (var param in parameters)
                         {
-                            // Parametre değeri null ise DBNull.Value olarak ayarla
-                            cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+                           cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                         }
                     }
-
-                    // Sorguyu çalıştır ve ilk satırın ilk kolonundaki değeri al
-                    result = cmd.ExecuteScalar();
+                   result = cmd.ExecuteScalar();
                 }
+              
+                return result;
             }
             catch (Exception ex)
             {
@@ -328,12 +385,7 @@ namespace DataTransfer.Repository
             return result;
         }
 
-        //hedeftabloya veri girme
-
-        // DataTransfer.Repository / SqlTransferRepository.cs
-
-        // Metot İmzasını Değiştir
-        // public DataTable ZorunluKolonlariCek(string tabloAdi, string idKolonAdi) { ... } yerine:
+    
         public List<ZorunluKolonBilgisi> ZorunluKolonlariCek(string tabloAdi, string idKolonAdi)
         {
             // ... (SQL sorgusu aynı kalır, OBJECT_ID kullanılan sağlam sorgu)
@@ -385,9 +437,52 @@ namespace DataTransfer.Repository
                 throw new Exception($"Zorunlu Kolon Metadata Sorgusu Hatası: {ex.Message} SQL: {sql}", ex);
             }
         }
+
+        //veri bütünlüğü için kontroller
+
+        public void BeginTransaction()
+        {
+            if (_connection.State != ConnectionState.Open)
+            {
+                _connection.Open();
+            }
+            _transaction = _connection.BeginTransaction();
+        }
+
+        public void CommitTransaction()
+        {
+            if (_transaction != null)
+            {
+                _transaction.Commit();
+                _transaction = null;
+            }
+        }
+
+        public void RollbackTransaction()
+        {
+            if (_transaction != null)
+            {
+                _transaction.Rollback();
+                _transaction = null;
+            }
+        }
+
+
         public void Dispose()
         {
-           
+            if (_transaction != null)
+            {
+                
+                try { _transaction.Rollback(); }
+                catch {  }
+                _transaction.Dispose();
+            }
+
+            if (_connection != null && _connection.State != ConnectionState.Closed)
+            {
+                _connection.Close();
+                _connection.Dispose();
+            }
         }
     }
 }

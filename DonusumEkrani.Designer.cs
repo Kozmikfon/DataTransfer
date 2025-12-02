@@ -35,6 +35,7 @@
             BtnEkle = new Button();
             GrdDonusum = new DataGridView();
             donusumSatiriBindingSource = new BindingSource(components);
+            BtnTopluKayit = new Button();
             ((System.ComponentModel.ISupportInitialize)GrdDonusum).BeginInit();
             ((System.ComponentModel.ISupportInitialize)donusumSatiriBindingSource).BeginInit();
             SuspendLayout();
@@ -88,11 +89,22 @@
             GrdDonusum.CellClick += GrdDonusum_CellClick;
             GrdDonusum.CellFormatting += GrdDonusum_CellFormatting;
             // 
+            // BtnTopluKayit
+            // 
+            BtnTopluKayit.Location = new Point(727, 573);
+            BtnTopluKayit.Name = "BtnTopluKayit";
+            BtnTopluKayit.Size = new Size(128, 47);
+            BtnTopluKayit.TabIndex = 5;
+            BtnTopluKayit.Text = "Eşleşmeyenleri Ekle";
+            BtnTopluKayit.UseVisualStyleBackColor = true;
+            BtnTopluKayit.Click += BtnTopluKayit_Click;
+            // 
             // DonusumEkrani
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(964, 703);
+            Controls.Add(BtnTopluKayit);
             Controls.Add(GrdDonusum);
             Controls.Add(BtnEkle);
             Controls.Add(lblBilgi);
@@ -115,5 +127,6 @@
         private Button BtnEkle;
         private DataGridView GrdDonusum;
         private BindingSource donusumSatiriBindingSource;
+        private Button BtnTopluKayit;
     }
 }

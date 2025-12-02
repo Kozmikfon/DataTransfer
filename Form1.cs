@@ -162,7 +162,9 @@ namespace DataTransfer
                 HeaderText = "Arama Değer Kolonu",
                 ReadOnly = false,
                 Width = 150,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat, 
+                
+
             };
 
             var aramaIdKolon = new DataGridViewComboBoxColumn
@@ -286,6 +288,9 @@ namespace DataTransfer
 
         private void GridKontrolEt(DataGridViewRow row)
         {
+            string mevcutTagString=row.Tag?.ToString();
+            bool dahaOnceOnaylandi = mevcutTagString == "ONAYLANDI";
+
             try
             {
                 bool benzersizAlanCheck = (bool)(row.Cells["IsUnique"].Value ?? false);
@@ -322,7 +327,6 @@ namespace DataTransfer
 
                 if (isManuelGiris)
                 {
-
                     if (string.IsNullOrWhiteSpace(manuelDeger))
                     {
                         sonuc.KritikHataVar = false;
@@ -330,7 +334,8 @@ namespace DataTransfer
                         sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
                         row.Tag = null;
                     }
-                    else if (row.Tag?.ToString() != "ONAYLANDI")
+                    // 🚨 KRİTİK DÜZELTME: ONAYLANDI kontrolü mevcut TagString ile yapılır.
+                    else if (!dahaOnceOnaylandi)
                     {
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = true;
@@ -339,8 +344,10 @@ namespace DataTransfer
                     }
                     else
                     {
+                        // Manuel giriş yapılmış ve onaylanmışsa, Tag'i koru.
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = false;
+                        row.Tag = "ONAYLANDI";
                     }
                 }
 
@@ -373,16 +380,24 @@ namespace DataTransfer
                         }
                     }
 
-                    // 🚨 KRİTİK DÜZELTME BAŞLANGICI:
-                    // Eğer Kritik Hata yoksa, eşleştirme servisini çağır ve sonucu al.
+
                     if (!sonuc.KritikHataVar)
                     {
-                        sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon, aramaTanimliMi);
+                        // Kritik hata yoksa servisten sonucu al
+                        sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon, !string.IsNullOrWhiteSpace(row.Cells["AramaTablo"].Value?.ToString()));
                     }
 
-
-                    //sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon,aramaTanimliMi);
-                    row.Tag = sonuc;
+                    // ÖNCEKİ ONAY KORUMASI: Kritik hata yoksa ve daha önce onaylanmışsa Tag'i koru.
+                    if (dahaOnceOnaylandi && !sonuc.KritikHataVar)
+                    {
+                        row.Tag = "ONAYLANDI";
+                    }
+                    else
+                    {
+                       
+                        row.Tag = sonuc;
+                    }
+                    
 
                     bool isNullHata = sonuc.KritikHataVar && sonuc.Mesajlar.Any(m => m.Contains("Hedef NULL kabul etmiyor"));
 
@@ -397,19 +412,19 @@ namespace DataTransfer
                             sonuc.Mesajlar.RemoveAll(m => m.Contains("Hedef NULL kabul etmiyor"));
                             sonuc.Mesajlar.Add("Kaynaktaki NULL değerler için Manuel Değer ('" + manuelDeger + "') kullanılacaktır.");
 
-                            if (row.Tag?.ToString() != "ONAYLANDI")
+                            if (dahaOnceOnaylandi)
                             {
-                                row.Tag = null;
+                                row.Tag = "ONAYLANDI";
+                            }
+                            else
+                            {
+                                row.Tag = sonuc;
                             }
                         }
                     }
 
                 }
 
-                //if (benzersizAlanCheck && !sonuc.KritikHataVar && !isManuelGiris)
-                //{
-                //    row.Tag = "ONAYLANDI";
-                //}
 
                 if (row.Tag != null && row.Tag.ToString() == "ONAYLANDI" && !sonuc.KritikHataVar)
                 {
@@ -433,25 +448,19 @@ namespace DataTransfer
 
                 else if (sonuc.UyariGerekli)
                 {
-                    if (row.Tag?.ToString() == "ONAYLANDI")
+                    if (isManuelGiris)
                     {
-                        row.Cells["Uygunluk"].Value = "Uygun";
-                        row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
+                        // Manuel giriş uyarısı
+                        row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
                     }
                     else
                     {
-                        if (isManuelGiris)
-                        {
-                            row.Cells["Uygunluk"].Value = string.Join(", ", sonuc.Mesajlar);
-                        }
-                        else
-                        {
-                            row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
-                        }
-
-                        row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
-
+                        // Normal onay uyarısı
+                        row.Cells["Uygunluk"].Value = "ONAY GEREKİYOR: " + string.Join(", ", sonuc.Mesajlar);
                     }
+
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.DarkOrange;
+                    // Tag, yukarıda atanan EslestirmeSonucu nesnesi olarak kalır.
                 }
                 else
                 {
@@ -459,6 +468,7 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Green;
                     row.Tag = "ONAYLANDI";
                 }
+
             }
 
             catch (Exception ex)
@@ -1249,17 +1259,17 @@ namespace DataTransfer
                 return;
             }
 
-            
+
             if (row.Tag?.ToString() == "ONAYLANDI")
             {
                 return;
             }
 
-            
+
             if (string.IsNullOrEmpty(durum) || durum == "Uygun")
                 return;
 
-            
+
             if (kaynakKolon == "(MANUEL GİRİŞ)" && durum?.Contains("ONAYI BEKLENİYOR") == true)
             {
                 string manuelDeger = row.Cells["ManuelDeger"].Value?.ToString();
@@ -1271,7 +1281,7 @@ namespace DataTransfer
                     return;
                 }
 
-          
+
                 DialogResult result = MessageBox.Show(
                     $"'{hedefKolon}' hedef kolonu için sabit değer olarak **'{manuelDeger}'** atanmıştır.\n\n" +
                     "Bu eşleşmeyi transfer için onaylıyor musunuz?",
@@ -1287,7 +1297,7 @@ namespace DataTransfer
                 return;
             }
 
-           
+
             if (row.Cells["Uygunluk"].Style.ForeColor == Color.Red)
             {
                 MessageBox.Show("Bu hata kritiktir ve onaylanarak geçilemez. Lütfen kolon eşleşmesini değiştirin.",
@@ -1295,18 +1305,18 @@ namespace DataTransfer
                 return;
             }
 
-            
+
             if (durum.StartsWith("ONAY GEREKİYOR"))
             {
                 string uyariMesaji = durum.Replace("ONAY GEREKİYOR: ", "");
 
-                
+
                 if (uyariMesaji.Contains("Dönüşüm Gerekli") || uyariMesaji.Contains("Format Dönüşümü Gerekli"))
                 {
                     DonusumEkraniAc(e.RowIndex);
                     return;
                 }
-                
+
                 DialogResult result = MessageBox.Show(
                     $"Bu eşleşmede şu uyarılar var:\n\n{uyariMesaji}\n\n" +
                     "Aktarım sırasında veri kaybı veya kırpılma olabilir. Bunu kabul edip onaylıyor musunuz?",
@@ -1648,7 +1658,7 @@ namespace DataTransfer
             }
         }
 
-        
+
 
         private void GrdEslestirme_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -1656,7 +1666,7 @@ namespace DataTransfer
             {
                 GrdEslestirme.EndEdit();
                 GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
-               
+
                 if (GrdEslestirme.InvokeRequired)
                 {
                     GrdEslestirme.Invoke(new Action(() => DonusumEkraniAc(e.RowIndex)));
@@ -1667,5 +1677,7 @@ namespace DataTransfer
                 }
             }
         }
+
+        
     }
 }
