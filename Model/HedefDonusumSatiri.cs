@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataTransfer.Model
 {
-    public class DonusumSatiri
+    public class HedefDonusumSatiri
     {
         public string KaynakDeger { get; set; }
         public object HedefAtanacakDeger { get; set; }

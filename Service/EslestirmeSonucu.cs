@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTransfer.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,8 @@ namespace DataTransfer.Service
         public DonusumTuru DonusumTipi { get; set; }
 
         public Dictionary<string,object> DonusumSozlugu { get; set; } = new Dictionary<string, object>(); //yeni ekledim
+
+        
     }
 
     public enum DonusumTuru
@@ -22,6 +25,7 @@ namespace DataTransfer.Service
         Yok,
         BasitTipDonusumu, 
         FormatDonusumu,  
-        LookupEslestirme 
+        LookupEslestirme,
+        KaynakLookupEslestirme
     }
 }

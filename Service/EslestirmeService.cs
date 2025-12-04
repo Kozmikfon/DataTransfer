@@ -36,7 +36,7 @@ namespace DataTransfer.Service
         }
 
 
-        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi,bool aramaTanimLiMi)
+        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi,bool aramaTanimLiMi,bool KaynakAramaTanimliMi)
         {
             var sonuc = new EslestirmeSonucu();
             sonuc.Mesajlar = new List<string>();
@@ -120,7 +120,7 @@ namespace DataTransfer.Service
                 // Güncellenmiş Metin -> Sayısal/Tarih BLOKU
                 else if (kaynakMetin && (IsSayisalTip(hedefTip) || hedefTarih))
                 {
-                    bool isLookup = aramaTanimLiMi && IsSayisalTip(hedefTip);
+                    bool isLookup = (aramaTanimLiMi || KaynakAramaTanimliMi) && IsSayisalTip(hedefTip);
                     bool isMetinToTarih = !isLookup && hedefTarih; // Yeni kontrol
 
                     if (isLookup)

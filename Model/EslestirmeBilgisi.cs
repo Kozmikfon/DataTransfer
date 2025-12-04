@@ -14,5 +14,6 @@ namespace DataTransfer.Model
         public string ManuelDeger { get; set; }
 
         public EslestirmeSonucu Sonuc { get; set; }
+      
     }
 }

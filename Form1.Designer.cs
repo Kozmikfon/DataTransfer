@@ -103,9 +103,9 @@
             GrdEslestirme.Size = new Size(1781, 265);
             GrdEslestirme.TabIndex = 1;
             GrdEslestirme.CellClick += GrdEslestirme_CellClick;
-//            GrdEslestirme.CellContentClick += GrdEslestirme_CellContentClick;
             GrdEslestirme.CellDoubleClick += GrdEslestirme_CellDoubleClick;
             GrdEslestirme.CellValueChanged += GrdEslestirme_CellValueChanged;
+            GrdEslestirme.CurrentCellDirtyStateChanged += GrdEslestirme_CurrentCellDirtyStateChanged;
             GrdEslestirme.EditingControlShowing += GrdEslestirme_EditingControlShowing;
             // 
             // BtnTransferBaslat

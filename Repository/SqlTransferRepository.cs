@@ -73,17 +73,38 @@ namespace DataTransfer.Repository
             return list;
         }
 
+        public async Task<List<string>> TabloAdlariniGetirAsync()
+        {
+            var list = new List<string>();
+            // SQL Server'da tüm kullanıcı tablolarını çeken standart sorgu
+            string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                await conn.OpenAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        list.Add(reader.GetString(0));
+                    }
+                }
+            }
+            return list;
+        }
+
 
 
         public async Task<Dictionary<string, KolonBilgisi>> KolonBilgileriniGetirAsync(string tabloAdi)
         {
             var kolonlar = new Dictionary<string, KolonBilgisi>(StringComparer.OrdinalIgnoreCase);
-            
+
             if (string.IsNullOrWhiteSpace(tabloAdi))
                 return kolonlar;
 
             using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(SQL_GET_COLUMNS, conn)) 
+            using (var cmd = new SqlCommand(SQL_GET_COLUMNS, conn))
             {
                 cmd.Parameters.AddWithValue("@TableName", tabloAdi);
                 await conn.OpenAsync();
@@ -139,7 +160,7 @@ namespace DataTransfer.Repository
         ORDER BY C.ORDINAL_POSITION";
 
 
-       
+
 
 
 
@@ -303,6 +324,42 @@ namespace DataTransfer.Repository
             return null;
         }
 
+
+
+        // SqlTransferRepository.cs içinde
+
+        public async Task<object> ExecuteScalarAsync(string sqlCommand, Dictionary<string, object> parameters)
+        {
+            object result = null;
+
+            try
+            {
+                using (var cmd = new SqlCommand(sqlCommand, _connection, _transaction))
+                {
+                    if (_connection.State != ConnectionState.Open)
+                    {
+                        await _connection.OpenAsync();
+                    }
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            // Parametreleri eklerken await kullanmaya gerek yok.
+                            cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+                        }
+                    }
+                    // Asenkron olarak çalıştır
+                    result = await cmd.ExecuteScalarAsync();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"ExecuteScalarAsync metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
+            }
+        }
+
         //filtre testi
         public async Task<int> SatirSayisiGetirAsync(string tablo, string kosul)
         {
@@ -356,25 +413,25 @@ namespace DataTransfer.Repository
         public object ExecuteScalar(string sqlCommand, Dictionary<string, object> parameters)
         {
             object result = null;
-            
+
             try
-            {           
+            {
                 using (var cmd = new SqlCommand(sqlCommand, _connection, _transaction))
-                {                  
+                {
                     if (_connection.State != ConnectionState.Open)
                     {
                         _connection.Open();
-                    }                   
+                    }
                     if (parameters != null)
                     {
                         foreach (var param in parameters)
                         {
-                           cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                         }
                     }
-                   result = cmd.ExecuteScalar();
+                    result = cmd.ExecuteScalar();
                 }
-              
+
                 return result;
             }
             catch (Exception ex)
@@ -385,7 +442,49 @@ namespace DataTransfer.Repository
             return result;
         }
 
-    
+
+        public async Task<List<KaynakDonusumSatiri>> LookupDegerleriCekAsync(
+     string kaynakTablo, string kaynakKolon,
+     string aramaTablo, string aramaDegerKolon, string aramaIdKolon)
+        {
+            // DISTINCT kaynak değerlerini çek
+            string sql = $"SELECT DISTINCT [{kaynakKolon}] FROM [{kaynakTablo}]";
+
+            // Asenkron çalışmak için Task.Run kullanıyoruz
+            var dt = await Task.Run(() => DataTableCalistir(sql));
+
+            var eslesmeListesi = new List<KaynakDonusumSatiri>();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                // DBNull kontrolü ve string'e çevirme. Null ise string.Empty döner.
+                string kaynakDeger = row[0] is DBNull ? string.Empty : row[0].ToString();
+                object eslesenID = null;
+
+                // Lookup işlemi için SQL sorgusu
+                string lookupSql = $"SELECT TOP 1 [{aramaIdKolon}] FROM [{aramaTablo}] WHERE [{aramaDegerKolon}] = @kaynakDeger";
+                var parameters = new Dictionary<string, object> { { "@kaynakDeger", kaynakDeger } };
+
+                try
+                {
+                    // ExecuteScalar, kaynak veritabanında çalışır.
+                    eslesenID = ExecuteScalar(lookupSql, parameters);
+                }
+                catch (Exception) { /* Hata yoksayılır, eşleşme bulunamadı sayılır */ }
+
+                string durum = (eslesenID != null && eslesenID != DBNull.Value) ? "Oto Eşleşti" : "Eşleşme Bulunamadı";
+
+                eslesmeListesi.Add(new KaynakDonusumSatiri
+                {
+                    KaynakDeger = kaynakDeger,
+                    HedefKaynagaAtanacakDeger = eslesenID,
+                    Durum = durum
+                });
+            }
+
+            return eslesmeListesi;
+        }
+
         public List<ZorunluKolonBilgisi> ZorunluKolonlariCek(string tabloAdi, string idKolonAdi)
         {
             // ... (SQL sorgusu aynı kalır, OBJECT_ID kullanılan sağlam sorgu)
@@ -472,9 +571,9 @@ namespace DataTransfer.Repository
         {
             if (_transaction != null)
             {
-                
+
                 try { _transaction.Rollback(); }
-                catch {  }
+                catch { }
                 _transaction.Dispose();
             }
 

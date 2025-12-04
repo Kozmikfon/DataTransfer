@@ -33,7 +33,7 @@ namespace DataTransfer
 
         public Dictionary<string, object> DonusumSozlugu { get; private set; }
 
-        private List<DonusumSatiri> _donusumListesi;
+        private List<HedefDonusumSatiri> _donusumListesi;
 
 
         public DonusumEkrani(string kaynakKolonAdi, string kaynakTabloAdi, string hedefKolonAdi, KolonBilgisi kaynakKolonBilgisi, KolonBilgisi hedefKolonBilgisi, string aramaTablo, string aramaDegerKolon, string aramaIdKolon,
@@ -63,7 +63,7 @@ namespace DataTransfer
 
             DonusumSozlugu = new Dictionary<string, object>();
 
-            _donusumListesi = new List<DonusumSatiri>();
+            _donusumListesi = new List<HedefDonusumSatiri>();
 
 
             this.donusumSatiriBindingSource.DataSource = _donusumListesi;
@@ -255,11 +255,11 @@ namespace DataTransfer
             this.Close();
         }
 
-        private int YeniKayitEkleVeIDDon(string yeniDeger)
+        private int YeniKayitEkleVeIDDon(string yeniDeger, SqlTransferRepository hedefRepo)
         {
             try
             {
-                using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+                //using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
 
                 List<ZorunluKolonBilgisi> zorunluKolonlar = hedefRepo.ZorunluKolonlariCek(_aramaTablo, _aramaIdKolon);
 
@@ -283,9 +283,9 @@ namespace DataTransfer
 
                     if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase) ||
                 kolonAdi.Equals(_aramaIdKolon, StringComparison.OrdinalIgnoreCase)) // <--- Bu satır eklendi/güncellendi.
-            {
-                continue;
-            }
+                    {
+                        continue;
+                    }
 
 
                     string paramName = $"@p{paramIndex++}";
@@ -406,7 +406,7 @@ namespace DataTransfer
                                                         ? string.Empty
                                                         : kaynakDeger.ToString();
 
-                        var donusumSatiri = new DonusumSatiri
+                        var donusumSatiri = new HedefDonusumSatiri
                         {
                             KaynakDeger = kaynakDegerString,
                             HedefAtanacakDeger = null,
@@ -415,9 +415,9 @@ namespace DataTransfer
                         _donusumListesi.Add(donusumSatiri);
                     }
 
-                   
+
                     this.donusumSatiriBindingSource.ResetBindings(false);
-                   
+
                     OtomatikAramaVeGuncelle();
                 }
                 else
@@ -455,17 +455,17 @@ namespace DataTransfer
                 var row = GrdDonusum.Rows[e.RowIndex];
 
 
-                if (row.DataBoundItem is DonusumSatiri satir)
+                if (row.DataBoundItem is HedefDonusumSatiri satir)
                 {
 
                     bool yeniKayitEklendi = false;
 
-            
+
                     if (!yeniKayitEklendi)
                     {
                         string yeniDeger = Microsoft.VisualBasic.Interaction.InputBox(
                             $"Kaynak Değer: '{satir.KaynakDeger}' için Hedef ID'yi girin.\n" +
-                            $"(ID'yi değiştirmek veya {this._aramaTablo} tablosunda doğrulamak istiyorsanız)", 
+                            $"(ID'yi değiştirmek veya {this._aramaTablo} tablosunda doğrulamak istiyorsanız)",
                             "Manuel Eşleme ve Doğrulama",
                             satir.HedefAtanacakDeger?.ToString() ?? string.Empty);
 
@@ -473,23 +473,23 @@ namespace DataTransfer
                         {
                             if (long.TryParse(yeniDeger, out long idDegeri))
                             {
-                               
+
                                 object aciklamaResult = HedefIdIleArananGetir(idDegeri);
 
                                 if (aciklamaResult != null && aciklamaResult != DBNull.Value)
                                 {
-                                  
+
                                     string aciklama = aciklamaResult.ToString();
                                     satir.HedefAtanacakDeger = idDegeri;
 
-                                    
+
                                     satir.Durum = $"Manuel Eşleşti ({aciklama})";
                                 }
                                 else
                                 {
-                                    
+
                                     MessageBox.Show($"Girilen ID ({idDegeri}) Hedef Tablo ({_aramaTablo})'da bulunamadı.", "ID Doğrulama Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    return; 
+                                    return;
                                 }
                             }
                             else
@@ -519,7 +519,7 @@ namespace DataTransfer
             if (e.ColumnIndex == 2)
             {
 
-                if (((DataGridView)sender).Rows[e.RowIndex].DataBoundItem is DonusumSatiri satir)
+                if (((DataGridView)sender).Rows[e.RowIndex].DataBoundItem is HedefDonusumSatiri satir)
                 {
                     if (satir.Durum == "Eşleşme Bulunamadı")
                     {
@@ -579,7 +579,7 @@ namespace DataTransfer
                 {
                     // Yeni Kayıt Ekleme metodunu Transaction ile çalıştırmak için revize edilmesi gerekebilir. 
                     // Şimdilik sadece çağrısını tutuyoruz.
-                    int yeniId = YeniKayitEkleVeIDDon(satir.KaynakDeger);
+                    int yeniId = YeniKayitEkleVeIDDon(satir.KaynakDeger, hedefRepo);
 
                     if (yeniId > 0)
                     {
@@ -644,16 +644,14 @@ namespace DataTransfer
 
             try
             {
-                // Hedef bağlantısını kullanacak Repo nesnesi oluşturulur
+
                 using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
 
-                // SQL Transfer Repository'deki HedefDegerGetir metodu çağrılır.
-                // ID'yi arar (_aramaIdKolon) ve metin değerini döndürür (_aramaDegerKolon).
                 return hedefRepo.HedefDegerGetir(
                     _aramaTablo,
-                    _aramaIdKolon,      // Arama yapılacak kolon (ID)
-                    idDegeri,           // Aranacak değer (Kullanıcının girdiği ID)
-                    _aramaDegerKolon    // Geri döndürülecek kolon (Açıklama/Metin)
+                    _aramaIdKolon,
+                    idDegeri,
+                    _aramaDegerKolon
                 );
             }
             catch (Exception ex)
@@ -662,5 +660,7 @@ namespace DataTransfer
                 return null;
             }
         }
+
+       
     }
 }

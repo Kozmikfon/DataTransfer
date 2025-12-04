@@ -162,8 +162,8 @@ namespace DataTransfer
                 HeaderText = "Arama Değer Kolonu",
                 ReadOnly = false,
                 Width = 150,
-                FlatStyle = FlatStyle.Flat, 
-                
+                FlatStyle = FlatStyle.Flat,
+
 
             };
 
@@ -177,9 +177,57 @@ namespace DataTransfer
             };
 
 
+            //kaynak arama için
+            //donusumgerekli
+            var KaynakkolonDonusumGerekli = new DataGridViewCheckBoxColumn
+            {
+                Name = "KaynakDonusumGerekli",
+                HeaderText = "Kaynak Dönüşüm Gerekli",
+                ReadOnly = false,
+                Width = 120,
+            };
+
+            var KaynakdonusumIslem = new DataGridViewButtonColumn
+            {
+                Name = "KaynakDonusumIslem",
+                HeaderText = "Kaynak Dönüşüm",
+                Text = "Ayarla",
+                UseColumnTextForButtonValue = true,
+                Width = 80
+            };
+
+            //aramatablo
+            var KaynakaramaTablo = new DataGridViewComboBoxColumn
+            {
+                Name = "KaynakAramaTablo",
+                HeaderText = "Kaynak Arama Tablosu",
+                ReadOnly = false,
+                Width = 100,
+            };
+
+            var KaynakarananDegerKolon = new DataGridViewComboBoxColumn
+            {
+                Name = "KaynakAramaDegerKolon",
+                HeaderText = "Kaynak Arama Değer Kolonu",
+                ReadOnly = false,
+                Width = 150,
+                FlatStyle = FlatStyle.Flat,
+
+
+            };
+
+            var KaynakaramaIdKolon = new DataGridViewComboBoxColumn
+            {
+                Name = "KaynakAramaIdKolon",
+                HeaderText = "Kaynak Arama ID Kolon",
+                ReadOnly = false,
+                Width = 150,
+                FlatStyle = FlatStyle.Flat
+            };
+
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
             {
-                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk,kolonDonusumGerekli,donusumIslem,aramaTablo,arananDegerKolon,aramaIdKolon
+                kolonKaynak, KaynakTip, KaynakUzunluk, KaynakNullable, kolonHedef,manuelDegerKolon, mukerrerKolon, HedefTip, HedefUzunluk, HedefNullable, kolonUygunluk,kolonDonusumGerekli,donusumIslem,aramaTablo,arananDegerKolon,aramaIdKolon,KaynakkolonDonusumGerekli,KaynakdonusumIslem,KaynakaramaTablo,KaynakarananDegerKolon,KaynakaramaIdKolon
             });
 
             GrdEslestirme.AllowUserToAddRows = false;
@@ -288,7 +336,7 @@ namespace DataTransfer
 
         private void GridKontrolEt(DataGridViewRow row)
         {
-            string mevcutTagString=row.Tag?.ToString();
+            string mevcutTagString = row.Tag?.ToString();
             bool dahaOnceOnaylandi = mevcutTagString == "ONAYLANDI";
 
             try
@@ -334,7 +382,7 @@ namespace DataTransfer
                         sonuc.Mesajlar.Add("MANUEL DEĞER GİRİLMELİ");
                         row.Tag = null;
                     }
-                    // 🚨 KRİTİK DÜZELTME: ONAYLANDI kontrolü mevcut TagString ile yapılır.
+
                     else if (!dahaOnceOnaylandi)
                     {
                         sonuc.KritikHataVar = false;
@@ -344,7 +392,7 @@ namespace DataTransfer
                     }
                     else
                     {
-                        // Manuel giriş yapılmış ve onaylanmışsa, Tag'i koru.
+
                         sonuc.KritikHataVar = false;
                         sonuc.UyariGerekli = false;
                         row.Tag = "ONAYLANDI";
@@ -380,11 +428,44 @@ namespace DataTransfer
                         }
                     }
 
+                    string KaynakaramaTablosuAdi = row.Cells["KaynakAramaTablo"].Value?.ToString();
+                    string KaynakaramaDegerKolon = row.Cells["KaynakAramaDegerKolon"].Value?.ToString();
+                    string KaynakaramaIdKolon = row.Cells["KaynakAramaIdKolon"].Value?.ToString();
+
+                    bool KaynakaramaTanimliMi = !string.IsNullOrWhiteSpace(KaynakaramaTablosuAdi);
+
+                    if (KaynakaramaTanimliMi)
+                    {
+                        if (string.IsNullOrWhiteSpace(KaynakaramaDegerKolon))
+                        {
+                            sonuc.KritikHataVar = true;
+                            sonuc.Mesajlar.Add("Kaynak Arama Tablosu seçildi, ancak Değer Kolonu zorunludur.");
+                        }
+                        if (string.IsNullOrWhiteSpace(KaynakaramaIdKolon))
+                        {
+                            sonuc.KritikHataVar = true;
+                            sonuc.Mesajlar.Add("Kaynak Arama Tablosu seçildi, ancak ID Kolonu zorunludur.");
+                        }
+                    }
+
+                    bool hedefDonusumGerekli = (bool)(row.Cells["DonusumGerekli"].Value ?? false);
+                    bool kaynakDonusumGerekli = (bool)(row.Cells["KaynakDonusumGerekli"].Value ?? false);
 
                     if (!sonuc.KritikHataVar)
                     {
-                        // Kritik hata yoksa servisten sonucu al
-                        sonuc = _eslestirmeService.KontrolEt(KaynakBilgi, HedefBilgi, kaynakKolon, !string.IsNullOrWhiteSpace(row.Cells["AramaTablo"].Value?.ToString()));
+                        // Hangi Lookup/Dönüşüm mekanizmasının aktif olduğunu belirle
+                        bool hedefLookupAktif = hedefDonusumGerekli && !string.IsNullOrWhiteSpace(row.Cells["AramaTablo"].Value?.ToString());
+                        bool kaynakLookupAktif = kaynakDonusumGerekli && !string.IsNullOrWhiteSpace(row.Cells["KaynakAramaTablo"].Value?.ToString());
+
+                        // 🚨 GÜNCELLENMİŞ SERVİS ÇAĞRISI 🚨
+                        // Bu metodun KontrolEt(..., bool hedefLookupAktif, bool kaynakLookupAktif) şeklinde güncellendiğini varsayıyoruz.
+                        sonuc = _eslestirmeService.KontrolEt(
+                            KaynakBilgi,
+                            HedefBilgi,
+                            kaynakKolon,
+                            hedefLookupAktif, // Mevcut Hedef Lookup durumu
+                            kaynakLookupAktif // 💡 YENİ: Kaynak Lookup durumu
+                        );
                     }
 
                     // ÖNCEKİ ONAY KORUMASI: Kritik hata yoksa ve daha önce onaylanmışsa Tag'i koru.
@@ -394,10 +475,10 @@ namespace DataTransfer
                     }
                     else
                     {
-                       
+
                         row.Tag = sonuc;
                     }
-                    
+
 
                     bool isNullHata = sonuc.KritikHataVar && sonuc.Mesajlar.Any(m => m.Contains("Hedef NULL kabul etmiyor"));
 
@@ -687,43 +768,87 @@ namespace DataTransfer
         }
 
 
-        private void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private async void GrdEslestirme_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
-                return;
+            if (e.RowIndex < 0) return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
+            var currentColumn = GrdEslestirme.Columns[e.ColumnIndex];
 
-
-            if (e.ColumnIndex == GrdEslestirme.Columns["KaynakKolon"].Index ||
-                e.ColumnIndex == GrdEslestirme.Columns["HedefKolon"].Index)
+            // 1. Durum: Kaynak veya Hedef Kolon Seçimi Değişimi
+            if (currentColumn.Name == "KaynakKolon" || currentColumn.Name == "HedefKolon")
             {
-
                 row.Tag = null;
                 row.Cells["Uygunluk"].Value = "";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
                 row.Cells["ManuelDeger"].Value = DBNull.Value;
-
-                // 4. Kontrolü çalıştır
                 GridKontrolEt(row);
             }
-
-
-            else if (e.ColumnIndex == GrdEslestirme.Columns["ManuelDeger"].Index)
+            // 2. Durum: Manuel Değer Değişimi
+            else if (currentColumn.Name == "ManuelDeger")
             {
-
                 row.Tag = null;
                 GridKontrolEt(row);
             }
-
-
-            else if (e.ColumnIndex == GrdEslestirme.Columns["AramaTablo"].Index)
+            // 3. Durum: Hedef Arama Tablosu Değişimi
+            else if (currentColumn.Name == "AramaTablo")
             {
-
                 row.Tag = null;
                 row.Cells["Uygunluk"].Value = "";
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+                GridKontrolEt(row);
+            }
+            // 4. Durum: Kaynak Arama Tablosu Değişimi
+            else if (currentColumn.Name == "KaynakAramaTablo")
+            {
+                row.Tag = null;
+                row.Cells["Uygunluk"].Value = "";
+                row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
+                GridKontrolEt(row);
+            }
+            // 💡 5. DURUM: Kaynak Dönüşüm Gerekli Checkbox Değişimi (Tablo Yükleme Tetikleyicisi)
+            else if (currentColumn.Name == "KaynakDonusumGerekli")
+            {
+                bool donusumGerekli = (bool)(row.Cells["KaynakDonusumGerekli"].Value ?? false);
 
+                if (donusumGerekli)
+                {
+                    try
+                    {
+                        // Tablo Adlarını Kaynak Repo'dan çek
+                        List<string> tabloAdlari = await KaynakRepo.TabloAdlariniGetirAsync();
+
+                        // Hücreye Yükle
+                        if (row.Cells["KaynakAramaTablo"] is DataGridViewComboBoxCell tabloCell)
+                        {
+                            tabloCell.Items.Clear();
+                            tabloCell.Items.AddRange(tabloAdlari.ToArray());
+                        }
+
+                        // Diğer kolonları temizle
+                        row.Cells["KaynakAramaDegerKolon"].Value = null;
+                        row.Cells["KaynakAramaIdKolon"].Value = null;
+                        // KaynakAramaTablo.Value'yu burada temizlemeye gerek yok, ComboBox zaten yeni listeyi almıştır.
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Kaynak Tablo Adları yüklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else
+                {
+                    // İşaret kaldırıldıysa, Kaynak Lookup kolonlarını temizle
+                    row.Cells["KaynakAramaTablo"].Value = null;
+                    row.Cells["KaynakAramaDegerKolon"].Value = null;
+                    row.Cells["KaynakAramaIdKolon"].Value = null;
+                }
+                // Kontrolü çalıştır
+                GridKontrolEt(row);
+            }
+            // 6. Durum: Hedef Dönüşüm Gerekli Checkbox Değişimi (Gerekirse buraya da Hedef için tablo yükleme mantığı eklenmeli)
+            else if (currentColumn.Name == "DonusumGerekli")
+            {
+                // ... (Hedef için Tablo Yükleme Mantığı)
                 GridKontrolEt(row);
             }
         }
@@ -1189,6 +1314,7 @@ namespace DataTransfer
             {
                 combo.SelectedIndexChanged -= HedefKolonSecildi;
                 combo.SelectedIndexChanged -= AramaTablosu_SelectedIndexChanged;
+                combo.SelectedIndexChanged -= KaynakAramaTablosu_SelectedIndexChanged;
 
                 var currentColumnName = GrdEslestirme.CurrentCell.OwningColumn.Name;
 
@@ -1201,7 +1327,11 @@ namespace DataTransfer
                 {
                     combo.SelectedIndexChanged += AramaTablosu_SelectedIndexChanged;
                 }
+                else if (currentColumnName == "KaynakAramaTablo")
+                {
+                    combo.SelectedIndexChanged += KaynakAramaTablosu_SelectedIndexChanged;
 
+                }
             }
         }
 
@@ -1233,6 +1363,41 @@ namespace DataTransfer
 
 
             lstLog.Items.Add($"{secilenTabloAdi} tablosunun kolonları Arama Kolonlarına yüklendi.");
+        }
+
+
+        private async void KaynakAramaTablosu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var comboBox = sender as ComboBox;
+            if (comboBox == null) return;
+
+
+            var currentRow = GrdEslestirme.CurrentRow;
+            string secilenTabloAdi = comboBox.SelectedItem.ToString();
+
+
+            List<string> kolonAdlari = await KaynakRepo.KolonAdlariniGetirAsync(secilenTabloAdi);
+
+
+            if (currentRow.Cells["KaynakAramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
+            {
+                degerKolonCell.Items.Clear();
+                degerKolonCell.Items.AddRange(kolonAdlari.ToArray());
+
+
+            }
+
+
+            if (currentRow.Cells["KaynakAramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
+            {
+                idKolonCell.Items.Clear();
+                idKolonCell.Items.AddRange(kolonAdlari.ToArray());
+
+            }
+            currentRow.Cells["KaynakAramaTablo"].Value = secilenTabloAdi;
+
+
+            lstLog.Items.Add($"{secilenTabloAdi} tablosunun kolonları Kaynak Arama Kolonlarına yüklendi.");
         }
 
         private void GrdEslestirme_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -1537,11 +1702,6 @@ namespace DataTransfer
 
 
 
-        private void BtnFormatDegistir_Click(object sender, EventArgs e)
-        {
-
-
-        }
 
         private void DonusumEkraniAc(int rowIndex)
         {
@@ -1676,8 +1836,150 @@ namespace DataTransfer
                     DonusumEkraniAc(e.RowIndex);
                 }
             }
+            else if (e.ColumnIndex == GrdEslestirme.Columns["KaynakDonusumIslem"].Index && e.RowIndex >= 0)
+            {
+                GrdEslestirme.EndEdit();
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                if (GrdEslestirme.InvokeRequired)
+                {
+                    GrdEslestirme.Invoke(new Action(() => KaynakDonusumEkraniAc(e.RowIndex)));
+                }
+                else
+                {
+                    KaynakDonusumEkraniAc(e.RowIndex);
+                }
+            }
         }
 
-        
+
+        private void KaynakDonusumEkraniAc(int rowIndex)
+        {
+            var row = GrdEslestirme.Rows[rowIndex];
+
+            // 1. Tag kontrolü ve GridKontrolEt çağrısı
+            if (row.Tag is not EslestirmeSonucu)
+            {
+                GridKontrolEt(row);
+            }
+
+            // 2. sonuc nesnesini alma
+            if (row.Tag is not EslestirmeSonucu sonuc)
+            {
+                MessageBox.Show("Önce eşleştirme kontrolünü yapın (GridKontrolEt çalıştırılmalı).", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+
+            string kaynakTabloAdi = TrwKaynakTablolar.SelectedNode?.Tag as string;
+            // Hedef Tabloya ihtiyaç yok ama tutarlılık için alınabilir.
+            string hedefTabloAdi = TrwHedefTablolar.SelectedNode?.Tag as string;
+
+            string kaynakKolonAdi = row.Cells["KaynakKolon"].Value?.ToString();
+            string hedefKolonAdi = row.Cells["HedefKolon"].Value?.ToString();
+
+            // LOOKUP AYARLARI
+            string KaynakaramaTablo = row.Cells["KaynakAramaTablo"].Value?.ToString() ?? string.Empty;
+            string KaynakaramaDegerKolon = row.Cells["KaynakAramaDegerKolon"].Value?.ToString() ?? string.Empty;
+            string KaynakaramaIdKolon = row.Cells["KaynakAramaIdKolon"].Value?.ToString() ?? string.Empty;
+
+            bool donusumGerekli = (bool)(row.Cells["KaynakDonusumGerekli"].Value ?? false);
+
+            // --- Kontroller ---
+            if (string.IsNullOrWhiteSpace(kaynakTabloAdi))
+            {
+                MessageBox.Show("Kaynak tablo seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!donusumGerekli)
+            {
+                MessageBox.Show("Bu kolon için Dönüşüm Gerekli kutucuğunu işaretlemelisiniz.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(hedefKolonAdi))
+            {
+                MessageBox.Show("Önce bir Hedef Kolon seçmelisiniz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Kolon Bilgilerini alma (KaynakKolonlar ve HedefKolonlar ana formunuzda tanımlı olmalı)
+            KolonBilgisi kaynakKolonBilgisi = null;
+            KolonBilgisi hedefKolonBilgisi = null;
+
+            if (!string.IsNullOrWhiteSpace(kaynakKolonAdi) && KaynakKolonlar.ContainsKey(kaynakKolonAdi))
+            {
+                kaynakKolonBilgisi = KaynakKolonlar[kaynakKolonAdi];
+            }
+            if (!string.IsNullOrWhiteSpace(hedefKolonAdi) && HedefKolonlar.ContainsKey(hedefKolonAdi))
+            {
+                hedefKolonBilgisi = HedefKolonlar[hedefKolonAdi];
+            }
+
+            if (kaynakKolonAdi != "(MANUEL GİRİŞ)" && (kaynakKolonBilgisi == null || hedefKolonBilgisi == null))
+            {
+                MessageBox.Show("Kolon bilgisi (tip, uzunluk vb.) bulunamadı. Lütfen kolonları yeniden yükleyin.", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Lookup ayarlarının zorunluluğu
+            if (string.IsNullOrWhiteSpace(KaynakaramaTablo) ||
+                string.IsNullOrWhiteSpace(KaynakaramaDegerKolon) ||
+                string.IsNullOrWhiteSpace(KaynakaramaIdKolon))
+            {
+                MessageBox.Show("Kaynak Dönüşüm işlemi için 'Arama Tablosu', 'Arama Değer Kolonu' ve 'Arama ID Kolonu' alanlarının Grid'de seçilmiş olması zorunludur. Lütfen doldurunuz.", "Eşleştirme Eksik", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                // 🚨 YENİ KAYNAK DÖNÜŞÜM EKRANI ÇAĞRILIYOR
+                var kaynakDonusumForm = new KaynakDonusumEkrani(
+                    kaynakKolonAdi: kaynakKolonAdi,
+                    kaynakTabloAdi: kaynakTabloAdi,
+                    kaynakKolonBilgisi: kaynakKolonBilgisi,
+                    hedefKolonBilgisi: hedefKolonBilgisi,
+
+                    aramaTablo: KaynakaramaTablo,
+                    aramaDegerKolon: KaynakaramaDegerKolon,
+                    aramaIdKolon: KaynakaramaIdKolon,
+
+                    kaynakBaglanti: kaynak, // Sadece kaynak bağlantısı geçiliyor
+                    donusumTipi: sonuc.DonusumTipi
+                );
+
+                if (kaynakDonusumForm.ShowDialog() == DialogResult.OK)
+                {
+                    Dictionary<string, object> yeniSozluk = kaynakDonusumForm.DonusumSozlugu;
+
+                    // SONUÇ NESNESİNİ GÜNCELLE
+                    sonuc.DonusumSozlugu = yeniSozluk;
+                    sonuc.DonusumTipi = DonusumTuru.LookupEslestirme; // Veya DonusumTuru.KaynakLookupEslestirme gibi özel bir tür
+                    sonuc.EslestirmeUygun = true;
+
+                    // GRID HÜCRELERİNİ GÜNCELLE
+                    row.Cells["KaynakDonusumGerekli"].Value = true;
+                    row.Cells["Uygunluk"].Value = "Uygun (Kaynak Dönüşümlü)";
+                    row.Cells["Uygunluk"].Style.ForeColor = Color.DarkGreen;
+                    row.Tag = sonuc; // Güncel sonucu Tag'e kaydet
+                    MessageBox.Show("Kaynak Dönüşüm ayarları kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Kaynak Dönüşüm ekranı açılırken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void GrdEslestirme_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["KaynakDonusumGerekli"].Index)
+            {
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+            // Hedef Dönüşüm Gerekli kutucuğu tıklandıysa, değeri hemen kaydet
+            else if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["DonusumGerekli"].Index)
+            {
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
     }
 }

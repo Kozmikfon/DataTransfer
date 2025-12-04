@@ -32,7 +32,6 @@
             BtnDonusumKaydet = new Button();
             BtnDonusumIptal = new Button();
             lblBilgi = new Label();
-            BtnEkle = new Button();
             GrdDonusum = new DataGridView();
             donusumSatiriBindingSource = new BindingSource(components);
             BtnTopluKayit = new Button();
@@ -42,7 +41,7 @@
             // 
             // BtnDonusumKaydet
             // 
-            BtnDonusumKaydet.Location = new Point(401, 569);
+            BtnDonusumKaydet.Location = new Point(260, 572);
             BtnDonusumKaydet.Name = "BtnDonusumKaydet";
             BtnDonusumKaydet.Size = new Size(119, 51);
             BtnDonusumKaydet.TabIndex = 0;
@@ -52,7 +51,7 @@
             // 
             // BtnDonusumIptal
             // 
-            BtnDonusumIptal.Location = new Point(560, 569);
+            BtnDonusumIptal.Location = new Point(419, 572);
             BtnDonusumIptal.Name = "BtnDonusumIptal";
             BtnDonusumIptal.Size = new Size(119, 51);
             BtnDonusumIptal.TabIndex = 1;
@@ -70,15 +69,6 @@
             lblBilgi.TabIndex = 2;
             lblBilgi.Text = "label1";
             // 
-            // BtnEkle
-            // 
-            BtnEkle.Location = new Point(252, 569);
-            BtnEkle.Name = "BtnEkle";
-            BtnEkle.Size = new Size(119, 51);
-            BtnEkle.TabIndex = 3;
-            BtnEkle.Text = "Ekle";
-            BtnEkle.UseVisualStyleBackColor = true;
-            // 
             // GrdDonusum
             // 
             GrdDonusum.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -91,7 +81,7 @@
             // 
             // BtnTopluKayit
             // 
-            BtnTopluKayit.Location = new Point(727, 573);
+            BtnTopluKayit.Location = new Point(586, 576);
             BtnTopluKayit.Name = "BtnTopluKayit";
             BtnTopluKayit.Size = new Size(128, 47);
             BtnTopluKayit.TabIndex = 5;
@@ -106,7 +96,6 @@
             ClientSize = new Size(964, 703);
             Controls.Add(BtnTopluKayit);
             Controls.Add(GrdDonusum);
-            Controls.Add(BtnEkle);
             Controls.Add(lblBilgi);
             Controls.Add(BtnDonusumIptal);
             Controls.Add(BtnDonusumKaydet);
@@ -124,7 +113,6 @@
         private Button BtnDonusumKaydet;
         private Button BtnDonusumIptal;
         private Label lblBilgi;
-        private Button BtnEkle;
         private DataGridView GrdDonusum;
         private BindingSource donusumSatiriBindingSource;
         private Button BtnTopluKayit;
