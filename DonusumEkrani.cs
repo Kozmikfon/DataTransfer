@@ -258,7 +258,7 @@ namespace DataTransfer
         private int YeniKayitEkleVeIDDon(string yeniDeger, SqlTransferRepository hedefRepo)
         {
             try
-            {
+            { 
                 //using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
 
                 List<ZorunluKolonBilgisi> zorunluKolonlar = hedefRepo.ZorunluKolonlariCek(_aramaTablo, _aramaIdKolon);
@@ -282,7 +282,7 @@ namespace DataTransfer
 
 
                     if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase) ||
-                kolonAdi.Equals(_aramaIdKolon, StringComparison.OrdinalIgnoreCase)) // <--- Bu satır eklendi/güncellendi.
+                        kolonAdi.Equals(_aramaIdKolon,    StringComparison.OrdinalIgnoreCase)) // <--- Bu satır eklendi/güncellendi.
                     {
                         continue;
                     }

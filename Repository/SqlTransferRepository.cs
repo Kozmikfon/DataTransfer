@@ -171,15 +171,13 @@ namespace DataTransfer.Repository
 
             foreach (var eslestirme in eslestirmeler)
             {
-                // YENİ 1. KONTROL: Lookup Eşleştirme Kontrolü (En Yüksek Öncelik)
-                // EslestirmeBilgisi modelinizdeki Sonuc alanının dolu olduğunu varsayıyoruz.
+                // YENİ 1. KONTROL: Lookup Eşleştirme Kontrolü (Aynı kalır, sqlIfadesiOlustur metodu düzeltilmişti)
                 if (eslestirme.Sonuc != null && eslestirme.Sonuc.DonusumTipi == DonusumTuru.LookupEslestirme)
                 {
-                    // Dönüşüm varsa, CASE WHEN ifadesini kullan
                     string caseWhen = sqlIfadesiOlustur(eslestirme);
                     kolonlarinListesi.Add(caseWhen);
                 }
-                // MEVCUT 2. KONTROL: Manuel Giriş
+                // MEVCUT 2. KONTROL: Manuel Giriş (KRİTİK DÜZELTME BURADA)
                 else if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
                 {
                     string manuelDeger = eslestirme.ManuelDeger;
@@ -191,21 +189,30 @@ namespace DataTransfer.Repository
                     }
                     else
                     {
-                        // Mevcut tırnak kaçırma mantığı
-                        sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
+                        // 🚀 DÜZELTME: Sayısal kontrolü ekle.
+                        // Manuel giriş sayısal ise tırnak kullanmıyoruz.
+                        if (double.TryParse(manuelDeger, out double _))
+                        {
+                            // Sayısal değerse (INT, Decimal, vb.) tırnak kullanma: Örn: 101
+                            sqlLiteral = manuelDeger;
+                        }
+                        else
+                        {
+                            // Metin, tarih veya özel karakter içeriyorsa tırnak kullan: Örn: 'Açıklama'
+                            sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
+                        }
                     }
 
                     kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
                 }
-                // MEVCUT 3. KONTROL: Direkt Kolon Eşleşmesi veya Diğer Dönüşüm Tipleri
+                // MEVCUT 3. KONTROL: Direkt Kolon Eşleşmesi veya Diğer Dönüşüm Tipleri (Aynı kalır)
                 else
                 {
-                    // Dönüşüm gerektirmeyen veya basit tip dönüşümü olan kolonlar
                     kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
                 }
             }
 
-            // SQL sorgusunun geri kalanı aynı kalır
+            // SQL sorgusunun geri kalanı
             string kolonListe = string.Join(", ", kolonlarinListesi);
             string sql = $"SELECT {kolonListe} FROM [{tablo}]";
 

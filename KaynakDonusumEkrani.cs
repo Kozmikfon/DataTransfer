@@ -33,14 +33,14 @@ namespace DataTransfer
         private DonusumTuru _donusumTipi;
         public Dictionary<string, object> DonusumSozlugu { get; private set; }
         private List<KaynakDonusumSatiri> _donusumListesi;
-       
+
 
         private BindingSource donusumSatiriBindingSource;
         public KaynakDonusumEkrani(string kaynakKolonAdi, string kaynakTabloAdi,
-                                KolonBilgisi kaynakKolonBilgisi, KolonBilgisi hedefKolonBilgisi,
-                                string aramaTablo, string aramaDegerKolon, string aramaIdKolon,
-                                BaglantiBilgileri kaynakBaglanti,
-                                DonusumTuru donusumTipi)
+                                 KolonBilgisi kaynakKolonBilgisi, KolonBilgisi hedefKolonBilgisi,
+                                 string aramaTablo, string aramaDegerKolon, string aramaIdKolon,
+                                 BaglantiBilgileri kaynakBaglanti,
+                                 DonusumTuru donusumTipi)
         {
             InitializeComponent();
 
@@ -129,12 +129,15 @@ namespace DataTransfer
 
             try
             {
+                // NOT: Burada _kaynakRepo (transaction'sız) kullanılıyor, bu toplu ekleme commit edilene kadar
+                // yeni eklenen ID'yi göremeyebilir. Eğer bu bir sorun yaratırsa, bu metot aşırı yüklenmeli
+                // ve transaction'lı kaynakRepo'yu almalıdır. Şimdilik transaction'sız repo ile devam ediyoruz.
                 return _kaynakRepo.HedefDegerGetir(
-                     _aramaTablo,
-                     _aramaIdKolon,
-                     idDegeri,
-                     _aramaDegerKolon
-                 );
+                       _aramaTablo,
+                       _aramaIdKolon,
+                       idDegeri,
+                       _aramaDegerKolon
+                     );
             }
             catch (Exception ex)
             {
@@ -222,7 +225,6 @@ namespace DataTransfer
             try
             {
                 // 1. Repository'de yeni oluşturduğumuz metodu çağırıyoruz.
-                // NOT: Bu metot henüz SqlTransferRepository'ye eklenmedi, bu yüzden çalışmayacaktır (aşağıdaki adımda eklememiz gerekecek).
                 var yeniListe = await _kaynakRepo.LookupDegerleriCekAsync(
                     _kaynakTabloAdi,
                     _kaynakKolonAdi,
@@ -233,8 +235,6 @@ namespace DataTransfer
 
                 if (yeniListe != null && yeniListe.Any())
                 {
-                    // HATA DÜZELTİLDİ: _eslesmeListesi yerine _donusumListesi kullanıldı.
-                    // HATA DÜZELTİLDİ: lookupEslesmeSatiriBindingSource yerine donusumSatiriBindingSource kullanıldı.
                     _donusumListesi.Clear();
                     _donusumListesi.AddRange(yeniListe);
                     this.donusumSatiriBindingSource.ResetBindings(false); // Veri kaynağını yenile
@@ -257,36 +257,39 @@ namespace DataTransfer
 
         private void BtnKaydet_Click(object sender, EventArgs e)
         {
-            DonusumSozlugu.Clear();
-            int basariliEslesmeSayisi = 0;
+            var tamamlanmisDurumlar=new List<string> { "Oto Eşleşti", "Manuel Eşleşti", "Toplu Eşleşti" };
 
-            foreach (var satır in _donusumListesi)
+            bool eksikEslestirmeVar = _donusumListesi.Any(satir => !satir.Durum.Equals("Null Değer", StringComparison.OrdinalIgnoreCase) &&
+            !tamamlanmisDurumlar.Any(durum => satir.Durum.Equals(durum, StringComparison.OrdinalIgnoreCase)));
+
+            if (eksikEslestirmeVar)
             {
-                if (satır.Durum == "Oto Eşleşti" || satır.Durum == "Manuel Eşleşti" || satır.Durum == "Toplu Eşleşti")
-                {
-
-                    object atanacakID = satır.EslesenID;
-
-                    if (atanacakID != null && atanacakID != DBNull.Value)
-                    {
-                        if (!DonusumSozlugu.ContainsKey(satır.KaynakDeger))
-                        {
-                            DonusumSozlugu.Add(satır.KaynakDeger, atanacakID);
-                            basariliEslesmeSayisi++;
-                        }
-                    }
-                }
-            }
-
-            if (basariliEslesmeSayisi == 0)
-            {
-                MessageBox.Show("Sözlüğe eklenecek geçerli eşleşme bulunamadı.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Tüm kayıtların eşleştirilmesi gerekmektedir. Lütfen eksik eşleşmeleri tamamlayın.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            DonusumSozlugu.Clear();
 
-            this.DialogResult = DialogResult.OK;
+            foreach (var satir in _donusumListesi)
+            {
+                if (satir.HedefKaynagaAtanacakDeger!=null&&
+                    !string.IsNullOrWhiteSpace(satir.HedefKaynagaAtanacakDeger.ToString()))
+                {
+                    if (tamamlanmisDurumlar.Any(durum=>satir.Durum.Equals(durum,StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!DonusumSozlugu.ContainsKey(satir.KaynakDeger)) 
+                        {
+                            DonusumSozlugu.Add(satir.KaynakDeger, satir.HedefKaynagaAtanacakDeger);
+                        }
+
+                    }
+
+                }
+            }
+            this.DialogResult=DialogResult.OK;
             this.Close();
         }
+
+
 
         private void GrdKaynakDonusum_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -296,37 +299,67 @@ namespace DataTransfer
 
             var satır = _donusumListesi[e.RowIndex];
 
-            // Kullanıcıdan Kaynak Lookup ID'sini girmesini iste
-            string idInput = Microsoft.VisualBasic.Interaction.InputBox(
-                $"Kaynak Değer: {satır.KaynakDeger}\n\nLütfen eşleşen Kaynak ID'sini girin:",
-                "Manuel ID Girişi",
-                satır.HedefKaynagaAtanacakDeger?.ToString() ?? string.Empty);
+            // Sadece eşleşme bulunamayan kayıtlar için ekleme yap
+            if (satır.Durum != "Eşleşme Bulunamadı")
+            {
+                MessageBox.Show("Bu kayıt zaten eşleşmiş durumda. Yeni kayıt ekleme işlemi sadece eşleşme bulunamayan kayıtlar için yapılabilir.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-            if (string.IsNullOrWhiteSpace(idInput))
+            DialogResult result = MessageBox.Show($"Kaynak Değer: '{satır.KaynakDeger}' için Kaynak Lookup tablosuna yeni bir kayıt eklemek istediğinize emin misiniz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.No)
                 return;
 
-            // 1. Girilen ID'yi Kaynak veritabanında doğrula ve açıklamasını çek
-            object idDegeri = idInput;
-            object aciklamaDegeri = KaynakIdIleAciklamaGetir(idDegeri);
+           
+            int yeniID = 0;
+            
 
-            if (aciklamaDegeri != null && aciklamaDegeri != DBNull.Value)
+            SqlTransferRepository tekilRepo = null;
+
+            try
             {
-                satır.EslesenID = idDegeri;
-                satır.HedefKaynagaAtanacakDeger = aciklamaDegeri;
-                satır.Durum = "Manuel Eşleşti";
+                tekilRepo = new SqlTransferRepository(_kaynakBaglanti);
+                yeniID = YeniKayitEkleVeIDDon(satır.KaynakDeger, tekilRepo);
 
+            }
+            catch (Exception ex)
+            {
+                // YeniKayitEkleVeIDDon içinde hata mesajı gösterildiği için burada tekrar göstermiyoruz
+                // Ancak tekilRepo'yu dispose etmeliyiz.
+            }
+            finally
+            {
+                tekilRepo?.Dispose();
+            }
 
-                this.donusumSatiriBindingSource.ResetItem(e.RowIndex);
+            if (yeniID > 0)
+            {
+                // 1. Girilen ID'yi Kaynak veritabanında doğrula ve açıklamasını çek (Yeni eklenen ID'yi)
+                object idDegeri = yeniID;
+                // Yeni Kayıt eklendiği için artık KaynakIdIleAciklamaGetir metodu ile açıklamasını çekebiliriz
+                object aciklamaDegeri = KaynakIdIleAciklamaGetir(idDegeri);
 
+                if (aciklamaDegeri != null && aciklamaDegeri != DBNull.Value)
+                {
+                    satır.EslesenID = idDegeri;
+                    satır.HedefKaynagaAtanacakDeger = aciklamaDegeri;
+                    satır.Durum = "Toplu Eşleşti"; 
 
-                GrdKaynakDonusum.Refresh();
+                    this.donusumSatiriBindingSource.ResetItem(e.RowIndex);
+                    GrdKaynakDonusum.Refresh();
 
-                MessageBox.Show($"Eşleştirme Başarılı: Kaynak ID '{idDegeri}' -> Açıklama: '{aciklamaDegeri}'", "Başarı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Yeni kayıt başarıyla eklendi: Kaynak ID '{idDegeri}' -> Açıklama: '{aciklamaDegeri}'", "Başarı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    
+                    MessageBox.Show($"Yeni eklenen Kayıt ID '{idDegeri}' için açıklama değeri çekilemedi. Kayıt eklenmiş olabilir, ancak UI güncellenemedi.", "Hata/Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
             else
             {
-
-                MessageBox.Show($"Girilen ID '{idDegeri}', Kaynak Lookup Tablosunda bulunamadı veya geçerli değil.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Yeni kayıt eklenemedi. Detaylar için önceki hata mesajlarını kontrol edin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -361,54 +394,194 @@ namespace DataTransfer
 
         private void BtnTopluEkle_Click(object sender, EventArgs e)
         {
-            var eslesmeyenSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı").ToList();
+            TopluEslesmeyenleriEkle();
+        }
 
-            if (!eslesmeyenSatirlar.Any())
+        private void TopluEslesmeyenleriEkle()
+        {
+            var eklenecekSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı").ToList();
+            int toplamEklenecekSatir = eklenecekSatirlar.Count;
+
+            if (toplamEklenecekSatir == 0)
             {
-                MessageBox.Show("Toplu işlem yapılacak eşleşmeyen kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Eşleşme bulunamayan kayıt yok.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            DialogResult result = MessageBox.Show($"{toplamEklenecekSatir} adet eşleşme bulunamayan kayıt var. Bu kayıtlar için yeni kayıt eklemek istediğinize emin misiniz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (result == DialogResult.No)
+            {
                 return;
             }
 
+            GrdKaynakDonusum.SuspendLayout();
+            this.donusumSatiriBindingSource.RaiseListChangedEvents = false;
 
-            string topluIDInput = Microsoft.VisualBasic.Interaction.InputBox(
-                $"Toplam {eslesmeyenSatirlar.Count} adet eşleşmeyen kayıt bulunmaktadır.\n\nBu kayıtlara atanacak Kaynak Lookup ID'sini (örneğin '0' veya 'BILINMIYOR' ID'si) girin:",
-                "Toplu ID Girişi",
-                string.Empty);
+            int basariliEklemeSayisi = 0;
+            // ⭐️ Rollback için kaynakRepo nesnesini döngü dışına al
+            SqlTransferRepository kaynakRepo = null;
 
-            if (string.IsNullOrWhiteSpace(topluIDInput))
-                return;
-
-
-            object idDegeri = topluIDInput;
-            object aciklamaDegeri = KaynakIdIleAciklamaGetir(idDegeri);
-
-            if (aciklamaDegeri == null || aciklamaDegeri == DBNull.Value)
+            try
             {
-                MessageBox.Show($"Girilen ID '{idDegeri}', Kaynak Lookup Tablosunda bulunamadı veya geçerli değil. Lütfen geçerli bir ID girin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                kaynakRepo = new SqlTransferRepository(_kaynakBaglanti);
+                kaynakRepo.BeginTransaction(); // İşlemi Başlat
+
+                foreach (var satır in eklenecekSatirlar)
+                {
+                    // YeniKayitEkleVeIDDon metoduna transaction'lı kaynakRepo'yu gönderiyoruz
+                    int yeniID = YeniKayitEkleVeIDDon(satır.KaynakDeger, kaynakRepo);
+                    if (yeniID > 0)
+                    {
+                        satır.EslesenID = yeniID;
+                        // KaynakIdIleAciklamaGetir transaction'sız repo kullanıyor, 
+                        // ancak bu tekil ekleme commit edilince hemen ardından çekilecektir (çoğu SQL sunucuda).
+                        satır.HedefKaynagaAtanacakDeger = KaynakIdIleAciklamaGetir(yeniID);
+                        satır.Durum = "Toplu Eşleşti";
+                        basariliEklemeSayisi++;
+                    }
+                    // else durumunda YeniKayitEkleVeIDDon içinde hata mesajı gösterildi.
+                }
+                kaynakRepo.CommitTransaction(); // İşlemi Onayla
             }
-
-
-            int guncellenenSayi = 0;
-            foreach (var satır in eslesmeyenSatirlar)
+            catch (Exception ex)
             {
-                satır.EslesenID = idDegeri;
-                satır.HedefKaynagaAtanacakDeger = aciklamaDegeri;
-                satır.Durum = "Toplu Eşleşti";
-                guncellenenSayi++;
+                try
+                {
+                    kaynakRepo?.RollbackTransaction();
+                }
+                catch (Exception rollbackEx)
+                {
+                    MessageBox.Show($"Kayıt eklenirken hata oluştu ve işlem geri alınamadı (Rollback Hatası: {rollbackEx.Message}). Veri tutarsızlığı olabilir. Lütfen DBA ile iletişime geçin.", "Kritik Veri Bütünlüğü Hatası", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                }
+                MessageBox.Show($"Kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                basariliEklemeSayisi = 0;
+
             }
+            finally
+            {
+               
+                kaynakRepo?.Dispose();
 
-
-            this.donusumSatiriBindingSource.ResetBindings(false);
-            GrdKaynakDonusum.Refresh();
-
-            MessageBox.Show($"{guncellenenSayi} adet eşleşmeyen kayıt, başarıyla '{idDegeri}' ID'si ile eşleştirildi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.donusumSatiriBindingSource.RaiseListChangedEvents = true;
+                this.donusumSatiriBindingSource.ResetBindings(false);
+                GrdKaynakDonusum.ResumeLayout();
+                if (basariliEklemeSayisi > 0)
+                {
+                    MessageBox.Show($"{basariliEklemeSayisi} adet kayıt Kaynak Lookup tablosuna eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (toplamEklenecekSatir > 0 && basariliEklemeSayisi == 0)
+                {
+                    MessageBox.Show("Toplu kayıt ekleme işlemi tamamlandı ancak hiçbir kayıt başarılı eklenemedi. Detaylar için hata mesajlarını kontrol edin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
         }
 
         private void BtnIptal_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        private object GetVarsayilanDeger(string veriTipi, string kolonAdi)
+        {
+
+            switch (veriTipi.ToLower())
+            {
+                case "int":
+                case "bigint":
+                case "smallint":
+                case "tinyint":
+                case "decimal":
+                case "numeric":
+                case "money":
+                    return 0; 
+
+                case "bit":
+
+                    return 1;
+
+                case "uniqueidentifier":
+                    return Guid.NewGuid(); 
+
+                case "char":
+                case "varchar":
+                case "nchar":
+                case "nvarchar":
+                case "text":
+                case "ntext":
+                case "sysname": 
+                                
+                    return "DefaultUser";
+
+                case "datetime":
+                case "date":
+                case "smalldatetime":
+                case "datetime2":
+                   
+                    return DateTime.Now;
+
+                default:
+                    
+                    throw new InvalidOperationException($"'{kolonAdi}' kolonu için desteklenmeyen zorunlu veri tipi: {veriTipi}. Manuel değer atanmalı.");
+            }
+        }
+        private int YeniKayitEkleVeIDDon(string yeniDEger, SqlTransferRepository kaynakRepo)
+        {
+            try
+            {
+               
+                List<ZorunluKolonBilgisi> zorunluKolonlar = _kaynakRepo.ZorunluKolonlariCek(_aramaTablo, _aramaIdKolon);
+                List<string> kolonlar = new List<string> { $"[{_aramaDegerKolon}]" };
+                List<string> parametreler = new List<string> { "@yenideger" };
+
+                var sqlparameters = new Dictionary<string, object>
+                {
+                    { "@yenideger", yeniDEger }
+                };
+
+                int paramIndex = 1;
+
+                foreach (var kolonBilgisi in zorunluKolonlar)
+                {
+                    string kolonAdi = kolonBilgisi.KolonAdi;
+                    string veriTipi = kolonBilgisi.veriTipi;
+
+                    if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase) 
+                        || kolonAdi.Equals(_aramaIdKolon,StringComparison.OrdinalIgnoreCase))
+                     
+                    {
+                        continue;
+                    }
+                    string paramName = $"@p{paramIndex}";
+                    kolonlar.Add($"[{kolonAdi}]");
+                    parametreler.Add(paramName);
+
+                    object varsayılanDeger = GetVarsayilanDeger(veriTipi, kolonAdi);
+                    sqlparameters.Add(paramName, varsayılanDeger);
+                    paramIndex++;
+
+                }
+
+                string kolonListesi = string.Join(", ", kolonlar);
+                string parametreListesi = string.Join(", ", parametreler);
+                string insertSql = $"INSERT INTO [{_aramaTablo}] ({kolonListesi}) VALUES ({parametreListesi}); SELECT SCOPE_IDENTITY();";
+
+               
+                object newId = kaynakRepo.ExecuteScalar(insertSql, sqlparameters);
+
+                if (newId != null && newId != DBNull.Value)
+                {                  
+                    return Convert.ToInt32(newId);
+                }
+                return 0;
+            }
+            catch (Exception ex)
+            {
+               
+                MessageBox.Show($"Yeni kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            
+                throw; 
+            }
         }
     }
 }
