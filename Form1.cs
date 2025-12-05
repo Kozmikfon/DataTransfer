@@ -136,6 +136,7 @@ namespace DataTransfer
                 HeaderText = "Dönüşüm Gerekli",
                 ReadOnly = false,
                 Width = 120,
+                Visible=true
             };
 
             var donusumIslem = new DataGridViewButtonColumn
@@ -144,7 +145,8 @@ namespace DataTransfer
                 HeaderText = "Dönüşüm",
                 Text = "Ayarla",
                 UseColumnTextForButtonValue = true,
-                Width = 80
+                Width = 80,
+                Visible = false
             };
 
             //aramatablo
@@ -154,6 +156,7 @@ namespace DataTransfer
                 HeaderText = "Arama Tablosu",
                 ReadOnly = false,
                 Width = 100,
+                Visible = false
             };
 
             var arananDegerKolon = new DataGridViewComboBoxColumn
@@ -163,6 +166,7 @@ namespace DataTransfer
                 ReadOnly = false,
                 Width = 150,
                 FlatStyle = FlatStyle.Flat,
+                Visible = false
 
 
             };
@@ -173,7 +177,8 @@ namespace DataTransfer
                 HeaderText = "Arama ID Kolon",
                 ReadOnly = false,
                 Width = 150,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Visible = false
             };
 
 
@@ -185,6 +190,7 @@ namespace DataTransfer
                 HeaderText = "Kaynak Dönüşüm Gerekli",
                 ReadOnly = false,
                 Width = 120,
+                Visible = true
             };
 
             var KaynakdonusumIslem = new DataGridViewButtonColumn
@@ -193,7 +199,8 @@ namespace DataTransfer
                 HeaderText = "Kaynak Dönüşüm",
                 Text = "Ayarla",
                 UseColumnTextForButtonValue = true,
-                Width = 80
+                Width = 80,
+                Visible = false
             };
 
             //aramatablo
@@ -203,6 +210,7 @@ namespace DataTransfer
                 HeaderText = "Kaynak Arama Tablosu",
                 ReadOnly = false,
                 Width = 100,
+                Visible = false
             };
 
             var KaynakarananDegerKolon = new DataGridViewComboBoxColumn
@@ -212,6 +220,7 @@ namespace DataTransfer
                 ReadOnly = false,
                 Width = 150,
                 FlatStyle = FlatStyle.Flat,
+                Visible = false
 
 
             };
@@ -222,7 +231,8 @@ namespace DataTransfer
                 HeaderText = "Kaynak Arama ID Kolon",
                 ReadOnly = false,
                 Width = 150,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Visible = false
             };
 
             GrdEslestirme.Columns.AddRange(new DataGridViewColumn[]
@@ -806,7 +816,7 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
                 GridKontrolEt(row);
             }
-            // 💡 5. DURUM: Kaynak Dönüşüm Gerekli Checkbox Değişimi (Tablo Yükleme Tetikleyicisi)
+            // 💡 5. DURUM: Kaynak Dönüşüm Gerekli Checkbox Değişimi (Tablo Yükleme Tetikleyicisi) 
             else if (currentColumn.Name == "KaynakDonusumGerekli")
             {
                 bool donusumGerekli = (bool)(row.Cells["KaynakDonusumGerekli"].Value ?? false);
@@ -1827,6 +1837,7 @@ namespace DataTransfer
                 GrdEslestirme.EndEdit();
                 GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
 
+
                 if (GrdEslestirme.InvokeRequired)
                 {
                     GrdEslestirme.Invoke(new Action(() => DonusumEkraniAc(e.RowIndex)));
@@ -1851,6 +1862,55 @@ namespace DataTransfer
             }
         }
 
+
+
+        private void AyarlariGuncelle(int rowIndex, bool enable)
+        {
+            var row = GrdEslestirme.Rows[rowIndex];
+
+            row.Cells["AramaTablo"].ReadOnly = !enable;
+            row.Cells["AramaDegerKolon"].ReadOnly = !enable;
+            row.Cells["AramaIdKolon"].ReadOnly = !enable;
+
+            Color arkaPlanRengi = enable ? Color.White : Color.LightGray;
+
+            row.Cells["AramaTablo"].Style.BackColor = arkaPlanRengi;
+            row.Cells["AramaDegerKolon"].Style.BackColor = arkaPlanRengi;
+            row.Cells["AramaIdKolon"].Style.BackColor = arkaPlanRengi;
+
+            if (enable)
+            {
+                row.Cells["DonusumIslem"].Style.BackColor = Color.LightSteelBlue;
+            }
+            else
+            {
+                row.Cells["DonusumIslem"].Style.BackColor = Color.LightGray;
+            }
+        }
+
+        private void KaynakAyarlariGuncelle(int rowIndex, bool enable)
+        {
+            var row = GrdEslestirme.Rows[rowIndex];
+
+            row.Cells["KaynakAramaTablo"].ReadOnly = !enable;
+            row.Cells["KaynakAramaDegerKolon"].ReadOnly = !enable;
+            row.Cells["KaynakAramaIdKolon"].ReadOnly = !enable;
+
+            Color arkaPlanRengi = enable ? Color.White : Color.LightGray;
+
+            row.Cells["KaynakAramaTablo"].Style.BackColor = arkaPlanRengi;
+            row.Cells["KaynakAramaDegerKolon"].Style.BackColor = arkaPlanRengi;
+            row.Cells["KaynakAramaIdKolon"].Style.BackColor = arkaPlanRengi;
+
+            if (enable)
+            {
+                row.Cells["KaynakDonusumIslem"].Style.BackColor = Color.LightSteelBlue;
+            }
+            else
+            {
+                row.Cells["KaynakDonusumIslem"].Style.BackColor = Color.LightGray;
+            }
+        }
 
         private void KaynakDonusumEkraniAc(int rowIndex)
         {
@@ -1979,6 +2039,76 @@ namespace DataTransfer
             else if (GrdEslestirme.CurrentCell.ColumnIndex == GrdEslestirme.Columns["DonusumGerekli"].Index)
             {
                 GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        private void GrdEslestirme_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "DonusumGerekli")
+            {
+                var cell = GrdEslestirme.Rows[e.RowIndex].Cells["DonusumGerekli"];     
+                bool yeniDurum;
+
+                if (cell.EditedFormattedValue is bool editedValue)
+                {
+                    yeniDurum = editedValue;
+                }
+                else
+                {
+     
+                    bool currentValue = cell.Value as bool? ?? false;
+                    yeniDurum = !currentValue;
+                }
+
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+
+                if (yeniDurum)
+                {
+                    GrdEslestirme.Columns["DonusumIslem"].Visible = true;
+                    GrdEslestirme.Columns["AramaTablo"].Visible = true;
+                    GrdEslestirme.Columns["AramaDegerKolon"].Visible = true;
+                    GrdEslestirme.Columns["AramaIdKolon"].Visible = true;
+                }
+                else 
+                {
+                    GrdEslestirme.Columns["DonusumIslem"].Visible = false;
+                    GrdEslestirme.Columns["AramaTablo"].Visible = false;
+                    GrdEslestirme.Columns["AramaDegerKolon"].Visible = false;
+                    GrdEslestirme.Columns["AramaIdKolon"].Visible = false;
+                }
+
+                AyarlariGuncelle(e.RowIndex, yeniDurum);
+            }
+            else if (e.RowIndex >= 0 && GrdEslestirme.Columns[e.ColumnIndex].Name == "KaynakDonusumGerekli")
+            {
+                var cell = GrdEslestirme.Rows[e.RowIndex].Cells["KaynakDonusumGerekli"];
+                bool yeniDurum;
+                if (cell.EditedFormattedValue is bool editedValue)
+                {
+                    yeniDurum = editedValue;
+                }
+                else
+                {
+                    bool currentValue = cell.Value as bool? ?? false;
+                    yeniDurum = !currentValue;
+                }
+                GrdEslestirme.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                if (yeniDurum)
+                {
+                    GrdEslestirme.Columns["KaynakDonusumIslem"].Visible = true;
+                    GrdEslestirme.Columns["KaynakAramaTablo"].Visible = true;
+                    GrdEslestirme.Columns["KaynakAramaDegerKolon"].Visible = true;
+                    GrdEslestirme.Columns["KaynakAramaIdKolon"].Visible = true;
+                }
+                else
+                {
+                    GrdEslestirme.Columns["KaynakDonusumIslem"].Visible = false;
+                    GrdEslestirme.Columns["KaynakAramaTablo"].Visible = false;
+                    GrdEslestirme.Columns["KaynakAramaDegerKolon"].Visible = false;
+                    GrdEslestirme.Columns["KaynakAramaIdKolon"].Visible = false;
+                }
+                KaynakAyarlariGuncelle(e.RowIndex, yeniDurum);
+
             }
         }
     }

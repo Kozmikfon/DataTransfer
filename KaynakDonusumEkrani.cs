@@ -567,19 +567,17 @@ namespace DataTransfer
                 string insertSql = $"INSERT INTO [{_aramaTablo}] ({kolonListesi}) VALUES ({parametreListesi}); SELECT SCOPE_IDENTITY();";
 
                
-                object newId = kaynakRepo.ExecuteScalar(insertSql, sqlparameters);
+                object yeniId = kaynakRepo.ExecuteScalar(insertSql, sqlparameters);
 
-                if (newId != null && newId != DBNull.Value)
+                if (yeniId != null && yeniId != DBNull.Value)
                 {                  
-                    return Convert.ToInt32(newId);
+                    return Convert.ToInt32(yeniId);
                 }
                 return 0;
             }
             catch (Exception ex)
-            {
-               
-                MessageBox.Show($"Yeni kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            
+            {               
+                MessageBox.Show($"Yeni kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);            
                 throw; 
             }
         }
