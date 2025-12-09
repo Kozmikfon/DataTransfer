@@ -54,7 +54,7 @@ namespace DataTransfer.Repository
         public async Task<List<string>> KolonAdlariniGetirAsync(string tableName)
         {
             var list = new List<string>();
-            // SQL sorgusu sadece kolon isimlerini çekecek.
+
             string sql = $"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @TableName ORDER BY ORDINAL_POSITION";
 
             using (var conn = new SqlConnection(_connectionString))
@@ -76,7 +76,7 @@ namespace DataTransfer.Repository
         public async Task<List<string>> TabloAdlariniGetirAsync()
         {
             var list = new List<string>();
-            // SQL Server'da tüm kullanıcı tablolarını çeken standart sorgu
+
             string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
 
             using (var conn = new SqlConnection(_connectionString))
@@ -134,6 +134,46 @@ namespace DataTransfer.Repository
             return kolonlar;
         }
 
+        public KolonBilgisi GetKolonBilgisi(string tabloAdi, string kolonAdi)
+        {            
+            string sql = $@"
+        SELECT TOP 1
+            C.COLUMN_NAME, 
+            C.DATA_TYPE, 
+            C.CHARACTER_MAXIMUM_LENGTH, 
+            C.IS_NULLABLE
+        FROM INFORMATION_SCHEMA.COLUMNS C
+        WHERE C.TABLE_NAME = @TableName AND C.COLUMN_NAME = @ColumnName";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@TableName", tabloAdi);
+                cmd.Parameters.AddWithValue("@ColumnName", kolonAdi);
+                conn.Open();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string tip = reader["DATA_TYPE"].ToString();
+                        int? uzunluk = reader["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? null : Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]);
+                        bool isNullable = reader["IS_NULLABLE"].ToString().Equals("YES", StringComparison.OrdinalIgnoreCase);
+
+                        return new KolonBilgisi
+                        {
+                            DataType = tip,
+                            Length = uzunluk,
+                            IsNullable = isNullable
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+
+
 
 
         private const string SQL_GET_COLUMNS = @"
@@ -161,9 +201,6 @@ namespace DataTransfer.Repository
 
 
 
-
-
-
         public DataTable VeriGetir(string tablo, List<EslestirmeBilgisi> eslestirmeler, string kosul = "")
         {
             string connStr = _connectionString;
@@ -171,13 +208,11 @@ namespace DataTransfer.Repository
 
             foreach (var eslestirme in eslestirmeler)
             {
-                // YENİ 1. KONTROL: Lookup Eşleştirme Kontrolü (Aynı kalır, sqlIfadesiOlustur metodu düzeltilmişti)
                 if (eslestirme.Sonuc != null && eslestirme.Sonuc.DonusumTipi == DonusumTuru.LookupEslestirme)
                 {
                     string caseWhen = sqlIfadesiOlustur(eslestirme);
                     kolonlarinListesi.Add(caseWhen);
                 }
-                // MEVCUT 2. KONTROL: Manuel Giriş (KRİTİK DÜZELTME BURADA)
                 else if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
                 {
                     string manuelDeger = eslestirme.ManuelDeger;
@@ -189,30 +224,24 @@ namespace DataTransfer.Repository
                     }
                     else
                     {
-                        // 🚀 DÜZELTME: Sayısal kontrolü ekle.
-                        // Manuel giriş sayısal ise tırnak kullanmıyoruz.
                         if (double.TryParse(manuelDeger, out double _))
                         {
-                            // Sayısal değerse (INT, Decimal, vb.) tırnak kullanma: Örn: 101
                             sqlLiteral = manuelDeger;
                         }
                         else
                         {
-                            // Metin, tarih veya özel karakter içeriyorsa tırnak kullan: Örn: 'Açıklama'
                             sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
                         }
                     }
 
                     kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
                 }
-                // MEVCUT 3. KONTROL: Direkt Kolon Eşleşmesi veya Diğer Dönüşüm Tipleri (Aynı kalır)
                 else
                 {
                     kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
                 }
             }
 
-            // SQL sorgusunun geri kalanı
             string kolonListe = string.Join(", ", kolonlarinListesi);
             string sql = $"SELECT {kolonListe} FROM [{tablo}]";
 
@@ -241,7 +270,6 @@ namespace DataTransfer.Repository
 
         private string sqlIfadesiOlustur(EslestirmeBilgisi eslesme)
         {
-            // ... (başlangıç kısmı aynı) ...
             var sozluk = eslesme.Sonuc?.DonusumSozlugu;
             if (sozluk == null || sozluk.Count == 0)
             {
@@ -256,47 +284,35 @@ namespace DataTransfer.Repository
                 string kaynakDeger = kvp.Key;
                 object hedefDeger = kvp.Value;
 
-                // 1. Kaynak değeri tırnak içine al (Örn: '1' veya 'MAHMUT')
                 string kaynakDegerSQL = $"'{kaynakDeger.Replace("'", "''")}'";
 
-                // 2. KRİTİK DÜZELTME: Hedef değeri işleme
                 string hedefDegerString = hedefDeger.ToString();
                 string hedefDegerSQL;
 
-                // Varsayım: Eğer hedef değer sayısal değilse (yani string ise), tırnak içine alınmalıdır.
-                // En basit kontrol: Sayısal bir değer mi? (Daha kapsamlı kontrol yapılabilir)
                 if (int.TryParse(hedefDegerString, out int _))
                 {
-                    // Sayısal ID ise tırnak yok (Örn: 101)
                     hedefDegerSQL = hedefDegerString;
                 }
                 else
                 {
-                    // String ise tırnak içine al (Örn: 'musteri')
                     hedefDegerSQL = $"'{hedefDegerString.Replace("'", "''")}'";
                 }
 
-                // SQL'de: WHEN KaynakKolon = 'KaynakDeger' THEN HedefDeger
                 sb.AppendLine($"  WHEN [{eslesme.KaynakKolon}] = {kaynakDegerSQL} THEN {hedefDegerSQL}");
             }
 
-            // ... (ELSE NULL ve END AS aynı) ...
             sb.AppendLine($"  ELSE NULL");
             sb.Append($"END AS [{eslesme.HedefKolon}]");
 
             return sb.ToString();
         }
 
-        // SqlTransferRepository sınıfında (Hedef bağlantısını kullandığını varsayıyorum)
-
-        // Bu metot, herhangi bir kolonda arama yapıp, başka bir kolondan sonuç döndürebilir.
         public object HedefDegerGetir(
             string tabloAdi,
             string aramaKolonu,
             object arananDeger,
             string donenKolon)
         {
-            // SQL sorgusu: Aranan değere göre dönen kolonu getir
             string sql = $@"
         SELECT TOP 1 [{donenKolon}] 
         FROM [{tabloAdi}] 
@@ -304,7 +320,6 @@ namespace DataTransfer.Repository
 
             try
             {
-                // KRİTİK 3: Command, Repository'nin bağlantı ve Transaction'ını kullanır.
                 using (var cmd = new SqlCommand(sql, _connection, _transaction))
                 {
                     cmd.Parameters.AddWithValue("@ArananDeger", arananDeger);
@@ -324,16 +339,12 @@ namespace DataTransfer.Repository
             }
             catch (Exception ex)
             {
-                // Hata durumunda null veya özel bir hata fırlatılabilir.
                 throw new Exception($"Hedef sistemde dinamik arama hatası: {ex.Message} SQL: {sql}", ex);
             }
 
             return null;
         }
 
-
-
-        // SqlTransferRepository.cs içinde
 
         public async Task<object> ExecuteScalarAsync(string sqlCommand, Dictionary<string, object> parameters)
         {
@@ -351,11 +362,9 @@ namespace DataTransfer.Repository
                     {
                         foreach (var param in parameters)
                         {
-                            // Parametreleri eklerken await kullanmaya gerek yok.
                             cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                         }
                     }
-                    // Asenkron olarak çalıştır
                     result = await cmd.ExecuteScalarAsync();
                 }
 
@@ -398,7 +407,7 @@ namespace DataTransfer.Repository
         public DataTable DataTableCalistir(string sqlCommand)
         {
             var dt = new DataTable();
-            string connStr = _connectionString; // Repository'nin constructor'da oluşturduğu bağlantı dizesi
+            string connStr = _connectionString;
 
             try
             {
@@ -411,7 +420,6 @@ namespace DataTransfer.Repository
             }
             catch (Exception ex)
             {
-                // Hata ayıklama için SQL sorgusunu hata mesajına dahil et.
                 throw new Exception($"DataTable metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
             }
 
@@ -451,33 +459,28 @@ namespace DataTransfer.Repository
 
 
         public async Task<List<KaynakDonusumSatiri>> LookupDegerleriCekAsync(
-     string kaynakTablo, string kaynakKolon,
-     string aramaTablo, string aramaDegerKolon, string aramaIdKolon)
+            string kaynakTablo, string kaynakKolon,
+             string aramaTablo, string aramaDegerKolon, string aramaIdKolon)
         {
-            // DISTINCT kaynak değerlerini çek
             string sql = $"SELECT DISTINCT [{kaynakKolon}] FROM [{kaynakTablo}]";
 
-            // Asenkron çalışmak için Task.Run kullanıyoruz
             var dt = await Task.Run(() => DataTableCalistir(sql));
 
             var eslesmeListesi = new List<KaynakDonusumSatiri>();
 
             foreach (DataRow row in dt.Rows)
             {
-                // DBNull kontrolü ve string'e çevirme. Null ise string.Empty döner.
                 string kaynakDeger = row[0] is DBNull ? string.Empty : row[0].ToString();
                 object eslesenID = null;
 
-                // Lookup işlemi için SQL sorgusu
                 string lookupSql = $"SELECT TOP 1 [{aramaIdKolon}] FROM [{aramaTablo}] WHERE [{aramaDegerKolon}] = @kaynakDeger";
                 var parameters = new Dictionary<string, object> { { "@kaynakDeger", kaynakDeger } };
 
                 try
                 {
-                    // ExecuteScalar, kaynak veritabanında çalışır.
                     eslesenID = ExecuteScalar(lookupSql, parameters);
                 }
-                catch (Exception) { /* Hata yoksayılır, eşleşme bulunamadı sayılır */ }
+                catch (Exception) {  }
 
                 string durum = (eslesenID != null && eslesenID != DBNull.Value) ? "Oto Eşleşti" : "Eşleşme Bulunamadı";
 
@@ -494,7 +497,6 @@ namespace DataTransfer.Repository
 
         public List<ZorunluKolonBilgisi> ZorunluKolonlariCek(string tabloAdi, string idKolonAdi)
         {
-            // ... (SQL sorgusu aynı kalır, OBJECT_ID kullanılan sağlam sorgu)
 
             string sql = $@"
         SELECT 
@@ -515,7 +517,6 @@ namespace DataTransfer.Repository
 
             try
             {
-                // ... (Bağlantı ve Command nesneleri)
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(sql, conn))
                 {
@@ -523,7 +524,7 @@ namespace DataTransfer.Repository
                     cmd.Parameters.AddWithValue("@idKolonAdi", idKolonAdi);
 
                     conn.Open();
-                    // DataReader ile dönerek listeyi dolduruyoruz
+                    
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -535,7 +536,7 @@ namespace DataTransfer.Repository
                             });
                         }
                     }
-                    return zorunluKolonlar; // Listeyi döndür
+                    return zorunluKolonlar; 
                 }
             }
             catch (Exception ex)

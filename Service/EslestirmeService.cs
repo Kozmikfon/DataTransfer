@@ -84,12 +84,7 @@ namespace DataTransfer.Service
                         sonuc.Mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
                         sonuc.UyariGerekli = true;
                     }
-                    //else if (hedefLen > kaynakLen)
-                    //{
-                    //    string kStr = kaynak.Length.Value == -1 ? "MAX" : kaynak.Length.Value.ToString();
-                    //    string hStr = hedef.Length.Value == -1 ? "MAX" : hedef.Length.Value.ToString();
-                    //    sonuc.Mesajlar.Add($" ({kStr}->{hStr})");
-                    //}
+                  
                 }
             }
 
@@ -117,23 +112,18 @@ namespace DataTransfer.Service
                     sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
 
-                // Güncellenmiş Metin -> Sayısal/Tarih BLOKU
                 else if (kaynakMetin && (IsSayisalTip(hedefTip) || hedefTarih))
                 {
                     bool isLookup = (aramaTanimLiMi || KaynakAramaTanimliMi) && IsSayisalTip(hedefTip);
-                    bool isMetinToTarih = !isLookup && hedefTarih; // Yeni kontrol
+                    bool isMetinToTarih = !isLookup && hedefTarih; 
 
                     if (isLookup)
                     {
-                        // Lookup durumu (Metin -> ID), Kritik hata sıfırlanır.
                         sonuc.Mesajlar.Add($"Dönüşüm Gerekli: {kaynakTip} -> ID ({hedefTip})");
                         sonuc.UyariGerekli = true;
                         sonuc.DonusumTipi = DonusumTuru.LookupEslestirme;
 
-                        //if (sonuc.KritikHataVar)
-                        //{
-                        //    sonuc.KritikHataVar = false;
-                        //}
+                        
                     }
 
                     else if (isMetinToTarih)
@@ -143,14 +133,10 @@ namespace DataTransfer.Service
                         sonuc.UyariGerekli = true;
                         sonuc.DonusumTipi = DonusumTuru.FormatDonusumu;
 
-                        //if (sonuc.KritikHataVar)
-                        //{
-                        //    sonuc.KritikHataVar = false;
-                        //}
+                        
                     }
                     else
                     {
-                        // Buraya sadece Metin -> Sayısal (Lookup Tanımsız) eşleşmesi düşer.
                         sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip} (Kritik Tip Çakışması)");
                         sonuc.KritikHataVar = true;
                     }

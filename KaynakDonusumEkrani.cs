@@ -22,7 +22,11 @@ namespace DataTransfer
         private SqlTransferRepository _kaynakRepo;
 
         private KolonBilgisi _kaynakKolonBilgisi;
+        private KolonBilgisi _hedefKolonBilgisi;
 
+        private KolonBilgisi _kaynakAramaIdKolonBilgisi;
+
+        private KaynakDonusumUyarıBilgisi _kaynakUyariBilgisi;
         private string _kaynakKolonAdi;
         private string _kaynakTabloAdi;
 
@@ -37,7 +41,7 @@ namespace DataTransfer
 
         private BindingSource donusumSatiriBindingSource;
         public KaynakDonusumEkrani(string kaynakKolonAdi, string kaynakTabloAdi,
-                                 KolonBilgisi kaynakKolonBilgisi, KolonBilgisi hedefKolonBilgisi,
+                                 KolonBilgisi kaynakKolonBilgisi, KolonBilgisi hedefKolonBilgisi,KolonBilgisi kaynakAramaIdKolonBilgisi,KaynakDonusumUyarıBilgisi kaynakUyariBilgisi,
                                  string aramaTablo, string aramaDegerKolon, string aramaIdKolon,
                                  BaglantiBilgileri kaynakBaglanti,
                                  DonusumTuru donusumTipi)
@@ -48,6 +52,10 @@ namespace DataTransfer
             _kaynakTabloAdi = kaynakTabloAdi;
 
             _kaynakKolonBilgisi = kaynakKolonBilgisi;
+            _hedefKolonBilgisi = hedefKolonBilgisi;
+            _kaynakAramaIdKolonBilgisi = kaynakAramaIdKolonBilgisi;
+
+            _kaynakUyariBilgisi = kaynakUyariBilgisi;
 
             _aramaTablo = aramaTablo;
             _aramaDegerKolon = aramaDegerKolon;
@@ -65,7 +73,66 @@ namespace DataTransfer
             GrdKaynakDonusum.DataSource = this.donusumSatiriBindingSource;
 
             GridBaslat();
+            UyariGridi();
 
+
+        }
+
+        private void UyariGridi()
+        {
+            GrdUyari.AllowUserToAddRows = false;
+            GrdUyari.AutoGenerateColumns = false;
+            GrdUyari.Columns.Clear();
+
+            var uyariMesaji = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Uyarı Mesajı",
+                Name = "Uyari",
+                DataPropertyName = "Uyari",
+                ReadOnly = true,
+                Width = 300
+            };
+            var kaynakTip = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Kaynak Tipi",
+                Name ="KaynakTipi",
+                DataPropertyName = "KaynakTipi",
+                ReadOnly = true,
+                Width = 120
+            };
+            var kaynakUzunluk = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Kaynak Uzunluk",
+                Name ="KaynakUzunluk",
+                DataPropertyName = "KaynakUzunluk",
+                ReadOnly = true,
+                Width = 100
+            };
+
+            var hedefTip = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Hedef Tipi",
+                Name = "HedefTipi",
+                DataPropertyName = "HedefTipi",
+                ReadOnly = true,
+                Width = 120
+            };
+            var hedefUzunluk = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Hedef Uzunluk",
+                Name = "HedefUzunluk",
+                DataPropertyName = "HedefUzunluk",
+                ReadOnly = true,
+                Width = 100
+            };
+            GrdUyari.Columns.AddRange(new DataGridViewColumn[]
+            {
+                uyariMesaji,
+                kaynakTip,
+                kaynakUzunluk,
+                hedefTip,
+                hedefUzunluk
+            });
 
         }
 
@@ -75,7 +142,6 @@ namespace DataTransfer
             GrdKaynakDonusum.AutoGenerateColumns = false;
             GrdKaynakDonusum.Columns.Clear();
 
-            // LookupEslesmeSatiri modeline göre kolonlar
             var kaynakDeger = new DataGridViewTextBoxColumn
             {
                 HeaderText = "Kaynak Değer (Orijinal)",
@@ -101,21 +167,11 @@ namespace DataTransfer
             };
 
 
-            var ekleIslemi = new DataGridViewButtonColumn
-            {
-                Name = "BtnEkle",
-                HeaderText = "Aksiyon",
-                Text = "Ekle",
-                UseColumnTextForButtonValue = true,
-                Width = 75
-            };
-
             GrdKaynakDonusum.Columns.AddRange(new DataGridViewColumn[]
             {
                 kaynakDeger,
                 KaynakHedefAtanacakDeger,
                 durum,
-                ekleIslemi
             });
         }
 
@@ -129,9 +185,7 @@ namespace DataTransfer
 
             try
             {
-                // NOT: Burada _kaynakRepo (transaction'sız) kullanılıyor, bu toplu ekleme commit edilene kadar
-                // yeni eklenen ID'yi göremeyebilir. Eğer bu bir sorun yaratırsa, bu metot aşırı yüklenmeli
-                // ve transaction'lı kaynakRepo'yu almalıdır. Şimdilik transaction'sız repo ile devam ediyoruz.
+               
                 return _kaynakRepo.HedefDegerGetir(
                        _aramaTablo,
                        _aramaIdKolon,
@@ -147,30 +201,30 @@ namespace DataTransfer
         }
 
         private void OtomatikAramaVeGuncelle()
-        {
+         {
+           
+            
             foreach (var satır in _donusumListesi)
             {
                 if (satır.Durum == "Tamamlandı" || satır.Durum == "Oto Eşleşti") continue;
 
-                // Kaynak değerini alıp, Kaynak Lookup tablosunda ID'sini ara
                 object eslesenID = KaynakLookupIDGetir(satır.KaynakDeger);
 
                 if (eslesenID != null && eslesenID != DBNull.Value)
                 {
-                    // ID'nin karşılığı olan Açıklama değerini çek
                     object aciklamaDegeri = KaynakIdIleAciklamaGetir(eslesenID);
 
-                    satır.EslesenID = eslesenID; // KRİTİK: Veritabanına gidecek ID
+                    satır.EslesenID = eslesenID; 
 
                     if (aciklamaDegeri != null && aciklamaDegeri != DBNull.Value)
                     {
-                        satır.HedefKaynagaAtanacakDeger = aciklamaDegeri; // UI'a Açıklama
+                        satır.HedefKaynagaAtanacakDeger = aciklamaDegeri;
                     }
                     else
                     {
-                        satır.HedefKaynagaAtanacakDeger = eslesenID.ToString(); // Açıklama yoksa ID'yi göster
+                        satır.HedefKaynagaAtanacakDeger = eslesenID.ToString();
                     }
-
+                    
                     satır.Durum = "Oto Eşleşti";
                 }
                 else
@@ -183,7 +237,6 @@ namespace DataTransfer
             GrdKaynakDonusum.Refresh();
         }
 
-        // Otomatik arama için: Kaynak değerine karşılık gelen Kaynak ID'sini arama tablosundan çeker.
         private object KaynakLookupIDGetir(string kaynakDeger)
         {
             if (string.IsNullOrWhiteSpace(_aramaTablo) || string.IsNullOrWhiteSpace(_aramaIdKolon) || string.IsNullOrWhiteSpace(_aramaDegerKolon))
@@ -191,13 +244,12 @@ namespace DataTransfer
                 return null;
             }
 
-            // SQL: SELECT TOP 1 [ID_KOLONU] FROM [ARAMA_TABLOSU] WHERE [DEĞER_KOLONU] = @kaynakDeger
+            
             string sql = $"SELECT TOP 1 [{_aramaIdKolon}] FROM [{_aramaTablo}] WHERE [{_aramaDegerKolon}] = @kaynakDeger";
             var parameters = new Dictionary<string, object> { { "@kaynakDeger", kaynakDeger } };
 
             try
             {
-                // Repository'nin ExecuteScalar metodunu kullanarak kaynak veritabanında çalıştır.
                 return _kaynakRepo.ExecuteScalar(sql, parameters);
             }
             catch (Exception ex)
@@ -210,6 +262,43 @@ namespace DataTransfer
         private async void KaynakDonusumEkrani_Load(object sender, EventArgs e)
         {
             await EslesmeVerileriniGosterAsync();
+           
+            UyariGridiniDoldur();
+            
+        }
+
+        private void UyariGridiniDoldur()
+        {
+            if (_kaynakUyariBilgisi == null) return;
+
+            GrdUyari.Rows.Clear();
+
+            int rowIndex = GrdUyari.Rows.Add();
+            DataGridViewRow row = GrdUyari.Rows[rowIndex];
+
+            row.Cells["Uyari"].Value = _kaynakUyariBilgisi.UyariMesaji;
+            row.Cells["KaynakTipi"].Value = _kaynakUyariBilgisi.KaynakTipi;
+            row.Cells["KaynakUzunluk"].Value = _kaynakUyariBilgisi.KaynakUzunluk.HasValue && _kaynakUyariBilgisi.KaynakUzunluk.Value == int.MaxValue ? "MAX" : _kaynakUyariBilgisi.KaynakUzunluk?.ToString();
+            row.Cells["HedefTipi"].Value = _kaynakUyariBilgisi.HedefTipi;
+            row.Cells["HedefUzunluk"].Value = _kaynakUyariBilgisi.HedefUzunluk.HasValue && _kaynakUyariBilgisi.HedefUzunluk.Value == int.MaxValue ? "MAX" : _kaynakUyariBilgisi.HedefUzunluk?.ToString();
+
+            if (_kaynakUyariBilgisi.UyariMesaji.StartsWith("🔴"))
+            {
+                row.DefaultCellStyle.BackColor = Color.LightCoral;
+                row.DefaultCellStyle.ForeColor = Color.Black;
+            }
+            else if (_kaynakUyariBilgisi.UyariMesaji.StartsWith("🟡"))
+            {
+                row.DefaultCellStyle.BackColor = Color.LightYellow;
+                row.DefaultCellStyle.ForeColor = Color.DarkOrange;
+            }
+            else
+            {
+                row.DefaultCellStyle.BackColor = Color.LightGreen;
+                row.DefaultCellStyle.ForeColor = Color.DarkGreen;
+            }
+
+            GrdUyari.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
         }
 
         private async Task EslesmeVerileriniGosterAsync()
@@ -224,7 +313,6 @@ namespace DataTransfer
             GrdKaynakDonusum.SuspendLayout();
             try
             {
-                // 1. Repository'de yeni oluşturduğumuz metodu çağırıyoruz.
                 var yeniListe = await _kaynakRepo.LookupDegerleriCekAsync(
                     _kaynakTabloAdi,
                     _kaynakKolonAdi,
@@ -237,7 +325,7 @@ namespace DataTransfer
                 {
                     _donusumListesi.Clear();
                     _donusumListesi.AddRange(yeniListe);
-                    this.donusumSatiriBindingSource.ResetBindings(false); // Veri kaynağını yenile
+                    this.donusumSatiriBindingSource.ResetBindings(false);
                     OtomatikAramaVeGuncelle();
                 }
                 else
@@ -293,13 +381,11 @@ namespace DataTransfer
 
         private void GrdKaynakDonusum_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            // Sadece "BtnEkle" butonuna ve geçerli satıra tıklanıp tıklanmadığını kontrol et
             if (e.RowIndex < 0 || GrdKaynakDonusum.Columns[e.ColumnIndex].Name != "BtnEkle")
                 return;
 
             var satır = _donusumListesi[e.RowIndex];
 
-            // Sadece eşleşme bulunamayan kayıtlar için ekleme yap
             if (satır.Durum != "Eşleşme Bulunamadı")
             {
                 MessageBox.Show("Bu kayıt zaten eşleşmiş durumda. Yeni kayıt ekleme işlemi sadece eşleşme bulunamayan kayıtlar için yapılabilir.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -325,8 +411,6 @@ namespace DataTransfer
             }
             catch (Exception ex)
             {
-                // YeniKayitEkleVeIDDon içinde hata mesajı gösterildiği için burada tekrar göstermiyoruz
-                // Ancak tekilRepo'yu dispose etmeliyiz.
             }
             finally
             {
@@ -335,9 +419,7 @@ namespace DataTransfer
 
             if (yeniID > 0)
             {
-                // 1. Girilen ID'yi Kaynak veritabanında doğrula ve açıklamasını çek (Yeni eklenen ID'yi)
                 object idDegeri = yeniID;
-                // Yeni Kayıt eklendiği için artık KaynakIdIleAciklamaGetir metodu ile açıklamasını çekebiliriz
                 object aciklamaDegeri = KaynakIdIleAciklamaGetir(idDegeri);
 
                 if (aciklamaDegeri != null && aciklamaDegeri != DBNull.Value)
@@ -392,89 +474,89 @@ namespace DataTransfer
             }
         }
 
-        private void BtnTopluEkle_Click(object sender, EventArgs e)
-        {
-            TopluEslesmeyenleriEkle();
-        }
+        //private void BtnTopluEkle_Click(object sender, EventArgs e)
+        //{
+        //    TopluEslesmeyenleriEkle();
+        //}
 
-        private void TopluEslesmeyenleriEkle()
-        {
-            var eklenecekSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı").ToList();
-            int toplamEklenecekSatir = eklenecekSatirlar.Count;
+        //private void TopluEslesmeyenleriEkle()
+        //{
+        //    var eklenecekSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı").ToList();
+        //    int toplamEklenecekSatir = eklenecekSatirlar.Count;
 
-            if (toplamEklenecekSatir == 0)
-            {
-                MessageBox.Show("Eşleşme bulunamayan kayıt yok.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            DialogResult result = MessageBox.Show($"{toplamEklenecekSatir} adet eşleşme bulunamayan kayıt var. Bu kayıtlar için yeni kayıt eklemek istediğinize emin misiniz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        //    if (toplamEklenecekSatir == 0)
+        //    {
+        //        MessageBox.Show("Eşleşme bulunamayan kayıt yok.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //        return;
+        //    }
+        //    DialogResult result = MessageBox.Show($"{toplamEklenecekSatir} adet eşleşme bulunamayan kayıt var. Bu kayıtlar için yeni kayıt eklemek istediğinize emin misiniz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
-            if (result == DialogResult.No)
-            {
-                return;
-            }
+        //    if (result == DialogResult.No)
+        //    {
+        //        return;
+        //    }
 
-            GrdKaynakDonusum.SuspendLayout();
-            this.donusumSatiriBindingSource.RaiseListChangedEvents = false;
+        //    GrdKaynakDonusum.SuspendLayout();
+        //    this.donusumSatiriBindingSource.RaiseListChangedEvents = false;
 
-            int basariliEklemeSayisi = 0;
-            // ⭐️ Rollback için kaynakRepo nesnesini döngü dışına al
-            SqlTransferRepository kaynakRepo = null;
+        //    int basariliEklemeSayisi = 0;
+        //    // ⭐️ Rollback için kaynakRepo nesnesini döngü dışına al
+        //    SqlTransferRepository kaynakRepo = null;
 
-            try
-            {
-                kaynakRepo = new SqlTransferRepository(_kaynakBaglanti);
-                kaynakRepo.BeginTransaction(); // İşlemi Başlat
+        //    try
+        //    {
+        //        kaynakRepo = new SqlTransferRepository(_kaynakBaglanti);
+        //        kaynakRepo.BeginTransaction(); // İşlemi Başlat
 
-                foreach (var satır in eklenecekSatirlar)
-                {
-                    // YeniKayitEkleVeIDDon metoduna transaction'lı kaynakRepo'yu gönderiyoruz
-                    int yeniID = YeniKayitEkleVeIDDon(satır.KaynakDeger, kaynakRepo);
-                    if (yeniID > 0)
-                    {
-                        satır.EslesenID = yeniID;
-                        // KaynakIdIleAciklamaGetir transaction'sız repo kullanıyor, 
-                        // ancak bu tekil ekleme commit edilince hemen ardından çekilecektir (çoğu SQL sunucuda).
-                        satır.HedefKaynagaAtanacakDeger = KaynakIdIleAciklamaGetir(yeniID);
-                        satır.Durum = "Toplu Eşleşti";
-                        basariliEklemeSayisi++;
-                    }
-                    // else durumunda YeniKayitEkleVeIDDon içinde hata mesajı gösterildi.
-                }
-                kaynakRepo.CommitTransaction(); // İşlemi Onayla
-            }
-            catch (Exception ex)
-            {
-                try
-                {
-                    kaynakRepo?.RollbackTransaction();
-                }
-                catch (Exception rollbackEx)
-                {
-                    MessageBox.Show($"Kayıt eklenirken hata oluştu ve işlem geri alınamadı (Rollback Hatası: {rollbackEx.Message}). Veri tutarsızlığı olabilir. Lütfen DBA ile iletişime geçin.", "Kritik Veri Bütünlüğü Hatası", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                }
-                MessageBox.Show($"Kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                basariliEklemeSayisi = 0;
+        //        foreach (var satır in eklenecekSatirlar)
+        //        {
+        //            // YeniKayitEkleVeIDDon metoduna transaction'lı kaynakRepo'yu gönderiyoruz
+        //            int yeniID = YeniKayitEkleVeIDDon(satır.KaynakDeger, kaynakRepo);
+        //            if (yeniID > 0)
+        //            {
+        //                satır.EslesenID = yeniID;
+        //                // KaynakIdIleAciklamaGetir transaction'sız repo kullanıyor, 
+        //                // ancak bu tekil ekleme commit edilince hemen ardından çekilecektir (çoğu SQL sunucuda).
+        //                satır.HedefKaynagaAtanacakDeger = KaynakIdIleAciklamaGetir(yeniID);
+        //                satır.Durum = "Toplu Eşleşti";
+        //                basariliEklemeSayisi++;
+        //            }
+        //            // else durumunda YeniKayitEkleVeIDDon içinde hata mesajı gösterildi.
+        //        }
+        //        kaynakRepo.CommitTransaction(); // İşlemi Onayla
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        try
+        //        {
+        //            kaynakRepo?.RollbackTransaction();
+        //        }
+        //        catch (Exception rollbackEx)
+        //        {
+        //            MessageBox.Show($"Kayıt eklenirken hata oluştu ve işlem geri alınamadı (Rollback Hatası: {rollbackEx.Message}). Veri tutarsızlığı olabilir. Lütfen DBA ile iletişime geçin.", "Kritik Veri Bütünlüğü Hatası", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+        //        }
+        //        MessageBox.Show($"Kayıt eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        basariliEklemeSayisi = 0;
 
-            }
-            finally
-            {
+        //    }
+        //    finally
+        //    {
                
-                kaynakRepo?.Dispose();
+        //        kaynakRepo?.Dispose();
 
-                this.donusumSatiriBindingSource.RaiseListChangedEvents = true;
-                this.donusumSatiriBindingSource.ResetBindings(false);
-                GrdKaynakDonusum.ResumeLayout();
-                if (basariliEklemeSayisi > 0)
-                {
-                    MessageBox.Show($"{basariliEklemeSayisi} adet kayıt Kaynak Lookup tablosuna eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else if (toplamEklenecekSatir > 0 && basariliEklemeSayisi == 0)
-                {
-                    MessageBox.Show("Toplu kayıt ekleme işlemi tamamlandı ancak hiçbir kayıt başarılı eklenemedi. Detaylar için hata mesajlarını kontrol edin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-            }
-        }
+        //        this.donusumSatiriBindingSource.RaiseListChangedEvents = true;
+        //        this.donusumSatiriBindingSource.ResetBindings(false);
+        //        GrdKaynakDonusum.ResumeLayout();
+        //        if (basariliEklemeSayisi > 0)
+        //        {
+        //            MessageBox.Show($"{basariliEklemeSayisi} adet kayıt Kaynak Lookup tablosuna eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //        }
+        //        else if (toplamEklenecekSatir > 0 && basariliEklemeSayisi == 0)
+        //        {
+        //            MessageBox.Show("Toplu kayıt ekleme işlemi tamamlandı ancak hiçbir kayıt başarılı eklenemedi. Detaylar için hata mesajlarını kontrol edin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        }
+        //    }
+        //}
 
         private void BtnIptal_Click(object sender, EventArgs e)
         {

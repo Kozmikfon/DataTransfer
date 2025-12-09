@@ -339,14 +339,14 @@ namespace DataTransfer
                 case "decimal":
                 case "numeric":
                 case "money":
-                    return 0; // Sayısal tipler
+                    return 0; 
 
                 case "bit":
 
                     return 1;
 
                 case "uniqueidentifier":
-                    return Guid.NewGuid(); // GUID tipleri
+                    return Guid.NewGuid(); 
 
                 case "char":
                 case "varchar":
@@ -354,19 +354,16 @@ namespace DataTransfer
                 case "nvarchar":
                 case "text":
                 case "ntext":
-                case "sysname": // SQL Server'ın özel string tipi
-                                // Zorunlu string alanlar için standart bir değer
+                case "sysname": 
                     return "DefaultUser";
 
                 case "datetime":
                 case "date":
                 case "smalldatetime":
                 case "datetime2":
-                    // Zorunlu tarih alanları için geçerli zamanı atama
                     return DateTime.Now;
 
                 default:
-                    // Hata fırlatma mantığı korunur.
                     throw new InvalidOperationException($"'{kolonAdi}' kolonu için desteklenmeyen zorunlu veri tipi: {veriTipi}. Manuel değer atanmalı.");
             }
         }
@@ -392,7 +389,6 @@ namespace DataTransfer
                     _donusumListesi.Clear();
                     int kaynakKolonIndex = 0;
 
-                    // Veriler Listeye Dolduruluyor
                     foreach (DataRow row in kaynakdegerler.Rows)
                     {
                         object kaynakDeger = null;
@@ -431,9 +427,7 @@ namespace DataTransfer
             }
             finally
             {
-                // UI Güncellemelerini ve Olayları Yeniden Başlatmas
-                GrdDonusum.ResumeLayout();
-                // Tüm UI'ın yeniden çizilmesini 
+                GrdDonusum.ResumeLayout();              
                 GrdDonusum.Refresh();
             }
 
@@ -446,7 +440,7 @@ namespace DataTransfer
                 return;
             }
 
-            if (e.ColumnIndex == 3) // İşlem kolonu
+            if (e.ColumnIndex == 3) 
             {
 
                 GrdDonusum.EndEdit();
@@ -541,7 +535,6 @@ namespace DataTransfer
 
         private void TopluEslesmeyenleriEkle()
         {
-            // Yalnızca eşleşme bulunamayan satırları önceden filtrele
             var eklenecekSatirlar = _donusumListesi.Where(s => s.Durum == "Eşleşme Bulunamadı" && !string.IsNullOrWhiteSpace(s.KaynakDeger)).ToList();
 
             int toplamEklenecekSatir = eklenecekSatirlar.Count;
@@ -563,22 +556,18 @@ namespace DataTransfer
                 return;
             }
 
-            // UI güncellemelerini durdurma (Mevcut kodunuzdaki gibi)
             GrdDonusum.SuspendLayout();
             this.donusumSatiriBindingSource.RaiseListChangedEvents = false;
 
             int basariliEklemeSayisi = 0;
 
-            // Tek bir Try-Catch Bloğu ve Transaction kullanımı
             try
             {
                 using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
-                hedefRepo.BeginTransaction(); // *** KRİTİK İYİLEŞTİRME 1: Transaction Başlat ***
+                hedefRepo.BeginTransaction(); 
 
                 foreach (var satir in eklenecekSatirlar)
                 {
-                    // Yeni Kayıt Ekleme metodunu Transaction ile çalıştırmak için revize edilmesi gerekebilir. 
-                    // Şimdilik sadece çağrısını tutuyoruz.
                     int yeniId = YeniKayitEkleVeIDDon(satir.KaynakDeger, hedefRepo);
 
                     if (yeniId > 0)
@@ -589,48 +578,40 @@ namespace DataTransfer
                     }
                     else
                     {
-                        // *** KRİTİK İYİLEŞTİRME 2: Başarısız Durumda Açıkça Belirtme ***
                         satir.Durum = "Ekleme Başarısız";
-                        // Eğer burada bir hata oluştuysa, büyük ihtimalle YeniKayitEkleVeIDDon zaten MessageBox göstermiştir.
                     }
                 }
 
-                hedefRepo.CommitTransaction(); // Transaction'ı tamamla
+                hedefRepo.CommitTransaction(); 
             }
             catch (Exception ex)
             {
-                // Bir hata durumunda Transaction'ı geri al
+                
                 try
                 {
                     new SqlTransferRepository(_hedefBaglanti).RollbackTransaction();
                 }
                 catch (Exception rollbackEx)
                 {
-                    // Rollback sırasında hata olursa (Örn: bağlantı kesildiyse)
                     MessageBox.Show($"Kayıt eklenirken hata oluştu ve işlem geri alınamadı (Rollback Hatası: {rollbackEx.Message}). Veri tutarsızlığı olabilir. Lütfen DBA ile iletişime geçin.", "Kritik Veri Bütünlüğü Hatası", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                    // Tüm işlemi durdurmak için exception'ı tekrar fırlatılabilir veya burada bitirilebilir.
+                   
                 }
 
-                // Kullanıcıya ana hatayı bildir
                 MessageBox.Show($"Toplu kayıt eklenirken bir hata oluştu. İşlem geri alındı. Hata: {ex.Message}", "Toplu Ekleme Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                basariliEklemeSayisi = 0; // Başarılı sayısını sıfırla
+                basariliEklemeSayisi = 0; 
             }
             finally
             {
-                // UI güncellemelerini yeniden başlatma (Mevcut kodunuzdaki gibi)
                 this.donusumSatiriBindingSource.RaiseListChangedEvents = true;
                 GrdDonusum.ResumeLayout();
-                this.donusumSatiriBindingSource.ResetBindings(false); // Yenile
+                this.donusumSatiriBindingSource.ResetBindings(false);
 
                 if (basariliEklemeSayisi > 0)
                 {
                     MessageBox.Show($"{basariliEklemeSayisi} adet kayıt başarıyla eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else if (toplamEklenecekSatir > 0 && basariliEklemeSayisi == 0)
-                {
-                    // Sadece başarısız olanlar için bir uyarı (hata try-catch'te gösterildi ama teyit edelim)
-                    // Durumu "Ekleme Başarısız" olan satırlar Grid'de görünecektir.
-                    //MessageBox.Show("Toplu kayıt ekleme işlemi başarıyla sonuçlanmadı. Detaylar için logları kontrol edin.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                { 
                 }
             }
         }

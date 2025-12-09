@@ -368,7 +368,7 @@ namespace DataTransfer
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Yeni form açılırken hata oluştu:\n{ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.Show(); // Eğer hata olursa geri getir
+                    this.Show(); 
                 }
             }
             catch (Exception ex)
@@ -380,7 +380,6 @@ namespace DataTransfer
 
         private void FrmBaglantiAc_Load(object sender, EventArgs e)
         {
-            // Başlangıçta devre dışı
             BtnDevam.Enabled = false;
             CmbboxKaynakVeritabani.Enabled = false;
             CmbboxHedefVeriTabani.Enabled = false;
