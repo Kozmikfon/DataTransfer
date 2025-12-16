@@ -36,7 +36,7 @@ namespace DataTransfer.Service
         }
 
 
-        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi,bool aramaTanimLiMi,bool KaynakAramaTanimliMi)
+        public EslestirmeSonucu KontrolEt(KolonBilgisi kaynak, KolonBilgisi hedef, string kaynakKolonAdi, bool aramaTanimLiMi, bool KaynakAramaTanimliMi)
         {
             var sonuc = new EslestirmeSonucu();
             sonuc.Mesajlar = new List<string>();
@@ -52,18 +52,21 @@ namespace DataTransfer.Service
             string kaynakTip = kaynak.DataType.ToLower();
             string hedefTip = hedef.DataType.ToLower();
 
+            bool kaynakMetin = IsMetinselTip(kaynakTip);
+            bool hedefMetin = IsMetinselTip(hedefTip);
+            bool kaynakTarih = IsTarihTip(kaynakTip);
+            bool hedefTarih = IsTarihTip(hedefTip);
+            bool kaynakSayisal = IsSayisalTip(kaynakTip);
+            bool hedefSayisal = IsSayisalTip(hedefTip);
+
             if (!hedef.IsNullable && kaynak.IsNullable)
             {
                 sonuc.KritikHataVar = true;
                 sonuc.Mesajlar.Add("Hedef NULL kabul etmiyor");
             }
 
-            bool kaynakMetin = IsMetinselTip(kaynakTip);
-            bool hedefMetin = IsMetinselTip(hedefTip);
-
             if (kaynakMetin && hedefMetin)
             {
-              
                 if (!string.Equals(kaynakTip, hedefTip, StringComparison.OrdinalIgnoreCase))
                 {
                     sonuc.Mesajlar.Add($"Tip Dönüşümü ({kaynakTip}->{hedefTip})");
@@ -80,67 +83,76 @@ namespace DataTransfer.Service
                     {
                         string kStr = kaynak.Length.Value == -1 ? "MAX" : kaynak.Length.Value.ToString();
                         string hStr = hedef.Length.Value == -1 ? "MAX" : hedef.Length.Value.ToString();
-
                         sonuc.Mesajlar.Add($"Kırpılma Riski ({kStr}->{hStr})");
                         sonuc.UyariGerekli = true;
                     }
-                  
                 }
             }
 
-            else if (IsSayisalTip(kaynakTip) && IsSayisalTip(hedefTip))
+            else if (kaynakSayisal && hedefSayisal)
             {
-                // Ondalıklı Sayı Tam Sayı 
                 if (IsOndalikliTip(kaynakTip) && IsTamSayiliTip(hedefTip))
                 {
-                    sonuc.Mesajlar.Add("Uygun Değil");
+                    sonuc.Mesajlar.Add("Uygun Değil (Ondalıklı -> Tamsayı Veri Kaybı)");
                     sonuc.KritikHataVar = true;
                 }
-                
             }
-            
+
             else
             {
-                bool kaynakTarih = IsTarihTip(kaynakTip);
-                bool hedefTarih = IsTarihTip(hedefTip);
-
-                
-                if ((IsSayisalTip(kaynakTip) || kaynakTarih) && hedefMetin)
+                if (hedefTarih && !kaynakTarih)
                 {
-                    sonuc.Mesajlar.Add($"Tip Dönüşümü Gerekli: {kaynakTip} -> {hedefTip}");
+                    sonuc.Mesajlar.Add($"KRİTİK HATA: Hedef Tarih/Saat ({hedefTip}) sadece Kaynak Tarih/Saat olduğunda atanabilir.");
+                    sonuc.KritikHataVar = true;
+                    return sonuc;
+                }
+
+                if (kaynakTarih && !hedefMetin && !hedefTarih)
+                {
+                    sonuc.Mesajlar.Add($"KRİTİK UYUŞMAZLIK: Tarih/Saat ({kaynakTip}) sadece Metin veya Tarih/Saat tipine dönüştürülebilir.");
+                    sonuc.KritikHataVar = true;
+                    return sonuc;
+                }
+
+                if (kaynakSayisal && hedefMetin)
+                {
+                    if (aramaTanimLiMi || KaynakAramaTanimliMi)
+                    {
+                        sonuc.Mesajlar.Add($"Dönüşüm Gerekli: {kaynakTip} -> {hedefTip} (Lookup Eşleştirme)");
+                        sonuc.UyariGerekli = true;
+                        sonuc.DonusumTipi = DonusumTuru.LookupEslestirme;
+                    }
+                    else
+                    {
+                        sonuc.Mesajlar.Add($"KRİTİK HATA: Kaynak Sayısal ({kaynakTip}) Hedef Metin ({hedefTip}) ise Lookup tanımı zorunludur.");
+                        sonuc.KritikHataVar = true;
+                    }
+                }
+
+               
+                else if (kaynakTarih && hedefMetin)
+                {
+                    sonuc.Mesajlar.Add($"Tip Dönüşümü Gerekli: {kaynakTip} -> {hedefTip} (Formatlama Riski)");
                     sonuc.UyariGerekli = true;
                     sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
 
-                else if (kaynakMetin && (IsSayisalTip(hedefTip) || hedefTarih))
+                else if (kaynakMetin && hedefSayisal)
                 {
-                    bool isLookup = (aramaTanimLiMi || KaynakAramaTanimliMi) && IsSayisalTip(hedefTip);
-                    bool isMetinToTarih = !isLookup && hedefTarih; 
-
+                    bool isLookup = (aramaTanimLiMi || KaynakAramaTanimliMi);
                     if (isLookup)
                     {
-                        sonuc.Mesajlar.Add($"Dönüşüm Gerekli: {kaynakTip} -> ID ({hedefTip})");
+                        sonuc.Mesajlar.Add($"Dönüşüm Gerekli: {kaynakTip} -> ({hedefTip}) (Lookup)");
                         sonuc.UyariGerekli = true;
                         sonuc.DonusumTipi = DonusumTuru.LookupEslestirme;
-
-                        
-                    }
-
-                    else if (isMetinToTarih)
-                    {
-                       
-                        sonuc.Mesajlar.Add($"Format Dönüşümü Gerekli: {kaynakTip} -> {hedefTip}");
-                        sonuc.UyariGerekli = true;
-                        sonuc.DonusumTipi = DonusumTuru.FormatDonusumu;
-
-                        
                     }
                     else
                     {
-                        sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip} (Kritik Tip Çakışması)");
+                        sonuc.Mesajlar.Add($"UYUŞMAZLIK: {kaynakTip} -> {hedefTip} (Kritik Tip Çakışması - Lookup Zorunlu)");
                         sonuc.KritikHataVar = true;
                     }
                 }
+
 
                 else if (!string.Equals(kaynakTip, hedefTip, StringComparison.OrdinalIgnoreCase))
                 {
@@ -149,6 +161,7 @@ namespace DataTransfer.Service
                     sonuc.DonusumTipi = DonusumTuru.BasitTipDonusumu;
                 }
             }
+
            
             sonuc.EslestirmeUygun = !sonuc.KritikHataVar && !sonuc.UyariGerekli;
 

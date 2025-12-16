@@ -80,7 +80,7 @@
             BtnOtomatikEsle.Name = "BtnOtomatikEsle";
             BtnOtomatikEsle.Size = new Size(191, 90);
             BtnOtomatikEsle.TabIndex = 3;
-            BtnOtomatikEsle.Text = "Otomatik eşleştir";
+            BtnOtomatikEsle.Text = "Otomatik Eşleştir";
             BtnOtomatikEsle.UseVisualStyleBackColor = true;
             BtnOtomatikEsle.Click += BtnOtomatikEsle_Click;
             // 
@@ -156,7 +156,7 @@
             BtnFiltreTest.Name = "BtnFiltreTest";
             BtnFiltreTest.Size = new Size(99, 37);
             BtnFiltreTest.TabIndex = 3;
-            BtnFiltreTest.Text = "test et";
+            BtnFiltreTest.Text = "Test Et";
             BtnFiltreTest.UseVisualStyleBackColor = true;
             BtnFiltreTest.Click += BtnFiltreTest_Click;
             // 
@@ -222,7 +222,7 @@
             BtnKynkSutunYkle.Name = "BtnKynkSutunYkle";
             BtnKynkSutunYkle.Size = new Size(148, 41);
             BtnKynkSutunYkle.TabIndex = 16;
-            BtnKynkSutunYkle.Text = "Kaynak Sütun Yükle";
+            BtnKynkSutunYkle.Text = "Kaynak Sütunları Yükle";
             BtnKynkSutunYkle.UseVisualStyleBackColor = true;
             BtnKynkSutunYkle.Click += BtnKynkSutunYkle_Click;
             // 
@@ -233,7 +233,7 @@
             BtnHdfSutunYkle.Name = "BtnHdfSutunYkle";
             BtnHdfSutunYkle.Size = new Size(148, 41);
             BtnHdfSutunYkle.TabIndex = 17;
-            BtnHdfSutunYkle.Text = "Hedef Sütun Yükle";
+            BtnHdfSutunYkle.Text = "Hedef Sütunları Yükle";
             BtnHdfSutunYkle.UseVisualStyleBackColor = true;
             BtnHdfSutunYkle.Click += BtnHdfSutunYkle_Click;
             // 

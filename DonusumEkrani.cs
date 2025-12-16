@@ -1,10 +1,10 @@
 ﻿using DataTransfer.Model;
 using DataTransfer.Repository;
-using DataTransfer.Service;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.SymbolStore;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -18,6 +18,7 @@ namespace DataTransfer
         private BaglantiBilgileri _kaynakBaglanti;
         private BaglantiBilgileri _hedefBaglanti;
         private SqlTransferRepository _kaynakRepo;
+        private SqlTransferRepository _hedefRepo;
 
         private KolonBilgisi _kaynakKolonBilgisi;
         private KolonBilgisi _hedefKolonBilgisi;
@@ -59,7 +60,7 @@ namespace DataTransfer
             _donusumTipi = donusumTipi;
 
             _kaynakRepo = new SqlTransferRepository(_kaynakBaglanti);
-
+            _hedefRepo= new SqlTransferRepository(_hedefBaglanti);
 
             DonusumSozlugu = new Dictionary<string, object>();
 
@@ -103,7 +104,7 @@ namespace DataTransfer
             var islem = new DataGridViewButtonColumn
             {
                 HeaderText = "İşlem",
-                Text = "Düzenle",
+                Text = "Ekle",
                 UseColumnTextForButtonValue = true,
                 Width = 75
 
@@ -117,8 +118,6 @@ namespace DataTransfer
                 islem
             });
 
-
-            //GrdDonusum.DataSource = _donusumListesi;
         }
 
 
@@ -145,19 +144,40 @@ namespace DataTransfer
                 string.IsNullOrWhiteSpace(_aramaIdKolon) ||
                 string.IsNullOrWhiteSpace(_aramaDegerKolon))
             {
-
                 return null;
             }
 
             try
             {
-                string sql = $"SELECT TOP 1 [{_aramaIdKolon}] FROM [{_aramaTablo}] WHERE [{_aramaDegerKolon}] = @kaynakDeger";
                 using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+        
+                KolonBilgisi hedefKolonBilgisi = hedefRepo.GetKolonBilgisi(_aramaTablo, _aramaDegerKolon);
+                string? hedefTip = hedefKolonBilgisi?.DataType.ToLower();
+
+                object? arananParametreDegeri = null;
+                if (!string.IsNullOrWhiteSpace(kaynakDeger))
+                {
+                    arananParametreDegeri =_hedefRepo.DinamikTipDonusumu(kaynakDeger, hedefTip);
+
+                }
+                else
+                {
+                    arananParametreDegeri = DBNull.Value;
+                }
+
+                if (arananParametreDegeri == null && !string.IsNullOrWhiteSpace(kaynakDeger))
+                {
+                    throw new InvalidOperationException($"'{kaynakDeger}' değeri, hedef tip ({hedefTip}) için uygun formata dönüştürülemedi.");
+                }
+
+
+                string sql = $"SELECT TOP 1 [{_aramaIdKolon}] FROM [{_aramaTablo}] WHERE [{_aramaDegerKolon}] = @kaynakDeger";
 
                 var parameters = new Dictionary<string, object>
                 {
-                    { "@kaynakDeger", kaynakDeger }
-                };
+                    { "@kaynakDeger", arananParametreDegeri ?? DBNull.Value }
+                 };
+
                 return hedefRepo.ExecuteScalar(sql, parameters);
             }
             catch (Exception ex)
@@ -188,10 +208,7 @@ namespace DataTransfer
                 }
             }
 
-
-            // Veri listesi (List<T>) zaten referans olarak bağlı olduğu için sadece yenileme yeterli.
             GrdDonusum.Refresh();
-
             GrdDonusum.Invalidate(true);
         }
 
@@ -200,13 +217,13 @@ namespace DataTransfer
         private void BtnDonusumKaydet_Click(object sender, EventArgs e)
         {
             var tamamlanmisDurumlar = new List<string>
-    {
-        "Oto Eşleşti",
-        "Manuel Eşleşti",
-        "Tamamlandı",
-        "Yeni Kayıt Eklendi"
+             {
+                 "Oto Eşleşti",
+                 "Manuel Eşleşti",
+                 "Tamamlandı",
+                 "Yeni Kayıt Eklendi"
 
-    };
+            };
 
 
             bool eksikEslestirmeVar = _donusumListesi.Any(satir =>
@@ -259,18 +276,24 @@ namespace DataTransfer
         {
             try
             { 
-                //using var hedefRepo = new SqlTransferRepository(_hedefBaglanti);
+                KolonBilgisi hedefKolonBilgisi = hedefRepo.GetKolonBilgisi(_aramaTablo, _aramaDegerKolon);
+                string? hedefTip= hedefKolonBilgisi?.DataType.ToLower();
+                object arananParametreDegeri=hedefRepo.DinamikTipDonusumu(yeniDeger, hedefTip);
+
+                if (arananParametreDegeri==null && !string.IsNullOrWhiteSpace(yeniDeger))
+                {
+                    throw new InvalidOperationException($"'{yeniDeger}' değeri, hedef tip ({hedefTip}) için uygun formata dönüştürülemedi.");
+                }
 
                 List<ZorunluKolonBilgisi> zorunluKolonlar = hedefRepo.ZorunluKolonlariCek(_aramaTablo, _aramaIdKolon);
 
-                // 1. Alan adları ve parametre adları listeleri
                 List<string> kolonlar = new List<string> { $"[{_aramaDegerKolon}]" };
                 List<string> parametreler = new List<string> { "@yeniDeger" };
 
                 var sqlParameters = new Dictionary<string, object>
-        {
-            { "@yeniDeger", yeniDeger }
-        };
+                {
+                    { "@yeniDeger", arananParametreDegeri??DBNull.Value }
+                };
 
 
                 int paramIndex = 1;
@@ -282,7 +305,7 @@ namespace DataTransfer
 
 
                     if (kolonAdi.Equals(_aramaDegerKolon, StringComparison.OrdinalIgnoreCase) ||
-                        kolonAdi.Equals(_aramaIdKolon,    StringComparison.OrdinalIgnoreCase)) // <--- Bu satır eklendi/güncellendi.
+                        kolonAdi.Equals(_aramaIdKolon,    StringComparison.OrdinalIgnoreCase)) 
                     {
                         continue;
                     }
@@ -292,19 +315,16 @@ namespace DataTransfer
                     kolonlar.Add($"[{kolonAdi}]");
                     parametreler.Add(paramName);
 
-                    // Veri tipine göre uygun varsayılan değeri atama
                     object varsayilanDeger = GetVarsayilanDeger(veriTipi, kolonAdi);
                     sqlParameters.Add(paramName, varsayilanDeger);
                 }
 
-                // ... (Geri kalan INSERT SQL oluşturma ve çalıştırma mantığı aynı kalır)
                 string kolonListesi = string.Join(", ", kolonlar);
                 string parametreListesi = string.Join(", ", parametreler);
                 string insertSql = $"INSERT INTO [{_aramaTablo}] ({kolonListesi}) VALUES ({parametreListesi}); SELECT SCOPE_IDENTITY();";
 
                 object newId = hedefRepo.ExecuteScalar(insertSql, sqlParameters);
 
-                // ... (Başarılı ID dönüşü veya hata yakalama)
                 if (newId != null && newId != DBNull.Value)
                 {
                     return Convert.ToInt32(newId);
@@ -314,13 +334,11 @@ namespace DataTransfer
             }
             catch (InvalidOperationException ex)
             {
-                // Spesifik olarak atanmamış tip hatası
                 MessageBox.Show($"Zorunlu alan atama hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
             catch (Exception ex)
             {
-                // Genel SQL veya bağlantı hatası
                 MessageBox.Show($"Yeni kayıt eklenirken kritik bir hata oluştu: {ex.Message}", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
@@ -391,14 +409,14 @@ namespace DataTransfer
 
                     foreach (DataRow row in kaynakdegerler.Rows)
                     {
-                        object kaynakDeger = null;
+                        object? kaynakDeger = null;
 
                         if (kaynakKolonIndex < row.Table.Columns.Count)
                         {
                             kaynakDeger = row[kaynakKolonIndex];
                         }
 
-                        string kaynakDegerString = kaynakDeger == DBNull.Value || kaynakDeger == null
+                        string? kaynakDegerString = kaynakDeger == DBNull.Value || kaynakDeger == null
                                                         ? string.Empty
                                                         : kaynakDeger.ToString();
 
@@ -473,7 +491,7 @@ namespace DataTransfer
                                 if (aciklamaResult != null && aciklamaResult != DBNull.Value)
                                 {
 
-                                    string aciklama = aciklamaResult.ToString();
+                                    string? aciklama = aciklamaResult.ToString();
                                     satir.HedefAtanacakDeger = idDegeri;
 
 

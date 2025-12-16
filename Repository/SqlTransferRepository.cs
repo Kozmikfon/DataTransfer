@@ -1,5 +1,4 @@
 ﻿using DataTransfer.Model;
-using DataTransfer.Service;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -31,6 +30,7 @@ namespace DataTransfer.Repository
 
         private const string SQL_GET_TABLES =
             "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory','sysdiagrams') ORDER BY TABLE_NAME";
+        
 
         public async Task<List<string>> TabloGetirAsync()
         {
@@ -72,28 +72,31 @@ namespace DataTransfer.Repository
             }
             return list;
         }
+        
+        //public async Task<List<string>> TabloAdlariniGetirAsync()
+        //{
+        //    var list = new List<string>();
 
-        public async Task<List<string>> TabloAdlariniGetirAsync()
-        {
-            var list = new List<string>();
+        //    string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME NOT IN ('__EFMigrationsHistory') ORDER BY TABLE_NAME";
 
-            string sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+        //    using (var conn = new SqlConnection(_connectionString))
+        //    using (var cmd = new SqlCommand(sql, conn))
+        //    {
+        //        await conn.OpenAsync();
+        //        using (var reader = await cmd.ExecuteReaderAsync())
+        //        {
+        //            while (await reader.ReadAsync())
+        //            {
+        //                list.Add(reader.GetString(0));
+        //            }
+        //        }
+        //    }
+        //    return list;
+        //}
 
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(sql, conn))
-            {
-                await conn.OpenAsync();
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        list.Add(reader.GetString(0));
-                    }
-                }
-            }
-            return list;
-        }
+        public string ConnectionString(BaglantiBilgileri b) =>
 
+            $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
 
 
         public async Task<Dictionary<string, KolonBilgisi>> KolonBilgileriniGetirAsync(string tabloAdi)
@@ -184,7 +187,8 @@ namespace DataTransfer.Repository
             C.IS_NULLABLE,
             ISNULL(INDEXES.IsUnique, 0) AS IsUnique
         FROM INFORMATION_SCHEMA.COLUMNS C
-        JOIN sys.tables T ON T.name = C.TABLE_NAME AND T.name = @TableName
+        JOIN
+        sys.tables T ON T.name = C.TABLE_NAME AND T.name = @TableName
         JOIN sys.schemas S ON S.schema_id = T.schema_id
         LEFT JOIN (
             SELECT 
@@ -210,9 +214,18 @@ namespace DataTransfer.Repository
             {
                 if (eslestirme.Sonuc != null && eslestirme.Sonuc.DonusumTipi == DonusumTuru.LookupEslestirme)
                 {
-                    string caseWhen = sqlIfadesiOlustur(eslestirme);
+                    string kaynakTip = null;
+                    try
+                    {
+                        KolonBilgisi kolonBilgisi = this.GetKolonBilgisi(tablo, eslestirme.KaynakKolon);
+                        kaynakTip = kolonBilgisi?.DataType.ToLower();
+                    }
+                    catch (Exception) { }
+
+                    string caseWhen = this.sqlIfadesiOlustur(eslestirme, kaynakTip);
                     kolonlarinListesi.Add(caseWhen);
                 }
+
                 else if (eslestirme.KaynakKolon == "(MANUEL GİRİŞ)")
                 {
                     string manuelDeger = eslestirme.ManuelDeger;
@@ -224,18 +237,12 @@ namespace DataTransfer.Repository
                     }
                     else
                     {
-                        if (double.TryParse(manuelDeger, out double _))
-                        {
-                            sqlLiteral = manuelDeger;
-                        }
-                        else
-                        {
-                            sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
-                        }
+                        sqlLiteral = $"'{manuelDeger.Replace("'", "''")}'";
                     }
 
                     kolonlarinListesi.Add($"{sqlLiteral} AS [{eslestirme.HedefKolon}]");
                 }
+
                 else
                 {
                     kolonlarinListesi.Add($"[{eslestirme.KaynakKolon}] AS [{eslestirme.HedefKolon}]");
@@ -268,16 +275,35 @@ namespace DataTransfer.Repository
         }
 
 
-        private string sqlIfadesiOlustur(EslestirmeBilgisi eslesme)
+        private string sqlIfadesiOlustur(EslestirmeBilgisi eslesme,string KaynakKolonVeriTipi)
         {
             var sozluk = eslesme.Sonuc?.DonusumSozlugu;
+
             if (sozluk == null || sozluk.Count == 0)
             {
                 return $"[{eslesme.KaynakKolon}] AS [{eslesme.HedefKolon}]";
             }
 
+            string kaynakKolonGercek = $"[{eslesme.KaynakKolon}]";
+            string karsilastirmaIfadesi;
+
+            bool isNumeric = KaynakKolonVeriTipi != null && (
+                KaynakKolonVeriTipi.Contains("numeric") || KaynakKolonVeriTipi.Contains("decimal") ||
+                KaynakKolonVeriTipi.Contains("float") || KaynakKolonVeriTipi.Contains("money")
+            );
+
+            if (isNumeric)
+            {
+                karsilastirmaIfadesi = $"REPLACE(CAST({kaynakKolonGercek} AS VARCHAR(100)), '.', ',')";
+            }
+            else
+            {
+                karsilastirmaIfadesi = kaynakKolonGercek;
+            }
+
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("CASE");
+
 
             foreach (var kvp in sozluk)
             {
@@ -298,7 +324,7 @@ namespace DataTransfer.Repository
                     hedefDegerSQL = $"'{hedefDegerString.Replace("'", "''")}'";
                 }
 
-                sb.AppendLine($"  WHEN [{eslesme.KaynakKolon}] = {kaynakDegerSQL} THEN {hedefDegerSQL}");
+                sb.AppendLine($"  WHEN {karsilastirmaIfadesi} = {kaynakDegerSQL} THEN {hedefDegerSQL}");
             }
 
             sb.AppendLine($"  ELSE NULL");
@@ -314,9 +340,9 @@ namespace DataTransfer.Repository
             string donenKolon)
         {
             string sql = $@"
-        SELECT TOP 1 [{donenKolon}] 
-        FROM [{tabloAdi}] 
-        WHERE [{aramaKolonu}] = @ArananDeger";
+                SELECT TOP 1 [{donenKolon}] 
+                FROM [{tabloAdi}] 
+                WHERE [{aramaKolonu}] = @ArananDeger";
 
             try
             {
@@ -346,35 +372,80 @@ namespace DataTransfer.Repository
         }
 
 
-        public async Task<object> ExecuteScalarAsync(string sqlCommand, Dictionary<string, object> parameters)
+
+        public object DinamikTipDonusumu(string kaynakDeger, string hedefTip)
         {
-            object result = null;
+            if (string.IsNullOrEmpty(hedefTip)) 
+                return kaynakDeger; 
 
-            try
+            switch (hedefTip)
             {
-                using (var cmd = new SqlCommand(sqlCommand, _connection, _transaction))
-                {
-                    if (_connection.State != ConnectionState.Open)
-                    {
-                        await _connection.OpenAsync();
-                    }
-                    if (parameters != null)
-                    {
-                        foreach (var param in parameters)
-                        {
-                            cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                        }
-                    }
-                    result = await cmd.ExecuteScalarAsync();
-                }
+                case "decimal":
+                case "numeric":
+                case "money":
+                case "float":
+                    if (decimal.TryParse(kaynakDeger, out decimal decVal)) 
+                        return decVal;
+                    break;
 
-                return result;
+                case "int":
+                case "bigint":
+                case "smallint":
+                case "tinyint":
+                    
+                    if (long.TryParse(kaynakDeger, out long intVal)) 
+                        return intVal;
+                    break;
+                case "datetime":
+                case "date":
+                    if (DateTime.TryParse(kaynakDeger, out DateTime dateVal)) 
+                        return dateVal;
+                    break;
+                case "bit":
+                    
+                    if (bool.TryParse(kaynakDeger, out bool boolVal)) 
+                        return boolVal;
+                    if (kaynakDeger == "1") 
+                        return true;
+                    if (kaynakDeger == "0") 
+                        return false;
+                    break;
+                default:
+                    return kaynakDeger;
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"ExecuteScalarAsync metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
-            }
+
+            return null;
         }
+
+        //public async Task<object> ExecuteScalarAsync(string sqlCommand, Dictionary<string, object> parameters)
+        //{
+        //    object result = null;
+
+        //    try
+        //    {
+        //        using (var cmd = new SqlCommand(sqlCommand, _connection, _transaction))
+        //        {
+        //            if (_connection.State != ConnectionState.Open)
+        //            {
+        //                await _connection.OpenAsync();
+        //            }
+        //            if (parameters != null)
+        //            {
+        //                foreach (var param in parameters)
+        //                {
+        //                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+        //                }
+        //            }
+        //            result = await cmd.ExecuteScalarAsync();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"ExecuteScalarAsync metodu hata: {ex.Message} SQL: {sqlCommand}", ex);
+        //    }
+        //}
 
         //filtre testi
         public async Task<int> SatirSayisiGetirAsync(string tablo, string kosul)

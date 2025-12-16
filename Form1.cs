@@ -99,7 +99,7 @@ namespace DataTransfer
             {
                 Name = "IsUnique",
                 HeaderText = "Benzersiz Kolon",
-                ReadOnly = true,
+                ReadOnly = false,
                 Width = 100,
             };
 
@@ -163,7 +163,7 @@ namespace DataTransfer
             var arananDegerKolon = new DataGridViewComboBoxColumn
             {
                 Name = "AramaDegerKolon",
-                HeaderText = "Arama Değer Kolonu",
+                HeaderText = "Arama Yapılan Değer",
                 ReadOnly = false,
                 Width = 150,
                 FlatStyle = FlatStyle.Flat,
@@ -175,14 +175,14 @@ namespace DataTransfer
             var aramaIdKolon = new DataGridViewComboBoxColumn
             {
                 Name = "AramaIdKolon",
-                HeaderText = "Arama ID Kolon",
+                HeaderText = "Aranılan Değer",
                 ReadOnly = false,
                 Width = 150,
                 FlatStyle = FlatStyle.Flat,
                 Visible = false
             };
 
-           //kaynak
+           
             var KaynakkolonDonusumGerekli = new DataGridViewCheckBoxColumn
             {
                 Name = "KaynakDonusumGerekli",
@@ -305,9 +305,11 @@ namespace DataTransfer
         private void KaynakSutunBilgileriGetir(Dictionary<string, KolonBilgisi> kaynakKolon)
         {
             GrdEslestirme.Rows.Clear();
+
             foreach (var kaynak in kaynakKolon)
             {
                 int satır = GrdEslestirme.Rows.Add();
+
                 var row = GrdEslestirme.Rows[satır];
 
 
@@ -322,7 +324,7 @@ namespace DataTransfer
         }
 
 
-        private void HedefGuncelle(List<string> hedefKolonIsimleri) //hedef kolon comboxolarına yükleme için kolon adları tutuluyor.
+        private void HedefGuncelle(List<string> hedefKolonIsimleri) 
         {
             foreach (DataGridViewRow row in GrdEslestirme.Rows)
             {
@@ -397,6 +399,7 @@ namespace DataTransfer
                         sonuc.Mesajlar.Add("MANUEL GİRİŞ ONAYI BEKLENİYOR");
                         row.Tag = null;
                     }
+
                     else
                     {
 
@@ -518,7 +521,7 @@ namespace DataTransfer
                     row.Cells["Uygunluk"].Style.ForeColor = Color.Blue;
                     return;
                 }
-                //sonuc.Mesajlar.RemoveAll(m => m.Contains("ONAY GEREKİYOR:"));
+                
 
                 if (sonuc.KritikHataVar && sonuc.Mesajlar.Contains("Uygun Değil"))
                 {
@@ -559,7 +562,6 @@ namespace DataTransfer
 
                 row.Cells["Uygunluk"].Value = "Hata";
                 lstLog.Items.Add("Kontrol Hatası: " + ex.Message);
-
             }
         }
 
@@ -574,6 +576,7 @@ namespace DataTransfer
             {
                 if (row.IsNewRow)
                     continue;
+                
 
                 string kaynak = row.Cells["KaynakKolon"].Value?.ToString();
                 string hedef = row.Cells["HedefKolon"].Value?.ToString();
@@ -585,6 +588,7 @@ namespace DataTransfer
                 }
 
                 bool onayliString = row.Tag?.ToString() == "ONAYLANDI";
+
                 EslestirmeSonucu sonuc = row.Tag as EslestirmeSonucu;              
 
                 bool uygunluk = onayliString || (sonuc != null && sonuc.EslestirmeUygun);
@@ -710,8 +714,7 @@ namespace DataTransfer
                 lstLog.Items.Add($"Filtre testi başarılı: {satırSayısı} satır döndü. WHERE: {where}");
             }
             catch (Exception ex)
-            {
-                // Repository'den fırlatılan detaylı hatayı yakala
+            {               
                 MessageBox.Show($"Test hatası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 lstLog.Items.Add($"Filtre hatası: {ex.Message}");
             }
@@ -720,19 +723,13 @@ namespace DataTransfer
 
 
 
-        private string ConnectionString(BaglantiBilgileri b) =>
-
-            $"Server={b.Sunucu};Database={b.Veritabani};User Id={b.Kullanici};Password={b.Sifre};TrustServerCertificate=True;";
-
-
-
-
+        
 
         private void ProgresGuncelle(int islenen, int toplam, int aktarılan, int atlanan)
         {
             if (prgTransfer.InvokeRequired)
             {
-                prgTransfer.Invoke(new Action(() => { ProgresGuncelle(islenen, toplam, aktarılan, atlanan); }));//new Action<int, int, int, int>(ProgresGuncelle), islenen, toplam, aktarılan, atlanan
+                prgTransfer.Invoke(new Action(() => { ProgresGuncelle(islenen, toplam, aktarılan, atlanan); }));
                 return;
             }
 
@@ -746,7 +743,7 @@ namespace DataTransfer
 
         private void LogEkle(string mesaj)
         {
-            if (lstLog.InvokeRequired)// uı threade böyle bir işim var lstloga ulaşmak izin istemek
+            if (lstLog.InvokeRequired)
             {
                 lstLog.Invoke(new Action(() => { LogEkle(mesaj); }));
                 return;
@@ -764,7 +761,7 @@ namespace DataTransfer
             var row = GrdEslestirme.Rows[e.RowIndex];
             var currentColumn = GrdEslestirme.Columns[e.ColumnIndex];
 
-            // 1. Durum: Kaynak veya Hedef Kolon Seçimi Değişimi
+       
             if (currentColumn.Name == "KaynakKolon" || currentColumn.Name == "HedefKolon")
             {
                 row.Tag = null;
@@ -773,13 +770,13 @@ namespace DataTransfer
                 row.Cells["ManuelDeger"].Value = DBNull.Value;
                 GridKontrolEt(row);
             }
-            // 2. Durum: Manuel Değer Değişimi
+            
             else if (currentColumn.Name == "ManuelDeger")
             {
                 row.Tag = null;
                 GridKontrolEt(row);
             }
-            // 3. Durum: Hedef Arama Tablosu Değişimi
+            
             else if (currentColumn.Name == "AramaTablo")
             {
                 row.Tag = null;
@@ -787,7 +784,7 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
                 GridKontrolEt(row);
             }
-            // 4. Durum: Kaynak Arama Tablosu Değişimi
+            
             else if (currentColumn.Name == "KaynakAramaTablo")
             {
                 row.Tag = null;
@@ -795,7 +792,7 @@ namespace DataTransfer
                 row.Cells["Uygunluk"].Style.ForeColor = Color.Empty;
                 GridKontrolEt(row);
             }
-            // 💡 5. DURUM: Kaynak Dönüşüm Gerekli Checkbox Değişimi (Tablo Yükleme Tetikleyicisi) 
+             
             else if (currentColumn.Name == "KaynakDonusumGerekli")
             {
                 bool donusumGerekli = (bool)(row.Cells["KaynakDonusumGerekli"].Value ?? false);
@@ -804,10 +801,10 @@ namespace DataTransfer
                 {
                     try
                     {
-                        // Tablo Adlarını Kaynak Repo'dan çek
-                        List<string> tabloAdlari = await KaynakRepo.TabloAdlariniGetirAsync();
+                        
+                        List<string> tabloAdlari = await KaynakRepo.TabloGetirAsync();
 
-                        // Hücreye Yükle
+                        
                         if (row.Cells["KaynakAramaTablo"] is DataGridViewComboBoxCell tabloCell)
                         {
                             tabloCell.Items.Clear();
@@ -845,24 +842,23 @@ namespace DataTransfer
         {
             lstLog.Items.Add("Tablolar yükleniyor");
 
-            // Asenkron işi başlat, ancak sonucu bekleme (Load olayının tamamlanması için)
+            
             LoadAsyncData();
 
             RdoBtnTumSatır.Checked = true;
         }
-        private async void LoadAsyncData() // Burada async void kalabilir, ancak try-catch zorunludur.
+        private async void LoadAsyncData()
         {
             try
             {
                 await TablolarıAgacaYukleAsync();
                 lstLog.Items.Add("Tablolar yüklendi");
-
-                // 💡 EK GÜVENLİK: Tablolar yüklendikten sonra Grid'in UI'ını hemen yenile
+                
                 GrdEslestirme.Invalidate(true);
             }
             catch (Exception ex)
             {
-                // ASYNC VOID İÇİN KRİTİK: Hataları mutlaka yakalayın
+               
                 MessageBox.Show($"Veri yükleme sırasında kritik hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -877,7 +873,7 @@ namespace DataTransfer
                 return;
             }
 
-            var eslesmeler = EslestirmeListesi(); // Kolon eşleşmelerini getirir
+            var eslesmeler = EslestirmeListesi();
 
             if (eslesmeler.Count == 0)
             {
@@ -886,11 +882,12 @@ namespace DataTransfer
             }
 
             var benzersizKolonlar = BenzersizKolonlariGetir();
+
             if (!benzersizKolonlar.Any())
             {
 
                 DialogResult result = MessageBox.Show(
-                    "Mükerrer (Benzersiz) kayıt kontrolü için herhangi bir alan seçilmedi. İptal edip benzersiz alan seçmek için 'Evet', kontrolsüz devam etmek için 'Hayır' tuşuna basın.",
+                    "Mükerrer-Benzersiz kayıt kontrolü yapmak istiyor musunuz?",
                     "Mükerrer Kontrol Uyarısı",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
@@ -989,7 +986,7 @@ namespace DataTransfer
             List<EslestirmeBilgisi> eslesmeler,
             DataTable kaynakVeri)
         {
-            string hedefConnStr = ConnectionString(hedef);
+            string hedefConnStr = HedefRepo.ConnectionString(hedef);
 
             var benzersizKolon = new List<string>();
 
@@ -1208,9 +1205,9 @@ namespace DataTransfer
                     }
 
                     
-                    string cols = string.Join(",", hedefDegerEkle.Keys.Select(k => $"[{k}]"));
+                    string kolonIsimleri = string.Join(",", hedefDegerEkle.Keys.Select(k => $"[{k}]"));
                     string parametreAdlari = string.Join(",", hedefDegerEkle.Keys.Select(k => $"@{k}"));
-                    string insertSql = $"INSERT INTO [{hedefTablo}] ({cols}) VALUES ({parametreAdlari})";
+                    string insertSql = $"INSERT INTO [{hedefTablo}] ({kolonIsimleri}) VALUES ({parametreAdlari})";
 
                     using (var cmdInsert = new SqlCommand(insertSql, conn, transaction))
                     {
@@ -1280,8 +1277,11 @@ namespace DataTransfer
             {
                 if (row.Tag?.ToString() != "ONAYLANDI")
                     continue;
+
                 string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
-                if (string.IsNullOrWhiteSpace(hedefKolon)) continue;
+
+                if (string.IsNullOrWhiteSpace(hedefKolon)) 
+                    continue;
 
                 bool benzersizAlan = (row.Cells["IsUnique"] as DataGridViewCheckBoxCell)?.Value as bool? ?? false;
                 bool uniqueTanimlama = HedefKolonlar.ContainsKey(hedefKolon) && HedefKolonlar[hedefKolon].IsUnique;
@@ -1304,18 +1304,18 @@ namespace DataTransfer
                 combo.SelectedIndexChanged -= AramaTablosu_SelectedIndexChanged;
                 combo.SelectedIndexChanged -= KaynakAramaTablosu_SelectedIndexChanged;
 
-                var currentColumnName = GrdEslestirme.CurrentCell.OwningColumn.Name;
+                var duzenlenenKolonAdi = GrdEslestirme.CurrentCell.OwningColumn.Name;
 
-                // 1. Hedef Kolon Seçimi Kontrolü
-                if (currentColumnName == "HedefKolon")
+                if (duzenlenenKolonAdi == "HedefKolon")
                 {
                     combo.SelectedIndexChanged += HedefKolonSecildi;
                 }
-                else if (currentColumnName == "AramaTablo")
+
+                else if (duzenlenenKolonAdi == "AramaTablo")
                 {
                     combo.SelectedIndexChanged += AramaTablosu_SelectedIndexChanged;
                 }
-                else if (currentColumnName == "KaynakAramaTablo")
+                else if (duzenlenenKolonAdi == "KaynakAramaTablo")
                 {
                     combo.SelectedIndexChanged += KaynakAramaTablosu_SelectedIndexChanged;
 
@@ -1326,28 +1326,29 @@ namespace DataTransfer
         private async void AramaTablosu_SelectedIndexChanged(object sender, EventArgs e)
         {
             var comboBox = sender as ComboBox;
-            if (comboBox == null) return;
+            if (comboBox == null) 
+                return;
 
 
-            var currentRow = GrdEslestirme.CurrentRow;
+            var islemRow = GrdEslestirme.CurrentRow;
             string secilenTabloAdi = comboBox.SelectedItem.ToString();
 
 
             List<string> kolonAdlari = await HedefRepo.KolonAdlariniGetirAsync(secilenTabloAdi);
 
 
-            if (currentRow.Cells["AramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
+            if (islemRow.Cells["AramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
             {
                 degerKolonCell.Items.Clear();
                 degerKolonCell.Items.AddRange(kolonAdlari.ToArray());
             }
 
-            if (currentRow.Cells["AramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
+            if (islemRow.Cells["AramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
             {
                 idKolonCell.Items.Clear();
                 idKolonCell.Items.AddRange(kolonAdlari.ToArray());
             }
-            currentRow.Cells["AramaTablo"].Value = secilenTabloAdi;
+            islemRow.Cells["AramaTablo"].Value = secilenTabloAdi;
 
 
             lstLog.Items.Add($"{secilenTabloAdi} tablosunun kolonları Arama Kolonlarına yüklendi.");
@@ -1360,14 +1361,14 @@ namespace DataTransfer
             if (comboBox == null) return;
 
 
-            var currentRow = GrdEslestirme.CurrentRow;
-            string secilenTabloAdi = comboBox.SelectedItem.ToString();
+            var islemRow = GrdEslestirme.CurrentRow;
+            string? secilenTabloAdi = comboBox.SelectedItem.ToString();
 
 
             List<string> kolonAdlari = await KaynakRepo.KolonAdlariniGetirAsync(secilenTabloAdi);
 
 
-            if (currentRow.Cells["KaynakAramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
+            if (islemRow.Cells["KaynakAramaDegerKolon"] is DataGridViewComboBoxCell degerKolonCell)
             {
                 degerKolonCell.Items.Clear();
                 degerKolonCell.Items.AddRange(kolonAdlari.ToArray());
@@ -1376,13 +1377,13 @@ namespace DataTransfer
             }
 
 
-            if (currentRow.Cells["KaynakAramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
+            if (islemRow.Cells["KaynakAramaIdKolon"] is DataGridViewComboBoxCell idKolonCell)
             {
                 idKolonCell.Items.Clear();
                 idKolonCell.Items.AddRange(kolonAdlari.ToArray());
 
             }
-            currentRow.Cells["KaynakAramaTablo"].Value = secilenTabloAdi;
+            islemRow.Cells["KaynakAramaTablo"].Value = secilenTabloAdi;
 
 
             lstLog.Items.Add($"{secilenTabloAdi} tablosunun kolonları Kaynak Arama Kolonlarına yüklendi.");
@@ -1394,6 +1395,7 @@ namespace DataTransfer
                 return;
 
             var row = GrdEslestirme.Rows[e.RowIndex];
+
             string durum = row.Cells["Uygunluk"].Value?.ToString();
             string kaynakKolon = row.Cells["KaynakKolon"].Value?.ToString();
             string hedefKolon = row.Cells["HedefKolon"].Value?.ToString();
@@ -1498,6 +1500,7 @@ namespace DataTransfer
                     KaynakKolonlar = await KaynakRepo.KolonBilgileriniGetirAsync(kaynakTablo);
                     KaynakSutunBilgileriGetir(KaynakKolonlar);
                     lstLog.Items.Add($"Kaynak kolonlar yüklendi ({KaynakKolonlar.Count} adet).");
+                   
                 }
                 else
                 {
@@ -2070,8 +2073,7 @@ namespace DataTransfer
                     yeniDurum = editedValue;
                 }
                 else
-                {
-     
+                {     
                     bool currentValue = cell.Value as bool? ?? false;
                     yeniDurum = !currentValue;
                 }

@@ -11,29 +11,26 @@ namespace DataTransfer.Model
         public string DataType { get; set; }
         public int? Length { get; set; }
         public bool IsNullable { get; set; }
-        public bool IsUnique { get; set; } //mukerrer kontrolu için benzersiz alan
+        public bool IsUnique { get; set; } 
 
 
         private static bool SayiKontrolu(string dataType)
         {
-            // Mevcut metot tanımınızı kullanır
-            string[] numericTypes = { "int", "bigint", "smallint", "tinyint", "decimal", "numeric", "float", "real", "money", "smallmoney" };
-            // "money" ve "smallmoney" eklenmiştir (genellikle sayısal kabul edilir).
+            
+            string[] numericTypes = { "int", "bigint", "smallint", "tinyint", "decimal", "numeric", "float", "real", "money", "smallmoney" };            
             return numericTypes.Contains(dataType.ToLower());
         }
 
         private static bool MetinselTip(string dataType)
         {
-            // Mevcut metot tanımınızı kullanır
             string[] textTypes = { "nvarchar", "varchar", "nchar", "char", "text", "ntext" };
-            // "text" ve "ntext" eklenmiştir (genellikle metinsel olarak kabul edilir).
+           
             return textTypes.Contains(dataType.ToLower());
         }
         public bool IsStringBased
         {
             get
             {
-                // Statik yardımcı metodu kullanarak sonucu döndürür
                 return MetinselTip(this.DataType);
             }
         }
@@ -41,7 +38,6 @@ namespace DataTransfer.Model
         {
             get
             {
-                // Statik yardımcı metodu kullanarak sonucu döndürür
                 return SayiKontrolu(this.DataType);
             }
         }

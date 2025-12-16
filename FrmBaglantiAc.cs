@@ -10,8 +10,8 @@ namespace DataTransfer
 {
     public partial class FrmBaglantiAc : Form
     {
-        public BaglantiBilgileri KaynakBaglanti { get; private set; } // okunabilir ve sadece buradan değiştirilebilir
-        public BaglantiBilgileri HedefBaglanti { get; private set; } //dışarıya oku ama değiştirmesine izin verme
+        public BaglantiBilgileri KaynakBaglanti { get; private set; } 
+        public BaglantiBilgileri HedefBaglanti { get; private set; } 
 
         private bool kaynakTestBasarili = false;
         private bool hedefTestBasarili = false;
@@ -192,7 +192,7 @@ namespace DataTransfer
                 {
                     await conn.OpenAsync();
 
-                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name"; //online ve kullanılabilir veritabanları state=0
+                    string sql = "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name";
                     using (var cmd = new SqlCommand(sql, conn))
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -330,7 +330,7 @@ namespace DataTransfer
                     return;
                 }
 
-                // Bağlantı bilgilerini oluştur
+                
                 BaglantiBilgileri kaynak = new BaglantiBilgileri
                 {
                     Sunucu = TxtboxKaynakSunucu.Text.Trim(),
@@ -359,7 +359,6 @@ namespace DataTransfer
                     MessageBox.Show($"Forma girerken hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
                 try
                 {
                     this.Hide();
@@ -394,7 +393,6 @@ namespace DataTransfer
 
             try
             {
-                
                 string connStr = $"Server={TxtboxKaynakSunucu.Text.Trim()};Database={secilenDb};User Id={TxtKullanıcı.Text.Trim()};Password={TxtSifre.Text.Trim()};Connect Timeout=5; TrustServerCertificate=True;";
 
                 using (var conn = new SqlConnection(connStr))
@@ -402,7 +400,7 @@ namespace DataTransfer
                     await conn.OpenAsync();
 
                     
-                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))//tabloya erişim testi veritabnına erişim var fakat tabloya yoksa hata verir
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
                     {
                         await cmd.ExecuteScalarAsync();
                     }
@@ -446,7 +444,7 @@ namespace DataTransfer
                 using (var conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
-                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))//erşim testi erişim izni varsa sıkıntı yok izin yoksa hata verir
+                    using (var cmd = new SqlCommand("SELECT TOP 1 name FROM sys.tables", conn))
                     {
                         await cmd.ExecuteScalarAsync();
                     }
@@ -509,7 +507,6 @@ namespace DataTransfer
             }
             else
             {
-                // Başarısız işlem
                 if (PrgsbarBaglanti.Value < 30)
                     PrgsbarBaglanti.Value = 30; 
 
